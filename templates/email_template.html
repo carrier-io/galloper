@@ -40,8 +40,8 @@
             </tr>
         </table>
 
-
         <table style="border-spacing: 10px; width: 100%;">
+            {% if baseline != None %}
             <tr>
                 <td style="vertical-align:top">
                     <h2 style="font-size: 16px; color: #02a3d5;">Comparison vs Baseline</h2>
@@ -55,6 +55,7 @@
                     {% endfor %}
                 </td>
             </tr>
+            {% endif %}
             <tr>
                 <td style="vertical-align:top">
                     <h2 style="font-size: 16px; color: #02a3d5;">Comparison vs Thresholds</h2>
@@ -65,14 +66,17 @@
                     <br><br><br>
                     <b style="font-size: 16px; color: #02a3d5;">Top 5 excided thresholds</b> <br>
                     {% for request in top_five_thresholds %}
-                    {{ request.request_name }} {{ request.response_time }} <b style="color: {{ request.style_color }}">({{ request.color }})</b> <br>
+                    {{ request.request_name }} {{ request.response_time }} <b style="color: {{ request.style_color }}">({{
+                    request.color }})</b> <br>
                     {% endfor %}
                 </td>
             </tr>
         </table>
 
+        {% if comparison|length != 1 %}
+
         <div>
-            <h2 style="font-size: 16px; color: #02a3d5;">Comparison vs 5 latest builds</h2>
+            <h2 style="font-size: 16px; color: #02a3d5;">Comparison vs latest builds</h2>
 
             <table style="font-family: Helvetica,Arial,sans-serif;font-size: 14px;line-height: 23px;border-collapse: collapse; width: 100%;">
                 <thead style="background-color: #dcdbdb;">
@@ -102,6 +106,8 @@
                 {% endfor %}
             </table>
         </div>
+
+        {% endif %}
 
         <div>
             <h2 style="font-size: 16px; color: #02a3d5;">Results summary table</h2>
@@ -134,10 +140,12 @@
                 {% endfor %}
             </table>
         </div>
+        {% if comparison|length != 1 %}
         <h2 style="font-size: 16px; color: #02a3d5;">Success Rate</h2>
         <img src="cid:success_rate" style="width:900px;height:270px;">
         <h2 style="font-size: 16px; color: #02a3d5;">RPS/TPS Rate</h2>
         <img src="cid:throughput" style="width:900px;height:270px;">
+        {% endif %}
 
         <div style="border-bottom: 2px solid #02a3d5;margin: 30px 0px 15px 0px;"></div>
         <p style="font-size: 11px; line-height: 12px; color: #666; margin: .2em 0; padding: 0;">

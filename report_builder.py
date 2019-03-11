@@ -50,7 +50,7 @@ def check_performance_degradation(test, baseline, comparison_metric):
             request_count += 1
             for baseline_request in baseline:
                 if request['request_name'] == baseline_request['request_name']:
-                    if int(request[comparison_metric]) < int(baseline_request[comparison_metric]):
+                    if int(request[comparison_metric]) > int(baseline_request[comparison_metric]):
                         performance_degradation += 1
         performance_degradation_rate = performance_degradation * 100 / request_count
         if performance_degradation_rate > 20:
@@ -130,7 +130,10 @@ def compare_builds(build, last_build):
         build_info['total_diff'] = "&#9650;" + str(build_info['total_diff'])
     else:
         build_info['total_diff'] = str(build_info['total_diff']).replace("-", "&#9660;")
-    build_info['throughput_diff'] = round(float(build['throughput']) * 100 / float(last_build['throughput']) - 100, 1)
+    if float(last_build['throughput']) != 0.0:
+        build_info['throughput_diff'] = round(float(build['throughput']) * 100 / float(last_build['throughput']) - 100, 1)
+    else:
+        build_info['throughput_diff'] = 0.0
     if build_info['throughput_diff'] > 0.0:
         build_info['throughput_diff'] = "&#9650;" + str(build_info['throughput_diff'])
     else:
@@ -144,19 +147,26 @@ def compare_builds(build, last_build):
 def create_charts(builds, last_test_data, baseline, comparison_metric):
     charts = []
     create_tmp_folder()
-    charts.append(create_success_rate_chart(builds))
-    charts.append(create_throughput_chart(builds))
-    charts.append(create_comparison_vs_baseline_barchart(last_test_data, baseline, comparison_metric))
+    if builds.__len__() > 1:
+        charts.append(create_success_rate_chart(builds))
+    if builds.__len__() > 1:
+        charts.append(create_throughput_chart(builds))
+    if baseline:
+        charts.append(create_comparison_vs_baseline_barchart(last_test_data, baseline, comparison_metric))
     charts.append(create_thresholds_chart(last_test_data, comparison_metric))
     return charts
 
 
 def create_success_rate_chart(builds):
-    values = []
+    labels = []
     keys = []
+    values = []
+    count = 1
     for test in builds:
-        values.append(test['date'])
+        labels.append(test['date'])
         keys.append(100 - test['error_rate'])
+        values.append(count)
+        count += 1
     datapoints = {
         'title': 'Successful requests, %',
         'label': 'Successful requests, %',
@@ -166,8 +176,8 @@ def create_success_rate_chart(builds):
         'height': 3,
         'path_to_save': 'tmp/success_rate.png',
         'keys': keys[::-1],
-        'values': [1, 2, 3, 4, 5],
-        'labels': values[::-1]
+        'values': values,
+        'labels': labels[::-1]
     }
     alerts_linechart(datapoints)
     fp = open('tmp/success_rate.png', 'rb')
@@ -178,11 +188,15 @@ def create_success_rate_chart(builds):
 
 
 def create_throughput_chart(builds):
-    values = []
+    labels = []
     keys = []
+    values = []
+    count = 1
     for test in builds:
-        values.append(test['date'])
+        labels.append(test['date'])
         keys.append(test['throughput'])
+        values.append(count)
+        count += 1
     datapoints = {
         'title': 'Throughput',
         'label': 'Throughput, req/s',
@@ -192,8 +206,8 @@ def create_throughput_chart(builds):
         'height': 3,
         'path_to_save': 'tmp/throughput.png',
         'keys': keys[::-1],
-        'values': [1, 2, 3, 4, 5],
-        'labels': values[::-1]
+        'values': values,
+        'labels': labels[::-1]
     }
     alerts_linechart(datapoints)
     fp = open('tmp/throughput.png', 'rb')
@@ -331,24 +345,27 @@ def create_thresholds_chart(last_test_data, comparison_metric):
 
 
 def get_top_five_baseline(last_test_data, baseline, comparison_metric):
-    excided_baseline = []
-    for request in last_test_data:
-        for baseline_request in baseline:
-            if request['request_name'] == baseline_request['request_name']:
-                if int(request[comparison_metric]) > int(baseline_request[comparison_metric]):
-                    req = {}
-                    if str(request['request_name']).__len__() > 25:
-                        req['request_name'] = str(request['request_name'])[:25] + "...: "
-                    else:
-                        req['request_name'] = str(request['request_name']) + ": "
-                    req['response_time'] = str(round(float(request[comparison_metric])/1000, 2)) + " sec"
-                    req['delta'] = int(request[comparison_metric]) - int(baseline_request[comparison_metric])
-                    excided_baseline.append(req)
-    excided_baseline = sorted(excided_baseline, key=lambda k: k['delta'], reverse=True)
-    if excided_baseline.__len__() > 5:
-        return excided_baseline[:5]
+    if baseline:
+        excided_baseline = []
+        for request in last_test_data:
+            for baseline_request in baseline:
+                if request['request_name'] == baseline_request['request_name']:
+                    if int(request[comparison_metric]) > int(baseline_request[comparison_metric]):
+                        req = {}
+                        if str(request['request_name']).__len__() > 25:
+                            req['request_name'] = str(request['request_name'])[:25] + "...: "
+                        else:
+                            req['request_name'] = str(request['request_name']) + ": "
+                        req['response_time'] = str(round(float(request[comparison_metric])/1000, 2)) + " sec"
+                        req['delta'] = int(request[comparison_metric]) - int(baseline_request[comparison_metric])
+                        excided_baseline.append(req)
+        excided_baseline = sorted(excided_baseline, key=lambda k: k['delta'], reverse=True)
+        if excided_baseline.__len__() > 5:
+            return excided_baseline[:5]
+        else:
+            return excided_baseline
     else:
-        return excided_baseline
+        return []
 
 
 def get_top_five_thresholds(last_test_data, comparison_metric):

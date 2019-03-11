@@ -31,7 +31,7 @@ def email_notification(args):
 
     top_five_thresholds = get_top_five_thresholds(last_test_data, comparison_metric)
 
-    email_body = create_email_body(test_description, last_test_data, builds_comparison, top_five_baseline,
+    email_body = create_email_body(test_description, last_test_data, baseline, builds_comparison, top_five_baseline,
                                    top_five_thresholds)
 
     send_email(smtp_config, user_list, email_body, charts)
@@ -58,10 +58,10 @@ def send_email(smtp_config, user_list, email_body, charts):
     s.quit()
 
 
-def create_email_body(test_params, last_test_data, builds_comparison, top_five_baseline, top_five_thresholds):
+def create_email_body(test_params, last_test_data, baseline, builds_comparison, top_five_baseline, top_five_thresholds):
     env = Environment(loader=FileSystemLoader('./templates/'))
     template = env.get_template("email_template.html")
-    html = template.render(t_params=test_params, summary=last_test_data, comparison=builds_comparison,
+    html = template.render(t_params=test_params, summary=last_test_data, baseline=baseline, comparison=builds_comparison,
                            top_five_baseline=top_five_baseline, top_five_thresholds=top_five_thresholds)
     return html
 
