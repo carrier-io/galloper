@@ -1,0 +1,3 @@
+graft galloper/static
+graft galloper/templates
+global-exclude *.pyc

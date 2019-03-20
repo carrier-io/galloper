@@ -1,0 +1,190 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+      <div class="row">
+        <div class="col">
+          <div class="card shadow">
+            <div class="card-header bg-white border-0">
+              <div class="row align-items-center">
+                <div class="col-8">
+                  <h3 class="mb-0">Edit Task</h3>
+                </div>
+                <div class="col-4 text-right">
+                  <a href="/tasks" class="btn btn-sm btn-primary">Cancel</a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <form action="/edit_task" id="edtask" method="post">
+                <h6 class="heading-small text-muted mb-4">Task Details</h6>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-8">
+                      <div class="form-group">
+                        <label class="form-control-label" for="funcname">Task Name</label>
+                        <p><small>Enter a name that describes the purpose of your function.</small></p>
+                        <input type="text" id="funcname" class="form-control form-control-alternative" placeholder="Function Name" value="{{ task.task_name }}">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-8">
+                      <div class="form-group">
+                        <label class="form-control-label" for="runtime">Runtime</label>
+                        <p><small>Choose the language to use to write your function.</small></p>
+                        <select class="selectpicker show-tick form-control form-control-sm " id="runtime">
+                            <!--<option>.NET Core 1.0 (C#)</option>-->
+                            <!--<option>.NET Core 2.0 (C#)</option>-->
+                            <!--<option>.NET Core 2.1 (C#/PowerShell)</option>-->
+                            <!--<option>Go 1.x</option>-->
+                            <!--<option>Java 8</option>-->
+                            <!--<option>Node.js 6.10</option>-->
+                            <!--<option>Node.js 8.10</option>-->
+                            <option>Python 2.7</option>
+                            <option>Python 3.6</option>
+                            <option>Python 3.7</option>
+                            <!--<option>Ruby 2.5</option>-->
+                        </select>
+                        <!--<input type="text" id="input-first-name"  placeholder="First name" value="Lucky">-->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <hr class="my-4" />
+                <h6 class="heading-small text-muted mb-4">Task Details</h6>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="auth">Auth Token</label>
+                        <input type="text" id="auth" class="form-control form-control-alternative" placeholder="auth token" value="{{ task.token }}">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="webhook">Webhook</label>
+                        <p><small>POST Hook to call your task</small></p>
+                        <input type="text" id="webhook" class="form-control form-control-alternative" placeholder="webhook" value="/task/{{ task.task_id }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                            <br/>
+                            <br/>
+                            To call a task using REST you need to pass
+                            <br />
+                            <code>token</code> - header with auth token
+                            <br/>
+                            <code>body</code> - in case of POST request body is JSON with parameters to handler
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="schedule">Schedule</label>
+                        <p><small>Cron like schedule for a task</small></p>
+                        <input type="text" id="schedule" class="form-control form-control-alternative" placeholder="Handler Name (e.g. my_handler)" value="{{ task.schedule }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <!-- This weird formatting is needed for now, later when we get someone who know something in markap we can fix it -->
+                      <small>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            *&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*
+                            <br />
+                            <code>minute&nbsp;&nbsp;&nbsp;hour&nbsp;&nbsp;&nbsp;day&nbsp;&nbsp;&nbsp;month&nbsp;&nbsp;&nbsp;week</code>
+                            <br />
+                            <code>@yearly (or @annually) </code> --	Run once a year at midnight of 1 January -- <code>0 0 1 1 *</code>
+                            <br />
+                            <code>@monthly</code> --	 Run once a month at midnight of the first day of the month --	<code>0 0 1 * *</code>
+                            <br />
+                            <code>@weekly</code> --	Run once a week at midnight on Sunday morning --	<code>0 0 * * 0</code>
+                            <br />
+                            <code>@daily</code> --	Run once a day at midnight --	<code>0 0 * * *</code>
+                            <br />
+                            <code>@hourly</code> --	Run once an hour at the beginning of the hour --	<code>0 * * * *</code>
+                            <br />
+                            <br />
+                            <br />
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="invoke_func">Task Handler</label>
+                        <p><small>Function used to invoke a task</small></p>
+                        <input type="text" id="invoke_func" class="form-control form-control-alternative" placeholder="Handler Name (e.g. my_handler)" value="{{ task.task_handler }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                            At the time you create a Task, you specify a handler, which is a function in your code,
+                            that Galloper can invoke when the service executes your code.
+                            Use the following general syntax structure - <code> handler(event, context) </code>
+                            <br />
+                            <code>event</code> - object provides data to the handler
+                            <br/>
+                            <code>context</code> - object provides methods and properties that provide information about the invocation, function, and execution environment.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        {% if task.status == 'suspended' %}
+                        <a href="/task/{{ task.task_id }}/activate" class="btn btn-success" role="button" aria-pressed="true">Activate</a>
+                        {% else %}
+                        <a href="/task/{{ task.task_id }}/suspend" class="btn btn-warning" role="button" aria-pressed="true">Suspend</a>
+                        {% endif %}
+                        <a href="/task/{{ task.task_id }}/delete" class="btn btn-danger" role="button" aria-pressed="true">Delete</a>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% include 'common/foot.html' %}
+<script>
+    $('#edtask').submit(
+        function (event) {
+          event.preventDefault();
+          var data = new FormData();
+          data.append('task_name', $('#funcname')[0].value);
+          data.append('runtime', $('#runtime')[0].value);
+          data.append('task_nadler', $('#invoke_func')[0].value);
+          data.append('schedule', $('#schedule')[0].value);
+          data.append('webhook', $('#webhook')[0].value);
+          data.append('auth', $('#auth')[0].value);
+          $.ajax(
+            {
+              url:"/task/{{ task.task_id }}/edit",
+              data: data,
+              cache: false,
+              contentType: false,
+              processData: false,
+              method: 'POST',
+              success: function(data){
+                window.location.href = "/tasks";
+              }
+            }
+          );
+        }
+    );
+</script>
+</body>
+</html>
