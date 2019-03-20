@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 from flask import Flask, g
+from datetime import datetime
 
 from galloper.models import db
 
@@ -29,6 +30,10 @@ def create_app():
         db = g.pop('db', None)
         if db:
             db.close()
+
+    @app.template_filter('ctime')
+    def convert_time(ts):
+        return datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
     from galloper.routes import tasks
     app.register_blueprint(tasks.bp)

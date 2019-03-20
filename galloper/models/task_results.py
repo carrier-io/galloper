@@ -21,6 +21,7 @@ class Results(db.Model):
     task_id = db.Column(db.String(80), unique=False, nullable=False)
     ts = db.Column(db.Integer, unique=False, nullable=False)
     results = db.Column(db.String(80), unique=False, nullable=False)
+    log = db.Column(db.String(256), unique=False, nullable=False)
 
     def __repr__(self):
         return dumps(dict(task_id=self.task_id, ts=self.ts, results=self.results),indent=2)

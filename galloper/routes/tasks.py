@@ -104,13 +104,15 @@ def suspend_task(task_name, action):
             data = request.get_json()
             task = Task.query.filter_by(task_id=task_name).first()
             task.set_last_run(datetime.utcfromtimestamp(data['ts']).strftime('%Y-%m-%d %H:%M:%S'))
-            result = Results(task_id=task_name, ts=data['ts'], results=data['results'])
+            result = Results(task_id=task_name, ts=data['ts'],
+                             results=data['results'],
+                             log=data['stderr'])
             result.insert()
             return "OK", 201
         if request.method == 'GET':
-            result = Results.query.filter_py(task_id=task_name).order_by(Results.ts).all()
+            result = Results.query.filter_by(task_id=task_name).order_by(Results.ts).all()
             task = Task.query.filter_by(task_id=task_name).first()
-            return render_template('task_results.html', results=result, task=task)
+            return render_template('lambdas/task_results.html', results=result, task=task)
     return redirect(url_for('tasks.tasks'))
 
 

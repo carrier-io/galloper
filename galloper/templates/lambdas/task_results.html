@@ -7,10 +7,18 @@
             <div class="card-header bg-white border-0">
               <div class="row align-items-center">
                 <div class="col-8">
-                  <h3 class="mb-0">Tasks</h3>
+                  <h3 class="mb-0">{{ task.task_name }} task results</h3>
                 </div>
                 <div class="col-4 text-right">
-                  <a href="/add_task" class="btn btn-sm btn-primary">Add Task</a>
+                  <a class="icon-sm icon-shape bg-success text-white rounded-circle shadow" href="/task/{{ task.task_id }}">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                  <a class="icon-sm icon-shape bg-warning text-white rounded-circle shadow " href="/task/{{ task.task_id }}">
+                      <i class="fas fa-pause"></i>
+                  </a>
+                  <a class="icon-sm icon-shape bg-danger text-white rounded-circle shadow" href="/task/{{ task.task_id }}">
+                      <i class="fas fa-trash-alt"></i>
+                  </a>
                 </div>
               </div>
             </div>
@@ -18,71 +26,21 @@
               <table class="table align-items-center table-flush">
                 <thead class="thead-light">
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Runtime</th>
-                    <th scope="col">Last Execution</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Schedule</th>
-                    <th scope="col"></th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Log</th>
+                    <th scope="col">Results</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for task in tasks %}
-                  <span>
+                  {% for result in results %}
                     <th scope="row">
-                      <a href="/task/{{ task.task_id }}">{{ task.task_name }}</a>
-                      <!--<div class="media align-items-center">-->
-
-                        <!--<a href="#" class="avatar rounded-circle mr-3">-->
-                          <!--<img alt="Image placeholder" src="../assets/img/theme/bootstrap.jpg">-->
-                        <!--</a>-->
-                        <!--<div class="media-body">-->
-                          <!--<span class="mb-0 text-sm"></span>-->
-                        <!--</div>-->
-                      <!--</div>-->
+                      {{ result.ts | ctime}}
                     </th>
                     <td>
-                      {{ task.runtime }}
+                      <pre>{{ result.log }}</pre>
                     </td>
                     <td>
-                      <a href="/task/{{ task.task_id }}/results">{{ task.last_run }}</a>
-                    </td>
-                    <td>
-                      <span class="badge badge-dot mr-4">
-                      {% if task.status == 'suspended' %}
-                        <i class="bg-warning"></i>
-                      {% else %}
-                        <i class="bg-success"></i>
-                      {% endif %}
-                        {{ task.status }}
-                      </span>
-                    </td>
-                    <td>
-                      <!--<div class="d-flex align-items-center">-->
-                        <!--<span class="mr-2">60%</span>-->
-                        <!--<div>-->
-                          <!--<div class="progress">-->
-                            <!--<div class="progress-bar bg-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;"></div>-->
-                          <!--</div>-->
-                        <!--</div>-->
-                      <!--</div>-->
-                      {{ task.schedule }}
-                    </td>
-                    <td class="text-right">
-                      <div class="dropdown">
-                        <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="fas fa-ellipsis-v"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                          <a class="dropdown-item" href="/task/{{ task.task_id }}">Edit</a>
-                          {% if task.status == 'suspended' %}
-                            <a class="dropdown-item" href="/task/{{ task.task_id }}/activate">Activate</a>
-                          {% else %}
-                            <a class="dropdown-item" href="/task/{{ task.task_id }}/suspend">Suspend</a>
-                          {% endif %}
-                          <a class="dropdown-item" href="/task/{{ task.task_id }}/delete">Delete</a>
-                        </div>
-                      </div>
+                      <pre>{{ result.results }} </pre>
                     </td>
                   </tr>
                   {% endfor %}

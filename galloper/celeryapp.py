@@ -61,8 +61,10 @@ def execute_lambda(self, task, event, *args, **kwargs):
     mount = Mount(type="volume", source=task['task_id'], target="/var/task")
     response = client.containers.run(f"lambci/lambda:{container_name}",
                                      command=[f"{task['task_handler']}", dumps(event)],
-                                     mounts=[mount], remove=True)
-    data = {"ts": int(time()), 'results': response.decode("utf-8", errors='ignore')}
+                                     mounts=[mount], stderr=True, remove=True)
+    # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
+    results = response.decode("utf-8", errors='ignore').split("\n\n")
+    data = {"ts": int(time()), 'results': results[1], 'stderr': results[0]}
 
     headers = {
         "Content-Type": "application/json",
