@@ -78,9 +78,16 @@ def ui_comparison_linechart(datapoints):
     fig, ax = plt.subplots(figsize=(datapoints['width'] * 2, datapoints['height'] * 2), dpi=300,
                            facecolor='w')
     b1 = ax.bar(datapoints['keys'], datapoints['latency_values'], color='#7EB26D')
-    b2 = ax.bar(datapoints['keys'], datapoints['transfer_values'], bottom=datapoints['latency_values'], color='#EAB839')
-    b3 = ax.bar(datapoints['keys'], datapoints['tti_values'], bottom=[x + y for x, y in zip(datapoints['transfer_values'], datapoints['latency_values'])], color='#6ED0E0')
-    b4 = ax.bar(datapoints['keys'], datapoints['ttl_values'], bottom=[x + y + z for x, y, z in zip(datapoints['transfer_values'], datapoints['latency_values'], datapoints['tti_values'])], color='#EF843C')
+    b2 = ax.bar(datapoints['keys'], datapoints['transfer_values'],
+                bottom=datapoints['latency_values'], color='#EAB839')
+    b3 = ax.bar(datapoints['keys'], datapoints['tti_values'],
+                bottom=[x + y for x, y in zip(datapoints['transfer_values'], datapoints['latency_values'])],
+                color='#6ED0E0')
+    b4 = ax.bar(datapoints['keys'], datapoints['ttl_values'],
+                bottom=[x + y + z for x, y, z in zip(datapoints['transfer_values'],
+                                                     datapoints['latency_values'],
+                                                     datapoints['tti_values'])],
+                color='#EF843C')
     ax.legend((b1[0], b2[0], b3[0], b4[0]), ('latency', 'transfer', 'tti', 'ttl'), loc='upper right')
     ax.set_xlabel(datapoints['x_axis'])
     ax.set_ylabel(datapoints['y_axis'])

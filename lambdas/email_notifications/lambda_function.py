@@ -1,4 +1,4 @@
-from email_notifications import *
+from email_notifications import ui_email_notification, email_notification
 
 
 def ui_email_lambda_handler(event, context):

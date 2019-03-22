@@ -165,25 +165,32 @@ def compare_builds(build, last_build):
     if build_info['error_rate_diff'] > 0.0:
         build_info['error_rate_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['error_rate_diff'])
     else:
-        build_info['error_rate_diff'] = str(build_info['error_rate_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
-    build_info['pct95_diff'] = round(float(build['pct95']) * 100 / float(last_build['pct95']) - 100, 1)
+        build_info['error_rate_diff'] = str(build_info['error_rate_diff']
+                                            ).replace("-", "<b style=\"color: green\">&#9660;</b>")
+    build_info['pct95_diff'] = round(float(build['pct95']) * 100 /
+                                     float(last_build['pct95']) - 100, 1)
     if build_info['pct95_diff'] > 0.0:
         build_info['pct95_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['pct95_diff'])
     else:
-        build_info['pct95_diff'] = str(build_info['pct95_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['pct95_diff'] = str(build_info['pct95_diff']
+                                       ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_diff'] = round(float(build['total']) * 100 / float(last_build['total']) - 100, 1)
     if build_info['total_diff'] > 0.0:
         build_info['total_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_diff'])
     else:
-        build_info['total_diff'] = str(build_info['total_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_diff'] = str(build_info['total_diff']
+                                       ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     if float(last_build['throughput']) != 0.0:
-        build_info['throughput_diff'] = round(float(build['throughput']) * 100 / float(last_build['throughput']) - 100, 1)
+        build_info['throughput_diff'] = round(float(build['throughput']
+                                                    ) * 100 / float(last_build['throughput']) - 100, 1)
     else:
         build_info['throughput_diff'] = 0.0
     if build_info['throughput_diff'] > 0.0:
-        build_info['throughput_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['throughput_diff'])
+        build_info['throughput_diff'] = "<b style=\"color: red\">&#9650;</b>" + \
+                                        str(build_info['throughput_diff'])
     else:
-        build_info['throughput_diff'] = str(build_info['throughput_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['throughput_diff'] = str(build_info['throughput_diff']
+                                            ).replace("-", "<b style=\"color: green\">&#9660;</b>")
 
     for param in params:
         build_info[param] = build[param]
@@ -570,37 +577,45 @@ def compare_ui_builds(last_build, build):
     if build_info['error_rate_diff'] > 0.0:
         build_info['error_rate_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['error_rate_diff'])
     else:
-        build_info['error_rate_diff'] = str(build_info['error_rate_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['error_rate_diff'] = str(build_info['error_rate_diff']
+                                            ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_page_diff'] = round(float(build['count']) * 100 / float(last_build['count']) - 100, 1)
     if build_info['total_page_diff'] > 0.0:
         build_info['total_page_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_page_diff'])
     else:
-        build_info['total_page_diff'] = str(build_info['total_page_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_page_diff'] = str(build_info['total_page_diff']
+                                            ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_ttl_diff'] = round(float(build['ttl']) * 100 / float(last_build['ttl']) - 100, 1)
     if build_info['total_ttl_diff'] > 0.0:
         build_info['total_ttl_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_ttl_diff'])
     else:
-        build_info['total_ttl_diff'] = str(build_info['total_ttl_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_ttl_diff'] = str(build_info['total_ttl_diff']
+                                           ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_tti_diff'] = round(float(build['tti']) * 100 / float(last_build['tti']) - 100, 1)
     if build_info['total_tti_diff'] > 0.0:
         build_info['total_tti_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_tti_diff'])
     else:
-        build_info['total_tti_diff'] = str(build_info['total_tti_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_tti_diff'] = str(build_info['total_tti_diff']
+                                           ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_transfer_diff'] = round(float(build['transfer']) * 100 / float(last_build['transfer']) - 100, 1)
     if build_info['total_transfer_diff'] > 0.0:
-        build_info['total_transfer_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_transfer_diff'])
+        build_info['total_transfer_diff'] = "<b style=\"color: red\">&#9650;</b>" + \
+                                            str(build_info['total_transfer_diff'])
     else:
-        build_info['total_transfer_diff'] = str(build_info['total_transfer_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_transfer_diff'] = str(build_info['total_transfer_diff']
+                                                ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_latency_diff'] = round(float(build['latency']) * 100 / float(last_build['latency']) - 100, 1)
     if build_info['total_latency_diff'] > 0.0:
         build_info['total_latency_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_latency_diff'])
     else:
-        build_info['total_latency_diff'] = str(build_info['total_latency_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_latency_diff'] = str(build_info['total_latency_diff']
+                                               ).replace("-", "<b style=\"color: green\">&#9660;</b>")
     build_info['total_time_diff'] = round(float(build['total_time']) * 100 / float(last_build['total_time']) - 100, 1)
     if build_info['total_time_diff'] > 0.0:
         build_info['total_time_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_time_diff'])
     else:
-        build_info['total_time_diff'] = str(build_info['total_time_diff']).replace("-", "<b style=\"color: green\">&#9660;</b>")
+        build_info['total_time_diff'] = str(build_info['total_time_diff']
+                                            ).replace("-", "<b style=\"color: green\">&#9660;</b>")
 
     for param in params:
         build_info[param] = build[param]
