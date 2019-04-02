@@ -47,10 +47,10 @@ def append_thresholds_to_test_data(test, args):
     for request in test:
         request_data = {}
         threshold = client.query("select last(red) as red, last(yellow) as yellow from threshold where request_name=\'"
-                                 + str(request['request_name']) + "_\'")
+                                 + str(request['request_name']) + "\'")
         if list(threshold.get_points()).__len__() == 0:
             red_treshold = 1000
-            yellow_treshold = 450
+            yellow_treshold = 150
         else:
             red_treshold = int(list(threshold.get_points())[0]['red'])
             yellow_treshold = int(list(threshold.get_points())[0]['yellow'])
