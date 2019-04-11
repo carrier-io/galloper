@@ -7,10 +7,8 @@ class MSTeamsNotifications:
 
     def api_notifications(self, summary, last_test_data, previous_test):
         text = '# **Test Execution Summary**\n\n'
-        text += self.create_api_test_summary(summary)
-        text += '_____'
-        text += self.create_api_test_thresholds_info(last_test_data, self.args['comparison_metric'])
-        text += '_____'
+        text += self.create_api_test_summary(summary) + '_____'
+        text += self.create_api_test_thresholds_info(last_test_data, self.args['comparison_metric']) + '_____'
         text += self.create_api_test_comparison_info(last_test_data, previous_test, self.args['comparison_metric'])
         ms_teams = pymsteams.connectorcard(self.args['ms_teams_web_hook'])
         ms_teams.text(text)
