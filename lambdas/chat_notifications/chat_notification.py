@@ -1,4 +1,5 @@
 from api_data_manager import APIDataManager
+from ui_data_manager import UIDataManager
 from slack_notifications import SlackNotifications
 from telegram_notifications import TelegramNotifications
 from ms_teams_notifications import MSTeamsNotifications
@@ -12,5 +13,8 @@ class ChatNotification:
 
     def api_notifications(self):
         summary, last_test_data, previous_test = APIDataManager(self.args).prepare_api_test_data()
-        self.notifications[self.args['chat']](self.args).api_notifications(summary, last_test_data,
-                                                                           previous_test)
+        self.notifications[self.args['chat']](self.args).api_notifications(summary, last_test_data, previous_test)
+
+    def ui_notifications(self):
+        summary, last_test_data = UIDataManager(self.args).prepare_ui_test_data()
+        self.notifications[self.args['chat']](self.args).ui_notifications(summary, last_test_data)

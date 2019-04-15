@@ -14,10 +14,17 @@ class SlackNotifications:
         sc.api_call("chat.postMessage", channel=self.args['slack_channel'], text=text,
                     attachments=message)
 
+    def ui_notifications(self, summary, last_test_data):
+        text = "*Test Execution Summary*"
+        message = self.create_slack_ui_attachment(summary, last_test_data)
+        sc = SlackClient(self.args['slack_token'])
+        sc.api_call("chat.postMessage", channel=self.args['slack_channel'], text=text,
+                    attachments=message)
+
     def create_slack_api_attachment(self, summary, test, previous_test, comparison_metric):
         fields = []
-        summary_fields = self.get_summary_fields(summary)
-        thresholds_fields = self.get_threshold_fields(test, comparison_metric)
+        summary_fields = self.get_api_summary_fields(summary)
+        thresholds_fields = self.get_api_threshold_fields(test, comparison_metric)
         comparison_fields = self.get_comparison_fields(test, previous_test, comparison_metric)
         fields.extend(summary_fields)
         fields.extend(thresholds_fields)
@@ -30,8 +37,24 @@ class SlackNotifications:
         attachment = "[" + json.dumps(attachment_dict) + "]"
         return attachment
 
+    def create_slack_ui_attachment(self, summary, test):
+        fields = []
+        summary_fields = self.get_ui_summary_fields(summary)
+        thresholds_fields = self.get_ui_threshold_fields(test)
+        failed_pages_fields = self.get_failed_pages_fields(test)
+        fields.extend(summary_fields)
+        fields.extend(thresholds_fields)
+        fields.extend(failed_pages_fields)
+
+        attachment_dict = dict(
+            fallback="Test info",
+            fields=fields
+        )
+        attachment = "[" + json.dumps(attachment_dict) + "]"
+        return attachment
+
     @staticmethod
-    def get_summary_fields(summary):
+    def get_api_summary_fields(summary):
         summary_field = '*Test:* {}\n' \
                         '*vUsers count:* {}\n' \
                         '*Start time:* {}\n' \
@@ -50,7 +73,7 @@ class SlackNotifications:
         return fields
 
     @staticmethod
-    def get_threshold_fields(test, comparison_metric):
+    def get_api_threshold_fields(test, comparison_metric):
         yellow_thresholds = ''
         red_thresholds = ''
         fields = [{"title": "", "value": "", "short": "false"}, {"title": "", "value": "", "short": "false"}]
@@ -106,3 +129,52 @@ class SlackNotifications:
         fields.append({"title": title, "value": comparison_info, "short": False})
         return fields
 
+    @staticmethod
+    def get_ui_summary_fields(summary):
+        summary_field = '*Test:* {}\n' \
+                        '*Test Suite:* {}\n' \
+                        '*Start time:* {}\n'
+        summary_field = summary_field.format(summary['test'], summary['test_suite'], summary['start'])
+        status_field = "*STATUS* {}\n"
+        status = "`FAILED`" if (summary['status'] is 'FAILED') else "SUCCESS"
+        status_field = status_field.format(status)
+        if summary['status'] is 'FAILED':
+            status_field += "*Failed reasons:*" + "\n"
+            status_field += "\n".join(summary['failed_reason'])
+        fields = [{"title": "", "value": summary_field, "short": True},
+                  {"title": "", "value": status_field, "short": True}]
+        return fields
+
+    @staticmethod
+    def get_ui_threshold_fields(test):
+        yellow_thresholds = ''
+        red_thresholds = ''
+        fields = [{"title": "", "value": "", "short": "false"}, {"title": "", "value": "", "short": "false"}]
+        threshold_message = "*{}* - {} ms\n(expected up to {} ms)\n"
+        for req in test:
+            if req["threshold"] is 'yellow':
+                yellow_thresholds += threshold_message.format(req['page_name'], str(req['time']),
+                                                              str(req['yellow_threshold_value']))
+
+            if req["threshold"] is 'red':
+                red_thresholds += threshold_message.format(req['page_name'], str(req['time']),
+                                                           str(req['red_threshold_value']))
+        if yellow_thresholds != '':
+            fields.append({"title": "`Pages exceeded yellow threshold:`", "value": yellow_thresholds, "short": True})
+        if red_thresholds != '':
+            fields.append({"title": "`Pages exceeded red threshold:`", "value": red_thresholds, "short": True})
+
+        return fields
+
+    @staticmethod
+    def get_failed_pages_fields(test):
+        failed_pages = []
+        for page in test:
+            if int(page['failed']) > 0:
+                failed_pages.append(page['page_name'])
+        failed_pages_info = ''
+        if failed_pages:
+            failed_pages_info += "\n".join(failed_pages)
+        if failed_pages_info != '':
+            return [{"title": "`Failed pages:`", "value": failed_pages_info, "short": False}]
+        return ''

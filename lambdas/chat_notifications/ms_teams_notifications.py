@@ -14,6 +14,15 @@ class MSTeamsNotifications:
         ms_teams.text(text)
         ms_teams.send()
 
+    def ui_notifications(self, summary, last_test_data):
+        text = '# **Test Execution Summary**\n\n'
+        text += self.create_ui_test_summary(summary) + '_____'
+        text += self.create_ui_test_thresholds_info(last_test_data) + '_____'
+        text += self.create_ui_failed_pages_info(last_test_data)
+        ms_teams = pymsteams.connectorcard(self.args['ms_teams_web_hook'])
+        ms_teams.text(text)
+        ms_teams.send()
+
     @staticmethod
     def create_api_test_summary(summary):
         summary_info = '**Test:** {}\n\n' \
@@ -86,3 +95,49 @@ class MSTeamsNotifications:
             comparison_info += faster
             comparison_info += "\n\n".join(faster_requests)
         return comparison_info
+
+    @staticmethod
+    def create_ui_test_summary(summary):
+        summary_info = '**Test:** {}\n\n' \
+                       '**Test Suite:** {}\n\n' \
+                       '**Start time:** {}\n\n' \
+                       '**Status:** {}'
+        status = "`FAILED`\n\n" if (summary['status'] is 'FAILED') else "SUCCESS\n\n"
+        summary_info = summary_info.format(summary['test'], summary['test_suite'], summary['start'], status)
+        if summary['status'] is 'FAILED':
+            summary_info += '**Failed reasons:**\n\n'
+            summary_info += "\n\n".join(summary['failed_reason']) + "\n\n"
+        return summary_info
+
+    @staticmethod
+    def create_ui_test_thresholds_info(test):
+        yellow_thresholds, red_thresholds = [], []
+        threshold_message = "**{}** - {} ms. Expected up to {} ms."
+        for req in test:
+            if req['threshold'] is 'yellow':
+                yellow_thresholds.append(threshold_message.format(req['page_name'], str(req['time']),
+                                                                  str(req['yellow_threshold_value'])))
+
+            if req['threshold'] is 'red':
+                red_thresholds.append(threshold_message.format(req['page_name'], str(req['time']),
+                                                               str(req['red_threshold_value'])))
+        thresholds_info = ''
+        if yellow_thresholds:
+            thresholds_info += "\n\n`Pages exceeded yellow threshold:`\n\n"
+            thresholds_info += "\n\n".join(yellow_thresholds)
+        if red_thresholds:
+            thresholds_info += "\n\n`Pages exceeded red threshold:`\n\n"
+            thresholds_info += "\n\n".join(red_thresholds)
+        return thresholds_info + "\n\n"
+
+    @staticmethod
+    def create_ui_failed_pages_info(test):
+        failed_pages = []
+        for page in test:
+            if int(page['failed']) > 0:
+                failed_pages.append(page['page_name'])
+        if failed_pages:
+            failed_pages_info = '\n\n`Failed pages:`\n\n'
+            failed_pages_info += "\n\n".join(failed_pages)
+            return failed_pages_info
+        return ''

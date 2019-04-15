@@ -42,15 +42,17 @@ def parse_args(_event):
     args['influx_comparison_database'] = event.get("influx_comparison_database", "comparison")
     args['influx_user'] = event.get("influx_user", "")
     args['influx_password'] = event.get("influx_password", "")
-    args['test_limit'] = event.get("test_limit", 2)
     args['comparison_metric'] = event.get("comparison_metric", "pct95")
     args['users'] = event.get('users', 1)
 
     # Required params
     args['influx_host'] = event.get('influx_host')
     args['test'] = event.get('test')
-    args['test_type'] = event.get('test_type')
     args['notification_type'] = event.get('notification_type')
+    if args['notification_type'] == 'api':
+        args['test_type'] = event.get('test_type')
+    if args['notification_type'] == 'ui':
+        args['test_type'] = event.get('test_suite')
 
     # Specific params for chats
     args['slack_channel'] = event.get('slack_channel')

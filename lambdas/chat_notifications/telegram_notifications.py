@@ -13,6 +13,14 @@ class TelegramNotifications(object):
         bot = telegram.Bot(token=self.args['telegram_bot_token'])
         bot.send_message(chat_id=int(self.args['telegram_channel_id']), text=text, parse_mode='Markdown')
 
+    def ui_notifications(self, summary, last_test_data):
+        text = '*Test Execution Summary*\n\n'
+        text += self.create_ui_test_summary(summary)
+        text += self.create_ui_test_thresholds_info(last_test_data)
+        text += self.create_failed_pages_info(last_test_data)
+        bot = telegram.Bot(token=self.args['telegram_bot_token'])
+        bot.send_message(chat_id=int(self.args['telegram_channel_id']), text=text, parse_mode='Markdown')
+
     @staticmethod
     def create_api_test_summary(summary):
         summary_info = '*Test:* {}\n' \
@@ -86,3 +94,50 @@ class TelegramNotifications(object):
             comparison_info += "\n".join(faster_requests)
 
         return comparison_info
+
+    @staticmethod
+    def create_ui_test_summary(summary):
+        summary_info = '*Test:* {}\n' \
+                       '*Test Suite:* {}\n' \
+                       '*Start time:* {}\n' \
+                       '*Status:* {}'
+        status = "`FAILED`\n" if (summary['status'] is 'FAILED') else "SUCCESS\n"
+        summary_info = summary_info.format(summary['test'], summary['test_suite'], summary['start'], status)
+        if summary['status'] is 'FAILED':
+            summary_info += '*Failed reasons:*\n'
+            summary_info += "\n".join(summary['failed_reason']) + "\n"
+        return summary_info
+
+    @staticmethod
+    def create_ui_test_thresholds_info(test):
+        yellow_thresholds, red_thresholds = [], []
+        threshold_message = "*{}* - {} ms. Expected up to {} ms."
+        for req in test:
+            if req['threshold'] is 'yellow':
+                yellow_thresholds.append(threshold_message.format(req['page_name'], str(req['time']),
+                                                                  str(req['yellow_threshold_value'])))
+
+            if req['threshold'] is 'red':
+                red_thresholds.append(threshold_message.format(req['page_name'], str(req['time']),
+                                                               str(req['red_threshold_value'])))
+        thresholds_info = ''
+        if yellow_thresholds:
+            thresholds_info += "\n`Pages exceeded yellow threshold:`\n"
+            thresholds_info += "\n".join(yellow_thresholds)
+        if red_thresholds:
+            thresholds_info += "\n`Pages exceeded red threshold:`\n"
+            thresholds_info += "\n".join(red_thresholds)
+        return thresholds_info + "\n"
+
+    @staticmethod
+    def create_failed_pages_info(test):
+        failed_pages = []
+        for page in test:
+            if int(page['failed']) > 0:
+                failed_pages.append(page['page_name'])
+        if failed_pages:
+            failed_pages_info = '\n`Failed pages:`\n'
+            failed_pages_info += "\n".join(failed_pages)
+            return failed_pages_info
+        return ''
+
