@@ -33,7 +33,11 @@ def create_app():
 
     @app.template_filter('ctime')
     def convert_time(ts):
-        return datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        try:
+            return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        except:
+            return "Not Executed"
+
 
     from galloper.routes import tasks
     app.register_blueprint(tasks.bp)

@@ -45,7 +45,7 @@
                       {{ task.runtime }}
                     </td>
                     <td>
-                      <a href="/task/{{ task.task_id }}/results">{{ task.last_run }}</a>
+                      <a href="/task/{{ task.task_id }}/results">{{ task.last_run | ctime }}</a>
                     </td>
                     <td>
                       <span class="badge badge-dot mr-4">

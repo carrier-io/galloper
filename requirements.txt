@@ -4,3 +4,4 @@ Flask==1.0.2
 Flask-SQLAlchemy==2.3.2
 requests==2.20.0
 redis==3.2.0
+croniter==0.3.29

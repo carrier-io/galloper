@@ -14,15 +14,18 @@
 
 import docker
 from docker.types import Mount
-
+from croniter import croniter
+from datetime import datetime
 from requests import post
-from time import time
+from time import time, mktime
 from os import mkdir, path, rename
-from json import dumps
+from json import dumps, loads
 from celery import Celery
 from celery.contrib.abortable import AbortableTask
 from subprocess import Popen, PIPE
 
+from galloper.dal import get_connection
+from galloper.dal.task import Task
 from galloper.constants import (REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT, REDIS_USER,
                                 UNZIP_DOCKERFILE, UNZIP_DOCKER_COMPOSE, APP_HOST)
 
@@ -32,7 +35,32 @@ app = Celery('Galloper',
              include=['celery'])
 
 
-app.conf.update(timezone='UTC', result_expires=1800)
+def get_schedule():
+    result = dict()
+    result['run-scheduled'] = dict(task='tasks.scheduled', schedule=60.0, args=())
+    return result
+
+
+app.conf.update(beat_schedule=get_schedule(), timezone='UTC', result_expires=1800)
+
+
+def run_lambda(task, event):
+    client = docker.from_env()
+    container_name = task['runtime'].lower().replace(" ", "")
+    mount = Mount(type="volume", source=task['task_id'], target="/var/task")
+    response = client.containers.run(f"lambci/lambda:{container_name}",
+                                     command=[f"{task['task_handler']}", dumps(event)],
+                                     mounts=[mount], stderr=True, remove=True)
+    # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
+    results = response.decode("utf-8", errors='ignore').split("\n\n")
+    data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': results[1], 'stderr': results[0]}
+
+    headers = {
+        "Content-Type": "application/json",
+        "Token": task['token']
+    }
+    post(f'{APP_HOST}/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
+    return results[1]
 
 
 @app.task(name="tasks.volume", bind=True, acks_late=True, base=AbortableTask)
@@ -56,22 +84,32 @@ def zip_to_volume(self, task_id, file_path, *args, **kwargs):
 
 @app.task(name="tasks.execute", bind=True, acks_late=True, base=AbortableTask)
 def execute_lambda(self, task, event, *args, **kwargs):
-    client = docker.from_env()
-    container_name = task['runtime'].lower().replace(" ", "")
-    mount = Mount(type="volume", source=task['task_id'], target="/var/task")
-    response = client.containers.run(f"lambci/lambda:{container_name}",
-                                     command=[f"{task['task_handler']}", dumps(event)],
-                                     mounts=[mount], stderr=True, remove=True)
-    # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
-    results = response.decode("utf-8", errors='ignore').split("\n\n")
-    data = {"ts": int(time()), 'results': results[1], 'stderr': results[0]}
+    conn = get_connection()
+    task = conn.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
+    res = run_lambda(task, event)
+    if task['callback']:
+        task = conn.query(Task).filter(Task.task_id == task['callback'])[0].to_json()
+        execute_lambda.apply_async(kwargs=dict(task=task, event=loads(res)))
+    return res
 
-    headers = {
-        "Content-Type": "application/json",
-        "Token": task['token']
-    }
-    post(f'{APP_HOST}/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
-    return 'Done'
+
+def calculate_next_run(task):
+    itr = croniter(task.schedule, datetime.utcnow())
+    next_run = (mktime(itr.get_next(datetime).timetuple()))
+    return int(next_run)
+
+
+@app.task(name="tasks.scheduled", bind=True, acks_late=True)
+def scan_tasks(self, *args, **kwargs):
+    conn = get_connection()
+    next_run = 0
+    for task in conn.query(Task).filter(Task.schedule != None):
+        if task.last_run is None or task.next_run is None or task.next_run < int(mktime(datetime.utcnow().timetuple())):
+            next_run = calculate_next_run(task)
+            task.next_run = next_run
+            conn.commit()
+            execute_lambda.apply_async(kwargs=dict(task=task.to_json(), event=loads(task.func_args)))
+    return "Schedules all what is required", int(mktime(datetime.utcnow().timetuple())), next_run
 
 
 def main():
