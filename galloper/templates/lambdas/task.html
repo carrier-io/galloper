@@ -140,6 +140,38 @@
                     </div>
                   </div>
                 </div>
+                 <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="task_args">Invoke Arguments for Scheduled Tasks</label>
+                        <p><small>Dict of func arguments to be passed as event for function</small></p>
+                        <input type="text" id="task_args" class="form-control form-control-alternative" placeholder="" value="{{ task.func_args }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                            I need to create a description for this awesome thing
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="task_callback">Callback func</label>
+                        <p><small>Function used to process results as a callback</small></p>
+                        <input type="text" id="task_callback" class="form-control form-control-alternative" placeholder="" value="{{ task.callback }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                            I need to create a description for this awesome thing
+                      </small>
+                    </div>
+                  </div>
+                </div>
                 <div class="pl-lg-4">
                   <div class="row">
                     <div class="col-lg-6">
@@ -166,7 +198,9 @@
           var data = new FormData();
           data.append('task_name', $('#funcname')[0].value);
           data.append('runtime', $('#runtime')[0].value);
-          data.append('task_nadler', $('#invoke_func')[0].value);
+          data.append('task_hadler', $('#invoke_func')[0].value);
+          data.append('func_args', $('#task_args')[0].value);
+          data.append('callback', $('#task_callback')[0].value);
           data.append('schedule', $('#schedule')[0].value);
           data.append('webhook', $('#webhook')[0].value);
           data.append('auth', $('#auth')[0].value);

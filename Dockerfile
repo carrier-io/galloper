@@ -19,5 +19,5 @@ RUN pip install git+https://github.com/celery/celery.git
 RUN pip install git+https://github.com/carrier-io/control_tower.git
 
 SHELL ["/bin/bash", "-c"]
-
+EXPOSE 5000
 ENTRYPOINT ["/tmp/start.sh"]

@@ -17,7 +17,15 @@ import argparse
 interceptor_conf = """[supervisord]
 
 [program:worker]
-command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/interceptor.log
+command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/worker.log
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stopwaitsecs=20
+stopasgroup=true
+
+[program:beat]
+command=celery -A galloper.celeryapp beat -f /var/log/beat.log
 autostart=true
 autorestart=true
 stopsignal=QUIT

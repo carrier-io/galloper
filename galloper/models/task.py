@@ -25,28 +25,40 @@ class Task(db.Model):
     task_handler = db.Column(db.String(80), unique=False, nullable=False)
     runtime = db.Column(db.String(80), unique=False, nullable=False)
     schedule = db.Column(db.String(80), unique=False, nullable=True)
+    next_run = db.Column(db.Integer, unique=False, nullable=True)
     webhook = db.Column(db.String(80), unique=False, nullable=True)
-    last_run = db.Column(db.String(80), unique=False, nullable=True)
+    last_run = db.Column(db.Integer, unique=False, nullable=True)
     status = db.Column(db.String(80), unique=False, nullable=True)
     token = db.Column(db.String(80), unique=False, nullable=True)
+    func_args = db.Column(db.Text, unique=False, nullable=True)
+    callback = db.Column(db.String(80), unique=False, nullable=True)
 
     def __repr__(self):
         return dumps(self.to_json(), indent=2)
 
     def to_json(self):
+        if self.schedule and self.schedule in ['None', 'none', '']:
+            self.schedule = None
+        if self.callback and self.callback in ['None', 'none', '']:
+            self.callback = None
         return dict(task_id=self.task_id, task_name=self.task_name, task_handler=self.task_handler,
                     runtime=self.runtime, schedule=self.schedule, webhook=self.webhook,
-                    zippath=self.zippath, last_run=self.last_run, status=self.status, token=self.token)
+                    zippath=self.zippath, last_run=self.last_run, status=self.status, token=self.token,
+                    func_args=self.func_args, callback=self.callback)
 
     def insert(self):
         if self.schedule and self.schedule in ['None', 'none']:
             self.schedule = None
+        if self.callback and self.callback in ['None', 'none']:
+            self.callback = None
         if not self.webhook:
             self.webhook = f'/task/{self.task_id}'
         if not self.status:
             self.status = 'suspended'
         if not self.token:
             self.token = str(uuid4())
+        if not self.func_args:
+            self.func_args = "{}"
         db.session.add(self)
         db.session.commit()
 
