@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 import docker
+import re
 from docker.types import Mount
 from croniter import croniter
 from datetime import datetime
@@ -52,15 +53,21 @@ def run_lambda(task, event):
                                      command=[f"{task['task_handler']}", dumps(event)],
                                      mounts=[mount], stderr=True, remove=True)
     # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
-    results = response.decode("utf-8", errors='ignore').split("\n\n")
-    data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': results[1], 'stderr': results[0]}
+
+    log = response.decode("utf-8", errors='ignore')
+    if container_name == "python3.7":
+        results = re.search(r'({.+?)}', log).group(0)
+    else:
+        results = log.split("\n\n")[1]
+
+    data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': results, 'stderr': log}
 
     headers = {
         "Content-Type": "application/json",
         "Token": task['token']
     }
     post(f'{APP_HOST}/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
-    return results[1]
+    return results
 
 
 @app.task(name="tasks.volume", bind=True, acks_late=True, base=AbortableTask)

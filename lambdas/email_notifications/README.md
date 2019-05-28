@@ -20,11 +20,11 @@ curl -XPOST -H "Content-Type: application/json"
 
 You can pass the necessary parameters with the -d option. List of available parameters:
 
-`'ui_scenario': '<ui_scenario_name>'` - required for ui email notifications
+`'test': '<ui_scenario_name>'` - required for ui email notifications
 
-`'ui_suite': '<ui_suite_name>'` - required for ui email notifications
+`'test_suite': '<ui_suite_name>'` - required for ui email notifications
 
-`'simulation': '<simulation_name>'` - required for api email notifications
+`'test': '<simulation_name>'` - required for api email notifications
 
 `'test_type': '<test_type>'` - required for api email notifications
 
@@ -37,6 +37,8 @@ You can pass the necessary parameters with the -d option. List of available para
 `'smpt_password': '<password>'` - required for all type of notifications
 
 `'user_list': '<list of recipients>'` - required for all type of notifications
+
+`'notification_type': '<test_type>'` - should be 'ui' or 'api'
 
 
 `'smpt_host': 'smtp.gmail.com'` - optional, default - 'smtp.gmail.com'
