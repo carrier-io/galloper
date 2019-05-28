@@ -43,6 +43,7 @@ def parse_args(_event):
     args['influx_user'] = event.get("influx_user", "")
     args['influx_password'] = event.get("influx_password", "")
     args['comparison_metric'] = event.get("comparison_metric", "pct95")
+    args['test_limit'] = event.get("test_limit", 5)
     args['users'] = event.get('users', 1)
 
     # Required params
