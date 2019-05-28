@@ -22,7 +22,7 @@ You can pass the necessary parameters with the -d option. List of available para
 
 `'test': '<ui_scenario_name>'` - required for ui email notifications
 
-`'ui_suite': '<ui_suite_name>'` - required for ui email notifications
+`'test_suite': '<ui_suite_name>'` - required for ui email notifications
 
 `'test': '<simulation_name>'` - required for api email notifications
 
