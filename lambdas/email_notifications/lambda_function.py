@@ -2,7 +2,6 @@ from email_notifications import EmailNotification
 import json
 
 
-# TODO check required params
 def lambda_handler(event, context):
     try:
         args = parse_args(event)
