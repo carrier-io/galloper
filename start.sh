@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
 superconf -p $CPU_CORES
-supervisord --nodaemon --configuration /etc/galloper.conf
+supervisord --configuration /etc/galloper.conf
+sleep 5
+tail -f  /var/log/worker.log
