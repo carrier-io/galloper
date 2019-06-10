@@ -95,8 +95,9 @@ def execute_lambda(self, task, event, *args, **kwargs):
     task = conn.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
     res = run_lambda(task, event)
     if task['callback']:
+        event['result'] = res
         task = conn.query(Task).filter(Task.task_id == task['callback'])[0].to_json()
-        execute_lambda.apply_async(kwargs=dict(task=task, event=loads(res)))
+        execute_lambda.apply_async(kwargs=dict(task=task, event=event))
     return res
 
 

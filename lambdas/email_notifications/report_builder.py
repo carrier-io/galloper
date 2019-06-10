@@ -18,7 +18,7 @@ class ReportBuilder:
         top_five_thresholds = self.get_top_five_thresholds(last_test_data, comparison_metric)
         email_body = self.get_api_email_body(test_description, last_test_data, baseline, builds_comparison,
                                              top_five_baseline, top_five_thresholds)
-        return email_body, charts
+        return email_body, charts, str(test_description['start']).split(" ")[0]
 
     def create_ui_email_body(self, tests_data, last_test_data):
         test_params = self.create_ui_test_discription(last_test_data)
@@ -27,7 +27,7 @@ class ReportBuilder:
         charts = self.create_ui_charts(last_test_data, builds_comparison)
         last_test_data = self.aggregate_last_test_results(last_test_data)
         email_body = self.get_ui_email_body(test_params, top_five_thresholds, builds_comparison, last_test_data)
-        return email_body, charts
+        return email_body, charts, str(test_params['start_time']).split(" ")[0]
 
     def create_test_description(self, test, baseline, comparison_metric):
         params = ['simulation', 'users', 'duration']
