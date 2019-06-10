@@ -94,6 +94,8 @@ def suspend_task(task_name, action):
                 if key in ['id', 'task_id', 'zippath', 'last_run']:
                     continue
                 elem = getattr(task, key, None)
+                if value in ['None', 'none', '']:
+                    value = None
                 if elem != value:
                     setattr(task, key, value)
                 task.commit()

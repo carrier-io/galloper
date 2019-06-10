@@ -15,7 +15,8 @@ RUN mkdir /tmp/tasks
 ADD start.sh /tmp/start.sh
 RUN chmod +x /tmp/start.sh
 WORKDIR /tmp
-RUN pip install git+https://github.com/celery/celery.git
+RUN pip install celery==4.3.0
+RUN pip install kombu==4.5.0
 RUN pip install git+https://github.com/carrier-io/control_tower.git
 
 SHELL ["/bin/bash", "-c"]
