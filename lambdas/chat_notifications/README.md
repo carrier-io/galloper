@@ -1,4 +1,4 @@
-# Chat notifications
+# Chat notifications. Release-1.0
 Lambda function that provide chat notifications
 
 To run the lambda function, you need to create a task in the Galloper and specify a lambda handler in it.
