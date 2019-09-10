@@ -5,3 +5,5 @@ Flask-SQLAlchemy==2.3.2
 requests==2.20.0
 redis==3.2.0
 croniter==0.3.29
+pillow==6.1.0
+ssim==0.3.0

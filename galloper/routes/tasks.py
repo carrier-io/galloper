@@ -14,7 +14,6 @@
 
 import os
 from uuid import uuid4
-from datetime import datetime
 
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -40,7 +39,6 @@ def add_task():
     if request.method == 'GET':
         return render_template('lambdas/add_task.html')
     if request.method == 'POST':
-        print(request.form)
         if 'file' not in request.files:
             flash('No file part')
             return ''

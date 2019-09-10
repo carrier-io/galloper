@@ -1,6 +1,7 @@
 FROM python:3.7-alpine
 
-RUN apk update && apk add --no-cache supervisor docker git bash
+RUN apk update && apk add --no-cache gcc supervisor docker git bash ffmpeg python-dev py-pip jpeg-dev zlib-dev musl-dev linux-headers libc-dev
+ENV LIBRARY_PATH=/lib:/usr/lib
 
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
