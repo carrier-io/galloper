@@ -40,7 +40,6 @@ class prepareReport(object):
                                          request_params['performancetiming'], request_params['info'],
                                          request_params['timing'])
 
-
     @staticmethod
     def privacy_audit(privacy_data):
         result = []
