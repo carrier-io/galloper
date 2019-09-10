@@ -28,9 +28,9 @@ class prepareReport(object):
         self.priv_score, self.priv_data = self.privacy_audit(request_params['privacy'])
         test_result = 'fail'
         total_score = (self.acc_score * 30  + self.priv_score * 50 + self.bp_score * 22 + self.perf_score * 44) / 146
-        if total_score > 90 and request_params['timing'] < 1000:
+        if total_score > 90 and request_params['timing']['speedIndex'] < 1000:
             test_result = 'pass'
-        elif total_score > 75 and request_params['timing'] < 3000:
+        elif total_score > 75 and request_params['timing']['speedIndex'] < 3000:
             test_result = 'warning'
         self.report = self.generate_html(request_params['info']['title'], video_path, test_result,
                                          request_params['info'].get('testStart', 0), self.perf_score, self.priv_score,
