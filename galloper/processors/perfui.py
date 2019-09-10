@@ -497,10 +497,10 @@ class prepareReport(object):
         page_name = page_name.replace(" ", "_")
         process_params = [{
             "video_path": video_path,
-            "ms": part + start,
+            "ms": part,
             "test_name": page_name,
             "processing_path": self.processing_path,
-        } for part in range(0, end, end//8)][1:]
+        } for part in range(start, end, (end-start)//8)][1:]
         if not path.exists(path.join(self.processing_path, page_name)):
             mkdir(path.join(self.processing_path, page_name))
         res = p.map(trim_screenshot, process_params)
