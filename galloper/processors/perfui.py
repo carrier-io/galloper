@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 from multiprocessing import Pool
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-ffmpeg_path = environ.get("ffmpg_path", "/usr/bin/ffmpeg")
+ffmpeg_path = environ.get("ffmpg_path", "/usr/local/bin/ffmpeg")
 report_path = '/tmp'
 
 
@@ -27,7 +27,7 @@ class prepareReport(object):
         self.perf_score, self.perf_data = self.performance_audit(request_params['performance'])
         self.priv_score, self.priv_data = self.privacy_audit(request_params['privacy'])
         test_result = 'fail'
-        total_score = (self.acc_score * 30  + self.priv_score * 50 + self.bp_score * 22 + self.perf_score * 44) / 146
+        total_score = (self.acc_score * 30 + self.priv_score * 50 + self.bp_score * 22 + self.perf_score * 44) / 146
         if total_score > 90 and request_params['timing']['speedIndex'] < 1000:
             test_result = 'pass'
         elif total_score > 75 and request_params['timing']['speedIndex'] < 3000:
@@ -351,16 +351,19 @@ class prepareReport(object):
         if performance_data['performanceFastRender'][0] != 100:
             advice = ""
             fast_render_data = performance_data['performanceFastRender'][1]
-            print()
             if fast_render_data['isHTTP2']:
-                if len(fast_render_data['blockingCSS']) > 0:
+                if fast_render_data['blockingCSS']:
                     advice += "Make sure that the server pushes your CSS resources for faster rendering. "
+                    advice += "The style(s): "
                     for css_resource in fast_render_data['blockingCSS']:
-                        advice += f"The style(s) {css_resource} is larger than the magic number TCP " \
-                            f"window size 14.5 kB. Make the file smaller and the page will render faster. "
-                if len(fast_render_data['blockingJS']) > 0:
+                         advice += f"<p>{css_resource}</p>"
+                    advice += "is larger than the magic number TCP window size 14.5 kB. " \
+                              "Make the file smaller and the page will render faster. "
+                if fast_render_data['blockingJS']:
                     advice += "Avoid loading synchronously JavaScript inside of head, you shouldn't" \
-                              " need JavaScript to render your page! "
+                              " need JavaScript to render your page! <br /> list of blocking JS: <br />"
+                    for js_resource in fast_render_data['blockingCSS']:
+                         advice += f"<p>{js_resource}</p>"
 
             advice += f"The page has {len(fast_render_data['blockingCSS'])} render blocking CSS request(s) and " \
                 f" {len(fast_render_data['blockingJS'])} blocking JavaScript request(s) inside of head."
@@ -492,6 +495,9 @@ class prepareReport(object):
         return total_score,result
 
     def concut_video(self, start, end, page_name, video_path):
+        print(f"Start Time:{start}")
+        print(f"End Time:{end}")
+        print(f"Step:{(end-start)//8}")
         p = Pool(7)
         page_name = page_name.replace(" ", "_")
         process_params = [{
