@@ -495,21 +495,22 @@ class prepareReport(object):
         return total_score,result
 
     def concut_video(self, start, end, page_name, video_path):
-        print(f"Start Time:{start}")
-        print(f"End Time:{end}")
-        print(f"Step:{(end-start)//8}")
         p = Pool(7)
-        page_name = page_name.replace(" ", "_")
-        process_params = [{
-            "video_path": video_path,
-            "ms": part,
-            "test_name": page_name,
-            "processing_path": self.processing_path,
-        } for part in range(start, end, (end-start)//8)][1:]
-        if not path.exists(path.join(self.processing_path, page_name)):
-            mkdir(path.join(self.processing_path, page_name))
-        res = p.map(trim_screenshot, process_params)
-        p.terminate()
+        try:
+            page_name = page_name.replace(" ", "_")
+            process_params = [{
+                "video_path": video_path,
+                "ms": part,
+                "test_name": page_name,
+                "processing_path": self.processing_path,
+            } for part in range(start, end, (end-start)//8)][1:]
+            if not path.exists(path.join(self.processing_path, page_name)):
+                mkdir(path.join(self.processing_path, page_name))
+            res = p.map(trim_screenshot, process_params)
+        except:
+            res = []
+        finally:
+            p.terminate()
         return res
 
     def generate_html(self, page_name, video_path, test_status, start_time, perf_score,
