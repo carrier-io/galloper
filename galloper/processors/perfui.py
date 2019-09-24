@@ -27,7 +27,7 @@ class prepareReport(object):
         self.perf_score, self.perf_data = self.performance_audit(request_params['performance'])
         self.priv_score, self.priv_data = self.privacy_audit(request_params['privacy'])
         test_result = 'fail'
-        total_score = (self.acc_score * 30  + self.priv_score * 50 + self.bp_score * 22 + self.perf_score * 44) / 146
+        total_score = (self.acc_score * 30 + self.priv_score * 50 + self.bp_score * 22 + self.perf_score * 44) / 146
         if total_score > 90 and request_params['timing']['speedIndex'] < 1000:
             test_result = 'pass'
         elif total_score > 75 and request_params['timing']['speedIndex'] < 3000:
@@ -39,7 +39,6 @@ class prepareReport(object):
                                          request_params['marks'], request_params['measures'],
                                          request_params['performancetiming'], request_params['info'],
                                          request_params['timing'])
-
 
     @staticmethod
     def privacy_audit(privacy_data):
@@ -352,16 +351,19 @@ class prepareReport(object):
         if performance_data['performanceFastRender'][0] != 100:
             advice = ""
             fast_render_data = performance_data['performanceFastRender'][1]
-            print()
             if fast_render_data['isHTTP2']:
-                if len(fast_render_data['blockingCSS']) > 0:
+                if fast_render_data['blockingCSS']:
                     advice += "Make sure that the server pushes your CSS resources for faster rendering. "
+                    advice += "The style(s): "
                     for css_resource in fast_render_data['blockingCSS']:
-                        advice += f"The style(s) {css_resource} is larger than the magic number TCP " \
-                            f"window size 14.5 kB. Make the file smaller and the page will render faster. "
-                if len(fast_render_data['blockingJS']) > 0:
+                         advice += f"<p>{css_resource}</p>"
+                    advice += "is larger than the magic number TCP window size 14.5 kB. " \
+                              "Make the file smaller and the page will render faster. "
+                if fast_render_data['blockingJS']:
                     advice += "Avoid loading synchronously JavaScript inside of head, you shouldn't" \
-                              " need JavaScript to render your page! "
+                              " need JavaScript to render your page! <br /> list of blocking JS: <br />"
+                    for js_resource in fast_render_data['blockingCSS']:
+                         advice += f"<p>{js_resource}</p>"
 
             advice += f"The page has {len(fast_render_data['blockingCSS'])} render blocking CSS request(s) and " \
                 f" {len(fast_render_data['blockingJS'])} blocking JavaScript request(s) inside of head."
@@ -494,17 +496,21 @@ class prepareReport(object):
 
     def concut_video(self, start, end, page_name, video_path):
         p = Pool(7)
-        page_name = page_name.replace(" ", "_")
-        process_params = [{
-            "video_path": video_path,
-            "ms": part,
-            "test_name": page_name,
-            "processing_path": self.processing_path,
-        } for part in range(start, end, (end-start)//8)][1:]
-        if not path.exists(path.join(self.processing_path, page_name)):
-            mkdir(path.join(self.processing_path, page_name))
-        res = p.map(trim_screenshot, process_params)
-        p.terminate()
+        try:
+            page_name = page_name.replace(" ", "_")
+            process_params = [{
+                "video_path": video_path,
+                "ms": part,
+                "test_name": page_name,
+                "processing_path": self.processing_path,
+            } for part in range(start, end, (end-start)//8)][1:]
+            if not path.exists(path.join(self.processing_path, page_name)):
+                mkdir(path.join(self.processing_path, page_name))
+            res = p.map(trim_screenshot, process_params)
+        except:
+            res = []
+        finally:
+            p.terminate()
         return res
 
     def generate_html(self, page_name, video_path, test_status, start_time, perf_score,

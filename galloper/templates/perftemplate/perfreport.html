@@ -2400,7 +2400,7 @@
                     {% for finding in acc_findings %}
                         <tr class="header">
                             <td>{{ finding['title'] }}</td>
-                            <td>{{ finding['advice'] }}</td>
+                            <td>{{ finding['advice'] | safe }}</td>
                             <td>{{ finding['score'] }}</td>
                             <td>{% if finding['details'] %}<span>+</span>{% endif %}</td>
                         </tr>
@@ -2439,16 +2439,21 @@
                     {% for finding in perf_findings %}
                         <tr class="header">
                             <td>{{ finding['title'] }}</td>
-                            <td>{{ finding['advice'] }} <span>+</span></td>
+                            <td>{{ finding['advice'] | safe }}</td>
                             <td>{{ finding['score'] }}</td>
+                            <td>{% if finding['details'] %}<span>+</span>{% endif %}</td>
                         </tr>
+                        {% if finding['details'] %}
                         <tr class="description">
+                            <td><b>Details:</b> <p>{{ finding['description'] }}</p></td>
                             <td colspan="3">
-                                <div>
-                                    {{ finding['details']|safe }}
-                                </div>
+                                <b>Instances:</b>
+                                {% for detail in finding['details'] %}
+                                    <p>{{ detail }}</p>
+                                {% endfor %}
                             </td>
                         </tr>
+                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>
@@ -2473,16 +2478,21 @@
                     {% for finding in bp_findings %}
                         <tr class="header">
                             <td>{{ finding['title'] }}</td>
-                            <td>{{ finding['advice'] }} <span>+</span></td>
+                            <td>{{ finding['advice'] | safe }}</td>
                             <td>{{ finding['score'] }}</td>
+                            <td>{% if finding['details'] %}<span>+</span>{% endif %}</td>
                         </tr>
+                        {% if finding['details'] %}
                         <tr class="description">
+                            <td><b>Details:</b> <p>{{ finding['description'] }}</p></td>
                             <td colspan="3">
-                                <div>
-                                    {{ finding['details']|safe }}
-                                </div>
+                                <b>Instances:</b>
+                                {% for detail in finding['details'] %}
+                                    <p>{{ detail }}</p>
+                                {% endfor %}
                             </td>
                         </tr>
+                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>
@@ -2507,16 +2517,21 @@
                     {% for finding in priv_findings %}
                         <tr class="header">
                             <td>{{ finding['title'] }}</td>
-                            <td>{{ finding['advice'] }} <span>+</span></td>
+                            <td>{{ finding['advice'] | safe }}</td>
                             <td>{{ finding['score'] }}</td>
+                            <td>{% if finding['details'] %}<span>+</span>{% endif %}</td>
                         </tr>
+                        {% if finding['details'] %}
                         <tr class="description">
+                            <td><b>Details:</b> <p>{{ finding['description'] }}</p></td>
                             <td colspan="3">
-                                <div>
-                                    {{ finding['details']|safe }}
-                                </div>
+                                <b>Instances:</b>
+                                {% for detail in finding['details'] %}
+                                    <p>{{ detail }}</p>
+                                {% endfor %}
                             </td>
                         </tr>
+                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>
