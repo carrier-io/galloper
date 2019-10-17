@@ -92,7 +92,7 @@ class ReportBuilder:
             color = 'green'
         else:
             color = 'red'
-        return status, color, failed_reasons
+        return test_status, color, failed_reasons
 
     @staticmethod
     def check_functional_issues(test):
@@ -540,8 +540,10 @@ class ReportBuilder:
         else:
             build_info['total_tti_diff'] = str(build_info['total_tti_diff']
                                                ).replace("-", "<b style=\"color: green\">&#9660;</b>")
+
         build_info['total_transfer_diff'] = round(float(build['transfer']) * 100 / float(last_build['transfer']) - 100,
-                                                  1)
+                                                  1) if int(last_build['transfer']) != 0 else 0
+
         if build_info['total_transfer_diff'] > 0.0:
             build_info['total_transfer_diff'] = "<b style=\"color: red\">&#9650;</b>" + \
                                                 str(build_info['total_transfer_diff'])
@@ -553,7 +555,7 @@ class ReportBuilder:
             build_info['total_latency_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(
                 build_info['total_latency_diff'])
         else:
-            build_info['total_latency_diff'] = str(build_info['total_latency_diff']
+            build_info['total_latency_diff'] = str(round(float(build_info['total_latency_diff']), 1)
                                                    ).replace("-", "<b style=\"color: green\">&#9660;</b>")
         build_info['total_time_diff'] = round(float(build['total_time']) * 100 / float(last_build['total_time']) - 100,
                                               1)

@@ -60,67 +60,8 @@ class DataManager:
 
         for _id in build_ids:
             test_data = self.client.query(SELECT_TEST_DATA.format(_id))
-            tests_data.append(test_data)
-        tests_data = self.aggregate_api_test_results(tests_data)
+            tests_data.append(list(test_data.get_points()))
         return tests_data
-
-    @staticmethod
-    def aggregate_api_test_results(tests_data):
-        tests = []
-        for test in tests_data:
-            test_info = []
-            request_names = []
-            for request in list(test.get_points()):
-                if request['request_name'] not in request_names:
-                    request_names.append(request['request_name'])
-            for request_name in request_names:
-                request_info = {}
-                for request in list(test.get_points()):
-                    if request_name == request['request_name']:
-                        if request['request_name'] in request_info.values():
-                            request_info['1xx'] = int(request_info['1xx']) + request['1xx']
-                            request_info['2xx'] = int(request_info['2xx']) + request['2xx']
-                            request_info['3xx'] = int(request_info['3xx']) + request['3xx']
-                            request_info['4xx'] = int(request_info['4xx']) + request['4xx']
-                            request_info['5xx'] = int(request_info['5xx']) + request['5xx']
-                            request_info['NaN'] = int(request_info['NaN']) + request['NaN']
-                            request_info['ko'] = int(request_info['ko']) + request['ko']
-                            request_info['ok'] = int(request_info['ok']) + request['ok']
-                            request_info['total'] = int(request_info['total']) + request['total']
-                            request_info['max_array'].append(int(request['max']))
-                            request_info['min_array'].append(int(request['min']))
-                            request_info['mean_array'].append(int(request['mean']))
-                            request_info['pct50_array'].append(int(request['pct50']))
-                            request_info['pct75_array'].append(int(request['pct75']))
-                            request_info['pct90_array'].append(int(request['pct90']))
-                            request_info['pct95_array'].append(int(request['pct95']))
-                            request_info['pct99_array'].append(int(request['pct99']))
-                            request_info['throughput_array'].append(float(request['throughput']))
-                        else:
-                            request_info = request
-                            request_info['max_array'] = [int(request_info['max'])]
-                            request_info['min_array'] = [int(request_info['min'])]
-                            request_info['mean_array'] = [int(request_info['mean'])]
-                            request_info['pct50_array'] = [int(request_info['pct50'])]
-                            request_info['pct75_array'] = [int(request_info['pct75'])]
-                            request_info['pct90_array'] = [int(request_info['pct90'])]
-                            request_info['pct95_array'] = [int(request_info['pct95'])]
-                            request_info['pct99_array'] = [int(request_info['pct99'])]
-                            request_info['throughput_array'] = [float(request_info['throughput'])]
-
-                request_info['max'] = int(statistics.median(request_info['max_array']))
-                request_info['min'] = int(statistics.median(request_info['min_array']))
-                request_info['mean'] = int(statistics.median(request_info['mean_array']))
-                request_info['pct50'] = int(statistics.median(request_info['pct50_array']))
-                request_info['pct75'] = int(statistics.median(request_info['pct75_array']))
-                request_info['pct90'] = int(statistics.median(request_info['pct90_array']))
-                request_info['pct95'] = int(statistics.median(request_info['pct95_array']))
-                request_info['pct99'] = int(statistics.median(request_info['pct99_array']))
-                request_info['throughput'] = round(float(statistics.median(request_info['throughput_array'])), 2)
-                test_info.append(request_info)
-
-            tests.append(test_info)
-        return tests
 
     def get_baseline(self):
         self.client.switch_database(self.args['influx_comparison_database'])
@@ -133,8 +74,7 @@ class DataManager:
             return None
         _id = result[0]['build_id']
         baseline_data = self.client.query(SELECT_TEST_DATA.format(_id))
-        baseline_data = self.aggregate_api_test_results([baseline_data])
-        return baseline_data[0]
+        return list(baseline_data.get_points())
 
     def append_thresholds_to_test_data(self, test):
         self.client.switch_database(self.args['influx_thresholds_database'])
@@ -147,8 +87,8 @@ class DataManager:
             threshold = self.client.query(SELECT_THRESHOLDS.format(str(request['request_name']),
                                                                    str(request['simulation'])))
             if len(list(threshold.get_points())) == 0:
-                red_threshold = 1000
-                yellow_threshold = 150
+                red_threshold = 3000
+                yellow_threshold = 2000
             else:
                 red_threshold = int(list(threshold.get_points())[0]['red'])
                 yellow_threshold = int(list(threshold.get_points())[0]['yellow'])
