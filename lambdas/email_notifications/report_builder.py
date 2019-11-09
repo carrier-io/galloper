@@ -6,23 +6,25 @@ from email.mime.image import MIMEImage
 import statistics
 from jinja2 import Environment, FileSystemLoader
 
+GREEN = '#028003'
+YELLOW = '#FFA400'
+RED = '#FF0000'
 
 class ReportBuilder:
 
     def create_api_email_body(self, tests_data, last_test_data, baseline, comparison_metric):
         test_description = self.create_test_description(last_test_data, baseline, comparison_metric)
         builds_comparison = self.create_builds_comparison(tests_data)
-
+        general_metrics = self.get_general_metrics(builds_comparison[0], baseline, {})
         charts = self.create_charts(builds_comparison, last_test_data, baseline, comparison_metric)
-        top_five_baseline = self.get_top_five_baseline(last_test_data, baseline, comparison_metric)
-        top_five_thresholds = self.get_top_five_thresholds(last_test_data, comparison_metric)
+        baseline_and_thresholds = self.get_baseline_and_thresholds(last_test_data, baseline, comparison_metric)
         email_body = self.get_api_email_body(test_description, last_test_data, baseline, builds_comparison,
-                                             top_five_baseline, top_five_thresholds)
+                                             baseline_and_thresholds, general_metrics)
         return email_body, charts, str(test_description['start']).split(" ")[0]
 
     def create_ui_email_body(self, tests_data, last_test_data):
         test_params = self.create_ui_test_discription(last_test_data)
-        top_five_thresholds = self.get_top_five_thresholds(last_test_data, 'time')
+        top_five_thresholds = self.get_baseline_and_thresholds(last_test_data, None, 'time')
         builds_comparison = self.create_ui_builds_comparison(tests_data)
         charts = self.create_ui_charts(last_test_data, builds_comparison)
         last_test_data = self.aggregate_last_test_results(last_test_data)
@@ -41,7 +43,7 @@ class ReportBuilder:
         test_params['status'], test_params['color'], test_params['failed_reason'] = self.check_status(test, baseline,
                                                                                                       comparison_metric)
         return test_params
-
+        
     @staticmethod
     def create_ui_test_discription(test):
         description = {'start_time': datetime.datetime.utcfromtimestamp(int(test[0]['start_time']) / 1000).strftime(
@@ -89,9 +91,9 @@ class ReportBuilder:
         if test_status is 'SUCCESS':
             test_status = status
         if test_status is 'SUCCESS':
-            color = 'green'
+            color = GREEN
         else:
-            color = 'red'
+            color = RED
         return status, color, failed_reasons
 
     @staticmethod
@@ -169,39 +171,20 @@ class ReportBuilder:
     @staticmethod
     def compare_builds(build, last_build):
         build_info = {}
-        params = ['date', 'error_rate', 'pct95', 'total', 'throughput']
-        build_info['error_rate_diff'] = round(float(build['error_rate']) - float(last_build['error_rate']), 2)
-        if build_info['error_rate_diff'] > 0.0:
-            build_info['error_rate_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['error_rate_diff'])
-        else:
-            build_info['error_rate_diff'] = str(build_info['error_rate_diff']
-                                                ).replace("-", "<b style=\"color: green\">&#9660;</b>")
-        build_info['pct95_diff'] = round(float(build['pct95']) * 100 /
-                                         float(last_build['pct95']) - 100, 1)
-        if build_info['pct95_diff'] > 0.0:
-            build_info['pct95_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['pct95_diff'])
-        else:
-            build_info['pct95_diff'] = str(build_info['pct95_diff']
-                                           ).replace("-", "<b style=\"color: green\">&#9660;</b>")
-        build_info['total_diff'] = round(float(build['total']) * 100 / float(last_build['total']) - 100, 1)
-        if build_info['total_diff'] > 0.0:
-            build_info['total_diff'] = "<b style=\"color: red\">&#9650;</b>" + str(build_info['total_diff'])
-        else:
-            build_info['total_diff'] = str(build_info['total_diff']
-                                           ).replace("-", "<b style=\"color: green\">&#9660;</b>")
-        if float(last_build['throughput']) != 0.0:
-            build_info['throughput_diff'] = round(float(build['throughput']
-                                                        ) * 100 / float(last_build['throughput']) - 100, 1)
-        else:
-            build_info['throughput_diff'] = 0.0
-        if build_info['throughput_diff'] > 0.0:
-            build_info['throughput_diff'] = "<b style=\"color: red\">&#9650;</b>" + \
-                                            str(build_info['throughput_diff'])
-        else:
-            build_info['throughput_diff'] = str(build_info['throughput_diff']
-                                                ).replace("-", "<b style=\"color: green\">&#9660;</b>")
-
-        for param in params:
+        for param in ['date', 'error_rate', 'pct95', 'total', 'throughput']:
+            param_diff = None
+            if param in ['error_rate']:
+                param_diff = round(float(build[param]) - float(last_build.get(param, 0.0)), 2)
+                color = RED if param_diff > 0.0 else GREEN
+            if param in ['throughput', 'total']:
+                param_diff = round(float(build[param]) - float(last_build.get(param, 0.0)), 2)
+                color = RED if param_diff < 0.0 else GREEN
+            if param in ['pct95']:
+                param_diff = round((float(build[param]) - float(last_build[param]))/1000, 2)
+                color = RED if param_diff > 0.0 else GREEN
+            if param_diff is not None:
+                param_diff = f"+{param_diff}" if param_diff > 0 else str(param_diff)
+                build_info[f'{param}_diff'] = f"<p style=\"color: {color}\">{param_diff}</p>"
             build_info[param] = build[param]
         return build_info
 
@@ -210,9 +193,6 @@ class ReportBuilder:
         if len(builds) > 1:
             charts.append(self.create_success_rate_chart(builds))
             charts.append(self.create_throughput_chart(builds))
-        if baseline:
-            charts.append(self.create_comparison_vs_baseline_barchart(last_test_data, baseline, comparison_metric))
-        charts.append(self.create_thresholds_chart(last_test_data, comparison_metric))
         return charts
 
     @staticmethod
@@ -428,60 +408,79 @@ class ReportBuilder:
         return image
 
     @staticmethod
-    def get_top_five_baseline(last_test_data, baseline, comparison_metric):
+    def get_general_metrics(build_data, baseline, thresholds=None):
+        current_tp = build_data['throughput']
+        current_error_rate = build_data['error_rate']
+        baseline_throughput = 0
+        baseline_error_rate = 0
         if baseline:
-            exceeded_baseline = []
-            for request in last_test_data:
-                for baseline_request in baseline:
-                    if request['request_name'] == baseline_request['request_name']:
-                        if int(request[comparison_metric]) > int(baseline_request[comparison_metric]):
-                            req = {}
-                            if len(str(request['request_name'])) > 25:
-                                req['request_name'] = str(request['request_name'])[:25] + "...: "
-                            else:
-                                req['request_name'] = str(request['request_name']) + ": "
-                            req['response_time'] = str(round(float(request[comparison_metric]) / 1000, 2)) + " sec"
-                            req['delta'] = int(request[comparison_metric]) - int(baseline_request[comparison_metric])
-                            exceeded_baseline.append(req)
-            exceeded_baseline = sorted(exceeded_baseline, key=lambda k: k['delta'], reverse=True)
-            if len(exceeded_baseline) > 5:
-                return exceeded_baseline[:5]
-            else:
-                return exceeded_baseline
-        else:
-            return []
+            baseline_throughput = round(sum([tp['throughput'] for tp in baseline]), 2)
+            baseline_ko_count = round(sum([tp['ko'] for tp in baseline]), 2)
+            baseline_ok_count = round(sum([tp['ok'] for tp in baseline]), 2)
+            baseline_error_rate = round((baseline_ko_count / (baseline_ko_count+baseline_ok_count)) * 100, 2)
+        baseline_tp_color = RED if baseline_throughput > current_tp else GREEN
+        baseline_er_color = RED if current_error_rate > baseline_error_rate else GREEN
+        thresholds_tp_color = RED if thresholds.get('throughput', 0) > current_tp else GREEN
+        thresholds_er_color = RED if current_error_rate > thresholds.get('error_rate', 0) else GREEN
+        return {
+            "current_tp": current_tp,
+            "baseline_tp": round(current_tp - baseline_throughput, 2),
+            "baseline_tp_color": baseline_tp_color,
+            "threshold_tp": round(current_tp - thresholds.get('throughput', 0), 2),
+            "threshold_tp_color": thresholds_tp_color,
+            "current_er": current_error_rate,
+            "baseline_er": round(current_error_rate - baseline_error_rate, 2),
+            "baseline_er_color": baseline_er_color,
+            "threshold_er": round(current_error_rate - thresholds.get('error_rate', 0), 2),
+            "threshold_er_color": thresholds_er_color
+        }
 
     @staticmethod
-    def get_top_five_thresholds(last_test_data, comparison_metric):
+    def get_baseline_and_thresholds(last_test_data, baseline, comparison_metric):
         exceeded_thresholds = []
+        baseline_metrics = {}
+        if baseline:
+            for request in baseline:
+                baseline_metrics[request['request_name']] = int(request[comparison_metric])
         for request in last_test_data:
-            if request[comparison_metric + '_threshold'] == 'orange':
-                req = {}
-                if len(str(request['request_name'])) > 25:
-                    req['request_name'] = str(request['request_name'])[:25] + "...: "
+            req = {}
+            req['response_time'] = str(round(float(request[comparison_metric]) / 1000, 2))
+            req['threshold_value'] = str(request['yellow_threshold_value'])
+            req['threshold'] = round(float(int(request[comparison_metric]) - int(request['yellow_threshold_value']))/ 1000, 2)
+            if len(str(request['request_name'])) > 25:
+                req['request_name'] = str(request['request_name'])[:25] + "... "
+            else:
+                req['request_name'] = str(request['request_name'])
+            if request[comparison_metric + '_threshold'] == YELLOW:
+                req['threshold_color'] = YELLOW
+            elif request[comparison_metric + '_threshold'] == RED:
+                req['threshold_value'] = str(request['red_threshold_value'])
+                req['threshold'] = round(float(int(request[comparison_metric]) - int(request['red_threshold_value']))/ 1000, 2)
+                req['threshold_color'] = RED
+            else:
+                req['threshold_color'] = GREEN
+            if baseline:
+                req['baseline'] = round(float(int(request[comparison_metric]) - baseline_metrics[request['request_name']]) / 1000, 2)
+                if req['baseline'] < 0:
+                    req['baseline_color'] = GREEN
                 else:
-                    req['request_name'] = str(request['request_name']) + ": "
-                req['response_time'] = str(round(float(request[comparison_metric]) / 1000, 2)) + " sec"
-                req['delta'] = int(request[comparison_metric]) - int(request['yellow_threshold_value'])
-                req['color'] = 'yellow'
-                req['style_color'] = 'orange'
-                exceeded_thresholds.append(req)
-            if request[comparison_metric + '_threshold'] == 'red':
-                req = {}
-                if len(str(request['request_name'])) > 25:
-                    req['request_name'] = str(request['request_name'])[:25] + "...: "
-                else:
-                    req['request_name'] = str(request['request_name']) + ": "
-                req['response_time'] = str(round(float(request[comparison_metric]) / 1000, 2)) + " sec"
-                req['delta'] = int(request[comparison_metric]) - int(request['yellow_threshold_value'])
-                req['color'] = 'red'
-                req['style_color'] = 'red'
-                exceeded_thresholds.append(req)
-        exceeded_thresholds = sorted(exceeded_thresholds, key=lambda k: k['delta'], reverse=True)
-        if len(exceeded_thresholds) > 5:
-            return exceeded_thresholds[:5]
-        else:
-            return exceeded_thresholds
+                    req['baseline_color'] = YELLOW
+            if req['threshold_color'] == RED:
+                req['line_color'] = RED
+            elif req['threshold_color'] == GREEN and req.get('baseline_color', GREEN) == GREEN:
+                req['line_color'] = GREEN
+            else:
+                req['line_color'] = YELLOW
+            exceeded_thresholds.append(req)
+        exceeded_thresholds = sorted(exceeded_thresholds, key=lambda k: k['response_time'], reverse=True)
+        hundered = 0
+        for _ in range(len(exceeded_thresholds)):
+            if not(hundered):
+                exceeded_thresholds[_]['share'] = 100
+                hundered = float(exceeded_thresholds[_]['response_time'])
+            else:
+                exceeded_thresholds[_]['share'] = int((100*float(exceeded_thresholds[_]['response_time']))/hundered)
+        return exceeded_thresholds
 
     def create_ui_builds_comparison(self, tests):
         comparison, builds_info = [], []
@@ -584,13 +583,12 @@ class ReportBuilder:
         return test_data
 
     @staticmethod
-    def get_api_email_body(test_params, last_test_data, baseline, builds_comparison, top_five_baseline,
-                           top_five_thresholds):
+    def get_api_email_body(test_params, last_test_data, baseline, builds_comparison, baseline_and_thresholds, general_metrics):
         env = Environment(loader=FileSystemLoader('./templates/'))
-        template = env.get_template("email_template.html")
+        template = env.get_template("backend_email.html")
         html = template.render(t_params=test_params, summary=last_test_data, baseline=baseline,
                                comparison=builds_comparison,
-                               top_five_baseline=top_five_baseline, top_five_thresholds=top_five_thresholds)
+                               baseline_and_thresholds=baseline_and_thresholds, general_metrics=general_metrics)
         return html
 
     @staticmethod

@@ -20,6 +20,8 @@ def lambda_handler(event, context):
             raise Exception('Incorrect value for notification_type: {}. Must be api or ui'
                             .format(args['notification_type']))
     except Exception as e:
+        from traceback import format_exc
+        print(format_exc())
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
@@ -64,4 +66,3 @@ def parse_args(_event):
         args['test_type'] = event.get('test_type')
 
     return args
-

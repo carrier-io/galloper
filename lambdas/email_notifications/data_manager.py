@@ -1,6 +1,9 @@
 from influxdb import InfluxDBClient
 import statistics
 
+GREEN = '#028003'
+YELLOW = '#FFA400'
+RED = '#FF0000'
 
 SELECT_LAST_BUILDS_ID = "select distinct(id) from (select build_id as id, pct95 from api_comparison where " \
                         "simulation=\'{}\' and test_type=\'{}\' and \"users\"=\'{}\' " \
@@ -138,12 +141,11 @@ class DataManager:
 
     def append_thresholds_to_test_data(self, test):
         self.client.switch_database(self.args['influx_thresholds_database'])
-        params = ['request_name', 'total', 'throughput', 'ko', 'min', 'max', 'pct50', 'pct75', 'pct95', 'time',
+        params = ['request_name', 'total', 'throughput', 'ko', 'min', 'max', 'pct50', 'pct95', 'time',
                   'simulation', 'users', 'duration']
         test_summary = []
         for request in test:
             request_data = {}
-            comparison_metric = self.args['comparison_metric']
             threshold = self.client.query(SELECT_THRESHOLDS.format(str(request['request_name']),
                                                                    str(request['simulation'])))
             if len(list(threshold.get_points())) == 0:
@@ -152,13 +154,13 @@ class DataManager:
             else:
                 red_threshold = int(list(threshold.get_points())[0]['red'])
                 yellow_threshold = int(list(threshold.get_points())[0]['yellow'])
-
-            if int(request[comparison_metric]) < yellow_threshold:
-                request_data[comparison_metric + '_threshold'] = 'green'
-            else:
-                request_data[comparison_metric + '_threshold'] = 'orange'
-            if int(request[comparison_metric]) >= red_threshold:
-                request_data[comparison_metric + '_threshold'] = 'red'
+            for param in ['min', 'max', 'pct50', 'pct95']:
+                if int(request[param]) < yellow_threshold:
+                    request_data[param + '_threshold'] = GREEN
+                else:
+                    request_data[param + '_threshold'] = YELLOW
+                if int(request[param]) >= red_threshold:
+                    request_data[param + '_threshold'] = RED
             request_data['yellow_threshold_value'] = yellow_threshold
             request_data['red_threshold_value'] = red_threshold
             for param in params:
