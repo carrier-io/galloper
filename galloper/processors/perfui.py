@@ -9,13 +9,21 @@ ffmpeg_path = environ.get("ffmpg_path", "/usr/bin/ffmpeg")
 report_path = '/tmp'
 
 
+def sanitize(filename):
+    return "".join(x for x in filename if x.isalnum())[0:25]
+
 def trim_screenshot(kwargs):
-    image_path = f'{path.join(kwargs["processing_path"],kwargs["test_name"], str(kwargs["ms"]))}_out.jpg'
-    command = f'{ffmpeg_path} -ss {str(round(kwargs["ms"] / 1000, 3))} -i {kwargs["video_path"]} ' \
-        f'-vframes 1 {image_path}'
-    Popen(command, stderr=PIPE, shell=True, universal_newlines=True).communicate()
-    with open(image_path, "rb") as image_file:
-        return {kwargs["ms"]: base64.b64encode(image_file.read()).decode("utf-8")}
+    try:
+        image_path = f'{path.join(kwargs["processing_path"], sanitize(kwargs["test_name"]), str(kwargs["ms"]))}_out.jpg'
+        command = f'{ffmpeg_path} -ss {str(round(kwargs["ms"] / 1000, 3))} -i {kwargs["video_path"]} ' \
+            f'-vframes 1 {image_path}'
+        print(Popen(command, stderr=PIPE, shell=True, universal_newlines=True).communicate())
+        with open(image_path, "rb") as image_file:
+            return {kwargs["ms"]: base64.b64encode(image_file.read()).decode("utf-8")}
+    except FileNotFoundError:
+        from traceback import format_exc
+        print(format_exc())
+        return {}
 
 
 class prepareReport(object):
@@ -496,6 +504,7 @@ class prepareReport(object):
 
     def concut_video(self, start, end, page_name, video_path):
         p = Pool(7)
+        res = []
         try:
             page_name = page_name.replace(" ", "_")
             process_params = [{
@@ -505,10 +514,11 @@ class prepareReport(object):
                 "processing_path": self.processing_path,
             } for part in range(start, end, (end-start)//8)][1:]
             if not path.exists(path.join(self.processing_path, page_name)):
-                mkdir(path.join(self.processing_path, page_name))
+                mkdir(path.join(self.processing_path, sanitize(page_name)))
             res = p.map(trim_screenshot, process_params)
         except:
-            res = []
+            from traceback import format_exc
+            print(format_exc())
         finally:
             p.terminate()
         return res
@@ -531,9 +541,11 @@ class prepareReport(object):
             test_status = 'error'
         last_response_end = max([resource['responseEnd'] for resource in resource_timing])
         end = int(max([navigation_timing['loadEventEnd'] - navigation_timing['navigationStart'], last_response_end]))
-        screenshots = [list(e.values())[0] for e in sorted(self.concut_video(start_time, end, page_name,
-                                                                             video_path),
-                                                           key=lambda d: list(d.keys()))]
+        screenshots_dict = []
+        for each in self.concut_video(start_time, end, page_name, video_path):
+            if each:
+                screenshots_dict.append(each)
+        screenshots = [list(e.values())[0] for e in sorted(screenshots_dict, key=lambda d: list(d.keys()))]
         template = env.get_template('perftemplate/perfreport.html')
         res = template.render(page_name=page_name, str_test_status=str_test_status, test_status=test_status,
                               perf_score=perf_score, priv_score=priv_score, acc_score=acc_score, bp_score=bp_score,
