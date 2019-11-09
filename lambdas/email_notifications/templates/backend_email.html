@@ -2,16 +2,34 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style>
+        @media screen {
+            @font-face {
+                font-family: 'Roboto';
+                font-style: normal;
+                font-weight: 700;
+                src: local('Roboto Bold'), local('Roboto-Bold'), url(https://fonts.gstatic.com/s/roboto/v20/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2) format('woff2');
+                unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+            }
+            @font-face {
+                font-family: 'Roboto';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v20/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2) format('woff2');
+                unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+            }
+        }
+    </style>
 </head>
-<body style="background-color:#3D1391; width: 100%; vertical-align: middle; margin: auto; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; font-weight: 100;">
-	<div style="text-align: center; margin: auto; color: white; font-weight: normal; font-size: 14px; width: 80%; padding-top: 20px; max-width: 1000px; min-width: 500px;">
+<body style="background-color:#3D1391; width: 100%; vertical-align: middle; margin: auto; font-family: Roboto, 'Trebuchet MS', Arial, sans-serif; font-weight: 400;">
+	<div style="text-align: center; margin: auto; color: white; font-weight: 400; font-size: 14px; width: 80%; padding-top: 20px; max-width: 1000px; min-width: 500px;">
         <h1>Performance Notification</h1>
     </div>
     <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px;">
         <table style="padding: 20px; width: 100%; font-size: 14px;">
             <tr>
-                <th style = "text-align: left; font-weight: bold; padding-bottom: 10px;">Test Execution Summary</th>
-                <th style = "font-weight: lighter; text-align: right;">
+                <th style = "text-align: left; font-weight: 700; padding-bottom: 10px;">Test Execution Summary</th>
+                <th style = "font-weight: 400; text-align: right;">
                     Status
                     <div style="border-radius: 5px; margin: 0px 10px 0px 10px; padding: 5px 10px 5px 10px; display: inline; background-color: {{ t_params.color }}; font-size: 12px; color: white;">
                         {{ t_params.status }}
@@ -63,12 +81,10 @@
                 </tr>
         </table>
     </div>
-    <div style="width: 80%; padding: 5px; margin: auto;">
-    </div>
+    <div style="width: 80%; padding: 5px; margin: auto;"></div>
     <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px;">
-        <div style="margin: 0 20px 20px 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
-            <span style="font-size: 16px; font-weight: bold;">Metrics Comparison</span>
-            <p style="font-size: 14px; font-weight: bold;">General Metrics</p>
+        <div style="margin: 0 20px 0 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
+            <span style="font-size: 16px; font-weight: 700;">General Metrics</span>
             <table style="width: 100%; text-align: right; padding-top: 5px; padding-bottom: 10px; border-left: 1px solid white;">
                 <tr>
                     <th style="background-color: #fbfbfb; padding: 5px; text-align: left;">Metric</th>
@@ -116,7 +132,7 @@
                     <td style="text-align: right; padding-right: 10px;"> {{ general_metrics.current_er }}%</td>
                 </tr>
             </table>
-            <p style="font-size: 14px; font-weight: bold;">Request Metrics</p>
+            <span style="font-size: 16px; font-weight: 700;">Request Metrics</span>
             <table style="width: 100%; text-align: right; padding-top: 5px;">
                 <tr>
                     <th style="width: 30%; background-color: #fbfbfb; padding: 5px; text-align: left; ">Name</th>
@@ -159,19 +175,20 @@
             </table>
         </div>
     </div>
+    <div style="width: 80%; padding: 5px; margin: auto;"></div>
     <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px;">
-        <div style="margin: 0 20px 20px 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
-            <span style="font-size: 16px; font-weight: bold; line-height: 40px;">Comparison vs latest builds</span>
+        <div style="margin: 0 20px 0 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
+            <span style="font-size: 16px; font-weight: 700; line-height: 40px;">Comparison vs latest builds</span>
             <table style="width: 100%; text-align: right; padding-top: 5px;">
                 <tr>
                     <th style="background-color: #fbfbfb; min-width: 80px; padding: 5px; text-align: left; ">Date</th>
-                    <th style="background-color: #fbfbfb;">Total req, count</th>
+                    <th style="background-color: #fbfbfb;">Ttl req, count</th>
                     <th style="background-color: #fbfbfb;">Diff, count</th>
-                    <th style="background-color: #fbfbfb;">Throughput, req/sec</th>
+                    <th style="background-color: #fbfbfb;">Thrghpt, req/sec</th>
                     <th style="background-color: #fbfbfb;">Diff, req/sec</th>
                     <th style="background-color: #fbfbfb;">Error rate, %</th>
                     <th style="background-color: #fbfbfb;">Diff, %</th>
-                    <th style="background-color: #fbfbfb;">pct95, sec</th>
+                    <th style="background-color: #fbfbfb;">Pct95, sec</th>
                     <th style="background-color: #fbfbfb;">Diff, sec</th>
                 </tr>
                 {% for metric in comparison %}
@@ -188,16 +205,16 @@
                 </tr>
                 {% endfor %}
             </table>
-            <span style="font-size: 16px; font-weight: bold; line-height: 40px;">Results summary table</span>
+            <span style="font-size: 16px; font-weight: 700; line-height: 40px;">Results summary table</span>
             <table style="width: 100%; text-align: right; padding-top: 5px;">
                 <tr>
                     <th style="width: 30%; max-width: 180px; min-width: 120px; background-color: #fbfbfb; padding: 5px; text-align: left; ">Name</th>
-                    <th style="background-color: #fbfbfb;">Total req, count</th>
-                    <th style="background-color: #fbfbfb;">Throughput, req/sec</th>
+                    <th style="background-color: #fbfbfb;">Ttl req, count</th>
+                    <th style="background-color: #fbfbfb;">Thrghpt, req/sec</th>
                     <th style="background-color: #fbfbfb;">Errors, count</th>
                     <th style="background-color: #fbfbfb;">Min, sec</th>
-                    <th style="background-color: #fbfbfb;">pct50, sec</th>
-                    <th style="background-color: #fbfbfb;">pct95, sec</th>
+                    <th style="background-color: #fbfbfb;">Pct50, sec</th>
+                    <th style="background-color: #fbfbfb;">Pct95, sec</th>
                     <th style="background-color: #fbfbfb;">Max, sec</th>
                 </tr>
                 {% for request in summary %}
@@ -215,18 +232,20 @@
             </table>
         </div>
     </div>
+    <div style="width: 80%; padding: 5px; margin: auto;"></div>
     <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px;">
-        <div style="margin: 0 20px 20px 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
-            <span style="font-size: 16px; font-weight: bold; line-height: 40px;">Success Rate</span>
+        <div style="margin: 0 20px 0 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
+            <span style="font-size: 16px; font-weight: 700; line-height: 40px;">Success Rate</span>
             <div style="text-align: center;">
                 <img src="cid:success_rate" style="max-width: 100%; height: auto;" />
             </div>
-            <span style="font-size: 16px; font-weight: bold; line-height: 40px;">RPS/TPS Rate</span>
+            <span style="font-size: 16px; font-weight: 700; line-height: 40px;">RPS/TPS Rate</span>
             <div style="text-align: center;">
                     <img src="cid:throughput" style="max-width: 100%; height: auto;" />
             </div>
         </div>
     </div>
+    <div style="width: 80%; padding: 5px; margin: auto;"></div>
     <div style="width: 80%; margin: auto; padding-bottom: 5px; text-align: center; max-width: 1000px; min-width: 500px;">
         <p style="color: white; font-size: 12px;">Auto generated performance analysis report</p>
         <p style="color: white; font-size: 12px;">&#9400; https://getcarrier.io</p>
