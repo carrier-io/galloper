@@ -1,7 +1,7 @@
 import time
 import calendar
 import datetime
-from chart_generator import *
+from chart_generator import alerts_linechart, barchart, ui_comparison_linechart
 from email.mime.image import MIMEImage
 import statistics
 from jinja2 import Environment, FileSystemLoader
@@ -18,6 +18,7 @@ class ReportBuilder:
         general_metrics = self.get_general_metrics(builds_comparison[0], baseline, {})
         charts = self.create_charts(builds_comparison, last_test_data, baseline, comparison_metric)
         baseline_and_thresholds = self.get_baseline_and_thresholds(last_test_data, baseline, comparison_metric)
+        
         email_body = self.get_api_email_body(test_description, last_test_data, baseline, builds_comparison,
                                              baseline_and_thresholds, general_metrics)
         return email_body, charts, str(test_description['start']).split(" ")[0]
@@ -584,14 +585,29 @@ class ReportBuilder:
             test_data.append(page_info)
         return test_data
 
-    @staticmethod
-    def get_api_email_body(test_params, last_test_data, baseline, builds_comparison, baseline_and_thresholds, general_metrics):
+    def get_api_email_body(self, test_params, last_test_data, baseline, builds_comparison, baseline_and_thresholds, general_metrics):
         env = Environment(loader=FileSystemLoader('./templates/'))
         template = env.get_template("backend_email.html")
+        last_test_data = self.reprocess_test_data(last_test_data, ['total', 'throughput'])
         html = template.render(t_params=test_params, summary=last_test_data, baseline=baseline,
                                comparison=builds_comparison,
                                baseline_and_thresholds=baseline_and_thresholds, general_metrics=general_metrics)
         return html
+
+    @staticmethod
+    def stringify_number(number):
+        if float(number) // 1000000 > 0:
+            return f'{str(round(float(number) / 1000000), 2)}M'
+        elif float(number) // 1000 > 0:
+            return f'{str(round(float(number) / 1000), 2)}K'
+        else:
+            return str(number)
+
+    def reprocess_test_data(self, results_list, keys):
+        for _ in range(len(results_list)):
+            for key in keys:
+                results_list[_][key] = self.stringify_number(results_list[_][key])
+        return results_list
 
     @staticmethod
     def get_ui_email_body(test_params, top_five_thresholds, builds_comparison, last_test_data):

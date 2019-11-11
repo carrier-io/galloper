@@ -200,7 +200,7 @@
                     <td>{{metric.throughput_diff}}</td>
                     <td>{{metric.error_rate}}</td>
                     <td>{{metric.error_rate_diff}}</td>
-                    <td>{{metric.pct95}}</td>
+                    <td>{{ (metric.pct95 / 1000.0)|round(2, 'floor') }}</td>
                     <td>{{metric.pct95_diff}}</td>
                 </tr>
                 {% endfor %}
@@ -223,9 +223,9 @@
                     <td>{{ request.total }}</td>
                     <td>{{ request.throughput }}</td>
                     <td>{{ request.ko }}</td>
-                    <td style="color:{{ request.min_threshold }}">{{ (request.min /1000.0)|round(2, 'floor') }}</td>
-                    <td style="color:{{ request.pct50_threshold }}">{{ (request.pct50 /1000.0)|round(2, 'floor') }}</td>
-                    <td style="color:{{ request.pct95_threshold }}">{{ (request.pct95 /1000.0)|round(2, 'floor') }}</td>
+                    <td style="color:{{ request.min_threshold }}">{{ (request.min / 1000.0)|round(2, 'floor') }}</td>
+                    <td style="color:{{ request.pct50_threshold }}">{{ (request.pct50 / 1000.0)|round(2, 'floor') }}</td>
+                    <td style="color:{{ request.pct95_threshold }}">{{ (request.pct95 / 1000.0)|round(2, 'floor') }}</td>
                     <td style="color:{{ request.max_threshold }}">{{ (request.max /1000.0)|round(2, 'floor') }}</td>
                 </tr>
                 {% endfor %}
@@ -233,7 +233,7 @@
         </div>
     </div>
     <div style="width: 80%; padding: 5px; margin: auto;"></div>
-    <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px;">
+    <div style="width: 80%; border-radius: 8px; margin: auto; background-color: white; max-width: 1000px; min-width: 500px; min-height: 600px;">
         <div style="margin: 0 20px 0 20px; padding-top: 20px; padding-bottom: 20px; font-size: 14px;">
             <span style="font-size: 16px; font-weight: 700; line-height: 40px;">Success Rate</span>
             <div style="text-align: center;">

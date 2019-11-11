@@ -66,3 +66,17 @@ def parse_args(_event):
         args['test_type'] = event.get('test_type')
 
     return args
+
+
+event =  {
+    "notification_type": "api",
+    "test": "Flood", 
+    "test_type": "capacity", 
+    "users": 10, 
+    "influx_host": "epuakhaw1400.kyiv.epam.com", 
+    "smpt_user": "test.carrier.email.notifications@gmail.com",
+    "smpt_password": "Q1-w2-e3-r4-t5", 
+    "user_list": ["artem.rozumenko@gmail.com"]
+}
+
+lambda_handler(event, None)
