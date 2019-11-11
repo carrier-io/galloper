@@ -1,33 +1,40 @@
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 16})
+
 from matplotlib.ticker import ScalarFormatter
 
+YELLOW = '#FFA400'
 
 def alerts_linechart(datapoints):
-    fig, ax = plt.subplots(figsize=(datapoints['width'] * 2, datapoints['height'] * 2), dpi=300,
+    fig, ax = plt.subplots(figsize=(datapoints['width'] * 2, datapoints['height'] * 3), dpi=72,
                            facecolor='w')
     y_max = 0
     x_max = 0
     x_max = max(datapoints['values']) if max(datapoints['values']) > x_max else x_max
     y_max = max(datapoints['keys']) if max(datapoints['keys']) > y_max else y_max
-    _, = ax.plot(datapoints['values'], datapoints['keys'], '--', linewidth=1,
-                 label=datapoints['label'])
-    _, = ax.plot(datapoints['values'], datapoints['keys'], 'o', linewidth=1)
+    _, = ax.plot(datapoints['values'], datapoints['keys'], '--', linewidth=2,
+                 label=datapoints['label'], color=YELLOW)
+    _, = ax.plot(datapoints['values'], datapoints['keys'], 'o', linewidth=4, color=YELLOW)
 
     for index, value in enumerate(datapoints['keys']):
         ax.annotate(str(value), xy=(datapoints['values'][index], value + y_max * 0.05))
-    ax.legend(loc='lower right')
+    # ax.legend(loc='lower right')
     ax.set_xlabel(datapoints['x_axis'])
     ax.set_ylabel(datapoints['y_axis'])
-    ax.set_title(datapoints['title'])
+    # ax.set_title(datapoints['title'])
     plt.xlim(0, x_max + 1)
     plt.ylim(0, y_max + y_max * 0.15)
-    ax.grid(True)
+    ax.grid(color="#E3E3E3")
     ax.set_xticklabels(
         [str(dp) for dp in datapoints['values']] if not datapoints.get('labels') else datapoints[
             'labels'])
     ax.set_xticks(datapoints['values'])
+    ax.spines['bottom'].set_color('#E3E3E3')
+    ax.spines['top'].set_color('#ffffff') 
+    ax.spines['right'].set_color('#ffffff')
+    ax.spines['left'].set_color('#ffffff')
     fig.savefig(datapoints['path_to_save'], bbox_inches='tight')
     plt.close()
 
