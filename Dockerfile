@@ -123,6 +123,7 @@ RUN pip install celery==4.3.0
 RUN pip install kombu==4.5.0
 RUN pip install selenium==3.141.0
 RUN pip install git+https://github.com/carrier-io/control_tower.git
+RUN echo "Starting point" > /var/log/worker.log
 
 SHELL ["/bin/bash", "-c"]
 EXPOSE 5000
