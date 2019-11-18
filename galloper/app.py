@@ -38,9 +38,10 @@ def create_app():
         except:
             return "Not Executed"
 
-    from galloper.routes import tasks, perfui
+    from galloper.routes import tasks, perfui, artifacts
     app.register_blueprint(tasks.bp)
     app.register_blueprint(perfui.bp)
+    app.register_blueprint(artifacts.bp)
 
     with app.app_context():
         db.create_all(app=app)
