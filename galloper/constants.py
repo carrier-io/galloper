@@ -22,6 +22,11 @@ REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = environ.get('REDIS_PORT', '6379')
 REDIS_DB = environ.get('REDIS_DB', 2)
 APP_HOST = environ.get('APP_HOST', 'localhost')
+MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://localhost:9000')
+MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
+MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
+MINIO_REGION = environ.get('MINIO_REGION', 'us-east-1')
+
 
 def allowed_file(filename):
     return '.' in filename and \
