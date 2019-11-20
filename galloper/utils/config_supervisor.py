@@ -16,6 +16,12 @@ import argparse
 
 interceptor_conf = """[supervisord]
 
+[unix_http_server]
+file=/run/supervisord.sock
+
+[supervisorctl]
+serverurl=unix:///run/supervisord.sock
+
 [program:worker]
 command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/worker.log
 autostart=true

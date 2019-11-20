@@ -79,6 +79,45 @@
                   <div class="row">
                     <div class="col-lg-6">
                       <div class="form-group">
+                        <label class="form-control-label" for="invoke_func">Task Handler</label>
+                        <p><small>Function used to invoke a task</small></p>
+                        <input type="text" id="invoke_func" class="form-control form-control-alternative" placeholder="Handler Name (e.g. my_handler)" value="{{ task.task_handler }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                            At the time you create a Task, you specify a handler, which is a function in your code,
+                            that Galloper can invoke when the service executes your code.
+                            Use the following general syntax structure - <code> handler(event, context) </code>
+                            <br />
+                            <code>event</code> - object provides data to the handler
+                            <br/>
+                            <code>context</code> - object provides methods and properties that provide information about the invocation, function, and execution environment.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="task_args">Environment variables</label>
+                        <p><small>JSON of environment variables that will be passed to your lambdan</small></p>
+                        <input type="text" id="env_vars" class="form-control form-control-alternative" placeholder="" value="{{ task.env_vars }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                          <br />You may want to specify environement variables to be available wihin your function<br />
+                          <code>{ key1 : value1, key2: value2 }</code> is expected format for environment variables
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
                         <label class="form-control-label" for="schedule">Schedule</label>
                         <p><small>Cron like schedule for a task</small></p>
                         <input type="text" id="schedule" class="form-control form-control-alternative" placeholder="Handler Name (e.g. my_handler)" value="{{ task.schedule }}">
@@ -105,28 +144,6 @@
                             <br />
                             <br />
                             <br />
-                      </small>
-                    </div>
-                  </div>
-                </div>
-                <div class="pl-lg-4">
-                  <div class="row">
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <label class="form-control-label" for="invoke_func">Task Handler</label>
-                        <p><small>Function used to invoke a task</small></p>
-                        <input type="text" id="invoke_func" class="form-control form-control-alternative" placeholder="Handler Name (e.g. my_handler)" value="{{ task.task_handler }}">
-                      </div>
-                    </div>
-                    <div class="col-lg-6">
-                      <small>
-                            At the time you create a Task, you specify a handler, which is a function in your code,
-                            that Galloper can invoke when the service executes your code.
-                            Use the following general syntax structure - <code> handler(event, context) </code>
-                            <br />
-                            <code>event</code> - object provides data to the handler
-                            <br/>
-                            <code>context</code> - object provides methods and properties that provide information about the invocation, function, and execution environment.
                       </small>
                     </div>
                   </div>
