@@ -64,7 +64,7 @@ def add_task():
 @bp.route('/task/<task_name>', methods=["GET", "POST"])
 def call_lambda(task_name):
     if request.method == "GET":
-        return render_template("lambdas/task.html", task=Task.query.filter_by(task_id=task_name).first())
+        return render_template("lambdas/task.html", task=Task.query.filter_by(task_id=task_name).first(), runtimes=NAME_CONTAINER_MAPPING.keys())
     else:
         if request.content_type == "application/json":
             task = Task.query.filter_by(task_id=task_name).first().to_json()
