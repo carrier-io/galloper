@@ -33,19 +33,10 @@
                         <label class="form-control-label" for="runtime">Runtime</label>
                         <p><small>Choose the language to use to write your function.</small></p>
                         <select class="selectpicker show-tick form-control form-control-sm " id="runtime">
-                            <!--<option>.NET Core 1.0 (C#)</option>-->
-                            <!--<option>.NET Core 2.0 (C#)</option>-->
-                            <!--<option>.NET Core 2.1 (C#/PowerShell)</option>-->
-                            <!--<option>Go 1.x</option>-->
-                            <!--<option>Java 8</option>-->
-                            <!--<option>Node.js 6.10</option>-->
-                            <!--<option>Node.js 8.10</option>-->
-                            <option>Python 2.7</option>
-                            <option>Python 3.6</option>
-                            <option>Python 3.7</option>
-                            <!--<option>Ruby 2.5</option>-->
-                        </select>
-                        <!--<input type="text" id="input-first-name"  placeholder="First name" value="Lucky">-->
+                          {% for runtime in runtimes %}
+                          <option>{{ runtime }}</option>  
+                          {% endfor %}
+                          </select>
                       </div>
                     </div>
                   </div>
@@ -68,7 +59,7 @@
                         </small>
                       </div>
                   </div>
-                    <div class="row">
+                  <div class="row">
                     <div class="col-lg-6">
                       <div class="form-group">
                         <label class="form-control-label" for="invoke_func">Task Handler</label>
@@ -85,6 +76,21 @@
                             <code>event</code> - object provides data to the handler
                             <br/>
                             <code>context</code> - object provides methods and properties that provide information about the invocation, function, and execution environment.
+                      </small>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="task_args">Environment variables</label>
+                        <p><small>JSON of environment variables that will be passed to your function</small></p>
+                        <input type="text" id="env_vars" class="form-control form-control-alternative" placeholder="" value="{}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <small>
+                          <br />You may want to specify environement variables to be available wihin your function<br />
+                          <code>{ key1 : value1, key2: value2 }</code> is expected format for environment variables
                       </small>
                     </div>
                   </div>
@@ -111,6 +117,7 @@
           data.append('funcname', $('#funcname')[0].value);
           data.append('runtime', $('#runtime')[0].value);
           data.append('invoke_func', $('#invoke_func')[0].value);
+          data.append('env_vars', $('#env_vars')[0].value);
           $.ajax(
             {
               url:"/task",

@@ -18,10 +18,11 @@ from uuid import uuid4
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
 from werkzeug.utils import secure_filename
 
-from galloper.constants import allowed_file
+from galloper.constants import allowed_file, NAME_CONTAINER_MAPPING
 from galloper.models.task import Task
 from galloper.models.task_results import Results
 from control_tower import run
+
 
 
 bp = Blueprint('tasks', __name__)
@@ -37,7 +38,7 @@ def tasks():
 @bp.route('/task', methods=["GET", "POST"])
 def add_task():
     if request.method == 'GET':
-        return render_template('lambdas/add_task.html')
+        return render_template('lambdas/add_task.html', runtimes=NAME_CONTAINER_MAPPING.keys())
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file part')
@@ -55,7 +56,7 @@ def add_task():
                                         kwargs={'task_id': filename, 'file_path': current_app.config['UPLOAD_FOLDER']})
             celery_task.apply_async()
             task = Task(task_id=filename, zippath=filename, task_name=request.form['funcname'],
-                        task_handler=request.form['invoke_func'], runtime=request.form['runtime'])
+                        task_handler=request.form['invoke_func'], runtime=request.form['runtime'], env_vars=request.form['env_vars'])
             task.insert()
             return f"{filename}"
 
@@ -65,12 +66,9 @@ def call_lambda(task_name):
     if request.method == "GET":
         return render_template("lambdas/task.html", task=Task.query.filter_by(task_id=task_name).first())
     else:
-        print(request.content_type)
         if request.content_type == "application/json":
             task = Task.query.filter_by(task_id=task_name).first().to_json()
-            print(task)
             event = request.get_json()
-            print(event)
             app = run.connect_to_celery(1)
             celery_task = app.signature('tasks.execute',
                                         kwargs={'task': task, 'event': event})
