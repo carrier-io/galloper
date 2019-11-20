@@ -5,7 +5,7 @@ from perfreporter.post_processor import PostProcessor
 def lambda_handler(event, context):
     try:
         args, aggregated_errors, config_file = parse_event(event)
-        post_processor = PostProcessor(args, aggregated_errors, None, config_file)
+        post_processor = PostProcessor(args, aggregated_errors, config_file)
         post_processor.post_processing()
 
     except Exception as e:
