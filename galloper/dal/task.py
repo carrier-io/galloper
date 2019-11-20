@@ -35,6 +35,7 @@ class Task(Base):
     status = Column(String(80), unique=False, nullable=True)
     token = Column(String(80), unique=False, nullable=True)
     func_args = Column(Text, unique=False, nullable=True)
+    env_vars = Column(Text, unique=False, nullable=True)
     callback = Column(String(80), unique=False, nullable=True)
 
     def __repr__(self):
@@ -48,4 +49,5 @@ class Task(Base):
         return dict(task_id=self.task_id, task_name=self.task_name, task_handler=self.task_handler,
                     runtime=self.runtime, schedule=self.schedule, webhook=self.webhook,
                     zippath=self.zippath, last_run=self.last_run, status=self.status, token=self.token,
-                    func_args=self.func_args, callback=self.callback, next_run=self.next_run)
+                    func_args=self.func_args, callback=self.callback, next_run=self.next_run, 
+                    env_vars=self.env_vars)
