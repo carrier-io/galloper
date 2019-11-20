@@ -31,6 +31,7 @@ class Task(db.Model):
     status = db.Column(db.String(80), unique=False, nullable=True)
     token = db.Column(db.String(80), unique=False, nullable=True)
     func_args = db.Column(db.Text, unique=False, nullable=True)
+    env_vars = db.Column(db.Text, unique=False, nullable=True)
     callback = db.Column(db.String(80), unique=False, nullable=True)
 
     def __repr__(self):
@@ -44,7 +45,7 @@ class Task(db.Model):
         return dict(task_id=self.task_id, task_name=self.task_name, task_handler=self.task_handler,
                     runtime=self.runtime, schedule=self.schedule, webhook=self.webhook,
                     zippath=self.zippath, last_run=self.last_run, status=self.status, token=self.token,
-                    func_args=self.func_args, callback=self.callback)
+                    func_args=self.func_args, callback=self.callback, env_vars=self.env_vars)
 
     def insert(self):
         if self.schedule and self.schedule in ['None', 'none']:
@@ -59,6 +60,8 @@ class Task(db.Model):
             self.token = str(uuid4())
         if not self.func_args:
             self.func_args = "{}"
+        if not self.env_vars:
+            self.env_vars = "{}"
         db.session.add(self)
         db.session.commit()
 

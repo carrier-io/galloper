@@ -28,7 +28,7 @@ from subprocess import Popen, PIPE
 from galloper.dal import get_connection
 from galloper.dal.task import Task
 from galloper.constants import (REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT, REDIS_USER,
-                                UNZIP_DOCKERFILE, UNZIP_DOCKER_COMPOSE, APP_HOST)
+                                UNZIP_DOCKERFILE, UNZIP_DOCKER_COMPOSE, APP_HOST, NAME_CONTAINER_MAPPING)
 
 app = Celery('Galloper',
              broker=f'redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
@@ -47,11 +47,16 @@ app.conf.update(beat_schedule=get_schedule(), timezone='UTC', result_expires=180
 
 def run_lambda(task, event):
     client = docker.from_env()
-    container_name = task['runtime'].lower().replace(" ", "")
+
+    container_name = NAME_CONTAINER_MAPPING.get(task['runtime'])
+    if not container_name:
+        return f"Container {task['runtime']} is not found"
     mount = Mount(type="volume", source=task['task_id'], target="/var/task")
-    response = client.containers.run(f"lambci/lambda:{container_name}",
+    env_vars = loads(task.get("env_vars", "{}"))
+    response = client.containers.run(f"lambci/{container_name}",
                                      command=[f"{task['task_handler']}", dumps(event)],
-                                     mounts=[mount], stderr=True, remove=True)
+                                     mounts=[mount], stderr=True, remove=True,
+                                     environment=env_vars)
     # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
 
     log = response.decode("utf-8", errors='ignore')
