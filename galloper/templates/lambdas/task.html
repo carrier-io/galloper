@@ -159,13 +159,6 @@
                     </div>
                     <div class="col-lg-6">
                       <div class="form-group">
-                        <label class="form-control-label" for="task_args">Environment variables</label>
-                        <p><small>JSON of environment variables that will be passed to your lambdan</small></p>
-                        <input type="text" id="env_vars" class="form-control form-control-alternative" placeholder="" value="{{ task.env_vars }}">
-                      </div>
-                    </div>
-                    <div class="col-lg-6">
-                      <div class="form-group">
                         <label class="form-control-label" for="task_args">Invoke Arguments for Scheduled Tasks</label>
                         <p><small>Dict of func arguments to be passed as event for function</small></p>
                         <input type="text" id="task_args" class="form-control form-control-alternative" placeholder="" value="{{ task.func_args }}">
