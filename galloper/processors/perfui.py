@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE
 from multiprocessing import Pool
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-ffmpeg_path = environ.get("ffmpg_path", "/usr/bin/ffmpeg")
+ffmpeg_path = environ.get("ffmpg_path", "/opt/ffmpeg/bin/ffmpeg")
 report_path = '/tmp'
 
 
