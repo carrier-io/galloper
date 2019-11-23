@@ -8,26 +8,45 @@
                 <div class="row align-items-center">
                     <div class="col-12">
                         <h3 class="mb-0">Test Your Page</h3>
-                        <br />
                     </div>
                 </div>
-                <div class="alert alert-success alert-dismissible fade {{ hidden | default('') }}" role="alert">
-                        <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
-                        <span class="alert-inner--text"><strong>Success!</strong> Report can be found <a href="{{host}}{{ message | urlencode }}" target="_blank">here</a></span>
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success alert-dismissible fade {{ hidden }}" role="alert" {{ hidden if hidden else 'hidden'}}>
+                    <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
+                    <span class="alert-inner--text"><strong>Success!</strong> Report can be found <a href="{{host}}{{ message | urlencode }}" target="_blank">here</a></span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <form role="form" action="/observer/test" method="POST">
                     <div class="row">
-                        <div class="form-group col-8">
+                        <div class="form-group col-7">
                             <input type="text" class="form-control" name="url" placeholder="Type URL of a page to test">
                             <input type="text" class="form-control" name="remote_address" value="observer-chrome:4444" hidden>
                             <input type="text" class="form-control" name="perfui_listener" value="observer-chrome:9999" hidden>
                         </div>
-                        <div class="form-group col-4">
-                            <button type="submit" class="btn btn-primary">Test</button>
+                        <div class="form-group col-5">
+                            <button class="btn btn-icon btn-3 btn-success" type="submit">
+                                <span class="btn-inner--icon"><i class="fas fa-play"></i></span>
+                                <span class="btn-inner--text">Run</span>
+                            </button>
+                            <button class="btn btn-icon btn-3 btn-success" type="button">
+                                <span class="btn-inner--icon"><i class="fas fa-save"></i></span>
+                                <span class="btn-inner--text">Save</span>
+                            </button>
+                            <button class="btn btn-icon btn-3 btn-success" type="button">
+                                <span class="btn-inner--icon"><i class="fas fa-file-import"></i></span>
+                                <span class="btn-inner--text">Load</span>
+                            </button>
+                            <button class="btn btn-icon btn-3 btn-primary" type="button" onclick="addTest()">
+                                <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                <span class="btn-inner--text">Test Case</span>
+                            </button>
                         </div>
+                    </div>
+                    <div id="tests" >
+
                     </div>
                 </form>
             </div>
@@ -35,5 +54,82 @@
     </div>
 </div>
 {% include 'common/foot.html' %}
+<script type='text/javascript'>
+function createElementFromHTML(testsCount, htmlString, classname) {
+  var div = document.createElement('div');
+  div.classList = ['row '+classname]
+  div.id = 'testcase_' + testsCount 
+  div.innerHTML = htmlString.trim();
+  return div; 
+}
+
+function createDropDown(options_list){
+    var childStr = '<select class="form-control" style="display: inline-block; width: 10%;">'
+    for (each in options_list) {
+        childStr += '<option value="'+options_list[each]+'">'+options_list[each]+'</option>'
+    }
+    childStr += '</select>'
+    return childStr
+}
+
+function addTest(){
+    var tests_count = document.getElementsByClassName("testcase").length;
+    console.log(tests_count);
+    var tests_div = document.getElementById("tests")
+    var childStr = '<div class="col-xl-12 mb-8 mb-xl-0"><div class="card bg-gradient-secondary shadow"><div class="card-header bg-transparent"><div class="row align-items-center">'
+    childStr += '<div class="col-8">'
+    childStr += '<input type="text" class="form-control" name="test_name_'+tests_count+'" placeholder="Type name of test case">'
+    childStr += '</div>'
+    childStr += '<div class="col-4">'
+    childStr += '<button class="btn btn-icon btn-3 btn-primary" type="button" id="add_step_'+tests_count+'" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'
+    childStr += '<span class="btn-inner--icon"><i class="fas fa-plus"></i></span>'
+    childStr += '<span class="btn-inner--text">Test Step</span>'
+    childStr += '</button>'
+    childStr += '<button class="btn btn-icon btn-3 btn-danger" type="button" id="remove_step_'+tests_count+'" onclick="removeTest('+tests_count+')">'
+    childStr += '<span class="btn-inner--icon"><i class="fas fa-minus"></i></span>'
+    childStr += '<span class="btn-inner--text">Test Step</span>'
+    childStr += '</button>'
+    childStr += '<div class="dropdown-menu dropdown-menu-right" aria-labelledby="add_step_'+tests_count+'">'
+    childStr += '<a class="dropdown-item" onclick="addClick('+tests_count+')">Click</a>'
+    childStr += '<a class="dropdown-item" onclick="addType('+tests_count+')">Type</a>'
+    childStr += '<a class="dropdown-item" onclick="addWait('+tests_count+')">Wait</a>'
+    childStr += '<a class="dropdown-item" onclick="addExtractAndSave('+tests_count+')">Assert</a>'
+    childStr += '<a class="dropdown-item" onclick="addAssert('+tests_count+')">Assert</a>'
+    childStr += '</div>'
+    childStr += '</div>'
+    childStr += '<div class="card-body" id="card_body_'+tests_count+'">'
+    childStr += '</div></div></div>'
+    tests_div.appendChild(createElementFromHTML(tests_count, childStr, 'testcase'))
+}
+
+function removeTest(pan_id) {
+    var steps_div = document.getElementById('testcase_' + pan_id)
+    steps_div.parentNode.removeChild(steps_div);
+}
+
+function addType(pan_id) {
+    var steps_div = document.getElementById('card_body_' + pan_id)
+    var steps_count = document.getElementById('card_body_' + pan_id).getElementsByClassName('test_step').length
+    var childStr = '<div class="col-xl-12 mb-8 mb-xl-0">'
+    childStr += 'I want to type '
+    childStr += '<input type="text" class="form-control" name="TEXT_test_name_'+pan_id+'_test_step_'+steps_count+'" style="display: inline-block; width: 20%;">'
+    childStr += ' to field '
+    childStr += '<input type="text" class="form-control" name="TYPE_test_name_'+pan_id+'_test_step_'+steps_count+'" style="display: inline-block; width: 20%;">'
+    childStr += ' identified by '+createDropDown(['id', 'css', 'xpath'])
+    childStr += '</div>'
+    steps_div.appendChild(createElementFromHTML(pan_id + '_'+steps_count, childStr, 'teststep'))
+}
+
+function addClick(pan_id) {
+    var steps_div = document.getElementById('card_body_' + pan_id)
+    var steps_count = document.getElementById('card_body_' + pan_id).getElementsByClassName('test_step').length
+    var childStr = '<div class="col-xl-12 mb-8 mb-xl-0">'
+    childStr += 'I want to click on '
+    childStr += '<input type="text" class="form-control" name="CLICK_test_name_'+pan_id+'_test_step_'+steps_count+'" style="display: inline-block; width: 20%;">'
+    childStr += ' identified by '+createDropDown(['id', 'css', 'xpath'])
+    childStr += '</div>'
+    steps_div.appendChild(createElementFromHTML(pan_id + '_'+steps_count, childStr, 'teststep'))
+}
+</script>
 </body>
 </html>

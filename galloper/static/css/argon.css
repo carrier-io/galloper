@@ -21876,3 +21876,11 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle
 
     height: 3px;
 }
+
+.teststep {
+    margin-top: 10px;
+}
+
+.testcase {
+    margin-top: 10px;
+}
