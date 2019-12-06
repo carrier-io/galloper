@@ -51,4 +51,4 @@ def remove_file(bucket, filename):
 def remove_bucket(bucket):
     for fileobj in list_files(bucket):
         remove_file(bucket, fileobj['name'])
-    get_client().delete_bucket(bucket)
+    get_client().delete_bucket(Bucket=bucket)

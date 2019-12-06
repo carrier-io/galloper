@@ -61,3 +61,8 @@ def create_bucket():
     if not res:
         return redirect(url_for('artifacts.index'), code=302)
     return redirect(url_for('artifacts.index', q=bucket), code=302)
+
+@bp.route('/artifacts/<bucket>/delete', methods=["GET"])
+def delete_bucket(bucket):
+    minio.remove_bucket(bucket)
+    return redirect(url_for('artifacts.index'), code=302)
