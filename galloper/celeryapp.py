@@ -60,7 +60,7 @@ def run_lambda(task, event):
     # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
 
     log = response.decode("utf-8", errors='ignore')
-    if container_name == "python3.7":
+    if container_name == "lambda:python3.7":
         results = re.search(r'({.+?)}', log).group(0)
     else:
         results = log.split("\n\n")[1]
