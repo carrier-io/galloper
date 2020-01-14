@@ -101,6 +101,8 @@
             <tr class="header">
               {% if finding['details'] %}
               <td><span class="toggle"></span></td>
+              {% else %}
+              <td></td>
               {% endif %}
               <td>{{ finding['advice'] | safe }}</td>
               <td>{{ finding['score'] }}</td>
@@ -149,6 +151,8 @@
           <tr class="header">
             {% if finding['details'] %}
             <td><span class="toggle"></span></td>
+            {% else %}
+            <td></td>
             {% endif %}
             <td>{{ finding['advice'] | safe }}</td>
             <td>{{ finding['score'] }}</td>
@@ -197,6 +201,8 @@
           <tr class="header">
             {% if finding['details'] %}
             <td><span class="toggle"></span></td>
+            {% else %}
+            <td></td>
             {% endif %}
             <td>{{ finding['advice'] | safe }}</td>
             <td>{{ finding['score'] }}</td>
@@ -245,6 +251,8 @@
           <tr class="header">
             {% if finding['details'] %}
             <td><span class="toggle"></span></td>
+            {% else %}
+            <td></td>
             {% endif %}
             <td>{{ finding['advice'] | safe }}</td>
             <td>{{ finding['score'] }}</td>
