@@ -806,7 +806,8 @@ function addTimeGrid(holder, position, cssClass, title, titlePosition) {
   line.style.transform = 'translateX(' + position + ")";
   if (title) {
     const positionClass = titlePosition ? `time-grid-${titlePosition}` : `time-grid-right`;
-    line.appendChild(newEl('div', [positionClass, 'time-grid-label'], title));
+    line.appendChild(newEl('div', [positionClass, 'time-grid-label', 'top'], title));
+    line.appendChild(newEl('div', [positionClass, 'time-grid-label', 'bottom'], title));
   }
   holder.appendChild(line);
 }

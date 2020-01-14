@@ -1,3 +1,4 @@
+/* region initial */
 * {
   box-sizing: border-box;
 }
@@ -104,6 +105,8 @@ a:hover { color: #5712b0}
   .main { width: 100vw; }
 }
 
+/* endregion */
+
 /* region header */
 #header {
   color: #fff;
@@ -158,6 +161,10 @@ a:hover { color: #5712b0}
     justify-content: center;
   }
 }
+
+#donuts .donut-holder { text-decoration: none; }
+
+#donuts .donut-holder:hover { text-decoration: underline; }
 
 #donuts .green-fill { fill: #23ac58;}
 
@@ -268,10 +275,13 @@ a:hover { color: #5712b0}
   .chart-bar { justify-content: space-between; }
 }
 
-#services { padding: 5px 10px;}
+#services { padding: 5px 10px 5px 0;}
 
 @media screen and (max-width: 480px) {
-  #services { flex-grow: 0; }
+  #services {
+    flex-grow: 0;
+    padding-left: 10px;
+  }
 }
 
 #services select {
@@ -296,6 +306,10 @@ a:hover { color: #5712b0}
   width: calc(100% / 8);
 }
 
+#frames_container .divFrame + .divFrame {
+  margin-left: 10px;
+}
+
 #frames_container .divFrame img {
   width: 100%;
   position: relative;
@@ -316,6 +330,12 @@ a:hover { color: #5712b0}
   z-index: -1;
   opacity: 0;
   transition: opacity .2s;
+}
+
+@media screen and (max-width: 480px) {
+  #frames_container .modal {
+    padding: 0;
+  }
 }
 
 #frames_container .modal.show {
@@ -355,6 +375,13 @@ a:hover { color: #5712b0}
   max-width: 90%;
 }
 
+@media screen and (max-width: 480px) {
+  #frames_container .modal.show img {
+    max-height: none;
+    max-width: 99%;
+  }
+}
+
 #frames_container .modal .caption {
   opacity: 0;
   transition: opacity .5s;
@@ -386,6 +413,8 @@ a:hover { color: #5712b0}
 #legend {
   white-space: nowrap;
   padding: 0 1rem;
+  display: flex;
+  align-items: center;
 }
 
 @media screen and (max-width: 480px) {
@@ -598,12 +627,15 @@ a:hover { color: #5712b0}
 
 #waterfall .time-grid-label {
   position: absolute;
-  top: 2px;
   font-size: .76rem;
   font-weight: 700;
   color: rgba(0, 0, 0, .45);
   opacity: 1;
 }
+
+#waterfall .time-grid-label.top { top: 2px; }
+
+#waterfall .time-grid-label.bottom { bottom: 2px; }
 
 #waterfall .time-grid-left { right: 5px; }
 
@@ -619,6 +651,8 @@ a:hover { color: #5712b0}
   position: relative;
   z-index: 1;
 }
+
+#waterfall rect { opacity: .7; }
 
 /* endregion */
 
