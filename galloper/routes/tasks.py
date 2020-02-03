@@ -24,7 +24,6 @@ from galloper.models.task_results import Results
 from control_tower import run
 
 
-
 bp = Blueprint('tasks', __name__)
 
 
@@ -64,7 +63,9 @@ def add_task():
 @bp.route('/task/<task_name>', methods=["GET", "POST"])
 def call_lambda(task_name):
     if request.method == "GET":
-        return render_template("lambdas/task.html", task=Task.query.filter_by(task_id=task_name).first(), runtimes=NAME_CONTAINER_MAPPING.keys())
+        return render_template("lambdas/task.html",
+                               task=Task.query.filter_by(task_id=task_name).first(),
+                               runtimes=NAME_CONTAINER_MAPPING.keys())
     else:
         if request.content_type == "application/json":
             task = Task.query.filter_by(task_id=task_name).first().to_json()
@@ -117,4 +118,4 @@ def suspend_task(task_name, action):
 @bp.route('/', methods=['GET'])
 def index():
     if request.method == "GET":
-        return render_template('lambdas/tasks.html')
+        return redirect(url_for('tasks.tasks'))
