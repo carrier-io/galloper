@@ -1,0 +1,593 @@
+{% include 'common/head.html' %}
+<meta property="build_id" content="{{ test_data['build_id'] }}" />
+<meta property="lg_type" content="{{ test_data['lg_type'] }}" />
+<meta property="test_name" content="{{ test_data['name'] }}" />
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="container-fluid header-body">
+  <!-- Card stats -->
+  <div class="row">
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Max vUsers</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['vusers'] }} VU</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-green text-white rounded-circle shadow">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+          </div>
+<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
+<!--            <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>-->
+<!--            <span class="text-nowrap">Since last month</span>-->
+<!--          </p>-->
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Avg. Throughput</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['throughput'] }} req/sec</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                <i class="fas fa-chart-line"></i>
+              </div>
+            </div>
+          </div>
+<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
+<!--            <span class="text-danger mr-2"><i class="fas fa-arrow-down"></i> 3.48%</span>-->
+<!--            <span class="text-nowrap">Since last week</span>-->
+<!--          </p>-->
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Error Rate</h5>
+              <span class="h2 font-weight-bold mb-0">{{ (test_data['failures'] * 100 / test_data['total'])|round(2) }} %</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-red text-white rounded-circle shadow">
+                <i class="fas fa-exclamation"></i>
+              </div>
+            </div>
+          </div>
+<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
+<!--            <span class="text-warning mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>-->
+<!--            <span class="text-nowrap">Since yesterday</span>-->
+<!--          </p>-->
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">95 pct. resp. time</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['pct95'] }} ms</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-info text-white rounded-circle shadow">
+                <i class="fas fa-stopwatch"></i>
+              </div>
+            </div>
+          </div>
+<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
+<!--            <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>-->
+<!--            <span class="text-nowrap">Since last month</span>-->
+<!--          </p>-->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid header-body">
+    <div class="row">
+         <div class="col-xl-12 col-lg-12">
+             <div class="card card-stats mb-4 mb-xl-0">
+                 <div class="card-body">
+                     <div class="row">
+                        <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Duration</h5>
+                            <span class="h4 font-weight-bold mb-0">{{ test_data['duration'] }} s</span>
+                        </div>
+                         <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Started</h5>
+                            <span id="start_time" class="h4 font-weight-bold mb-0">{{ test_data['start_time'] }}</span>
+                        </div>
+                         <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Ended</h5>
+                            <span id="end_time" class="h4 font-weight-bold mb-0">{{ test_data['end_time'] }}</span>
+                        </div>
+                         <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Environment</h5>
+                            <span class="h4 font-weight-bold mb-0">{{ test_data['environment'] }}</span>
+                        </div>
+                         <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Test Type</h5>
+                            <span class="h4 font-weight-bold mb-0">{{ test_data['type'] }}</span>
+                        </div>
+                     </div>
+                     <div class="row">
+                         <div class="col mt-3">
+                             <h4 class="card-title text-uppercase text-muted mb-0">Response Codes:</h4>
+                         </div>
+                     </div>
+                     <div class="row">
+                         <div class="col">
+                             <p class="mb-0">
+                                 <span class="h5 card-title text-uppercase text-muted mb-0 ">1xx:&nbsp;</span>
+                                 <span class="h4 font-weight-bold mb-0 ">{{ test_data['1xx'] }}</span>
+                             </p>
+                         </div>
+                         <div class="col">
+                             <p class="mb-0">
+                                 <span class="h5 card-title text-uppercase text-muted mb-0 ">2xx:&nbsp;</span>
+                                 <span class="h4 font-weight-bold mb-0 ">{{ test_data['2xx'] }}</span>
+                             </p>
+                         </div>
+                         <div class="col">
+                             <p class="mb-0">
+                                 <span class="h5 card-title text-uppercase text-muted mb-0 ">3xx:&nbsp;</span>
+                                 <span class="h4 font-weight-bold mb-0 ">{{ test_data['3xx'] }}</span>
+                             </p>
+                         </div>
+                         <div class="col">
+                             <p class="mb-0">
+                                 <span class="h5 card-title text-uppercase text-muted mb-0 ">4xx:&nbsp;</span>
+                                 <span class="h4 font-weight-bold mb-0 ">{{ test_data['4xx'] }}</span>
+                             </p>
+                         </div>
+                         <div class="col">
+                             <p class="mb-0">
+                                 <span class="h5 card-title text-uppercase text-muted mb-0 ">5xx:&nbsp;</span>
+                                 <span class="h4 font-weight-bold mb-0 ">{{ test_data['5xx'] }}</span>
+                             </p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+    </div>
+</div>
+<div class="container-fluid header-body">
+  <div class="row">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+      <div class="card bg-gradient-white shadow">
+        <div class="card-header bg-transparent">
+          <div class="row align-items-center">
+            <div class="col">
+                <h6 class="text-uppercase text-light ls-1 mb-1">Time Picker</h6>
+                <div>
+                  <div id="input-slider-range" data-range-value-min="0" data-range-value-max="100"></div>
+                  <div class="row d-none">
+                      <div class="col-6">
+                          <span class="range-slider-value value-low" data-range-value-low="0" id="input-slider-range-value-low"></span>
+                      </div>
+                      <div class="col-6 text-right">
+                          <span class="range-slider-value value-high" data-range-value-high="100" id="input-slider-range-value-high"></span>
+                      </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid header-body">
+  <div class="row">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+      <div class="card bg-gradient-white shadow">
+        <div class="card-header bg-transparent">
+          <div class="row align-items-center">
+            <div class="col">
+              <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
+              <h2 class="text-gray mb-0">Requests summary</h2>
+            </div>
+            <div class="col">
+                <ul id="chart-control" class="nav nav-pills justify-content-end">
+                    <li class="nav-item mr-2 mr-md-0">
+                      <a id="RT" onclick="loadRequestData('/report/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3 active" data-toggle="tab">
+                        <span class="d-none d-md-block">Responses</span>
+                        <span class="d-md-none">M</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a id="AR" onclick="loadRequestData('/report/requests/average', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
+                        <span class="d-none d-md-block">Average Reponse</span>
+                        <span class="d-md-none">A</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a id="HT" onclick="loadRequestData('/report/requests/hits', 'Hits/Requests per second')" class="nav-link py-2 px-3" data-toggle="tab">
+                        <span class="d-none d-md-block">Hits/TPS</span>
+                        <span class="d-md-none">H</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a id="AN" onclick="displayAnalytics()" class="nav-link py-2 px-3" data-toggle="tab">
+                        <span class="d-none d-md-block">Analytics</span>
+                        <span class="d-md-none">N</span>
+                      </a>
+                    </li>
+                  </ul>
+            </div>
+          </div>
+        </div>
+        <div class="card-body" id="preset">
+          <!-- Chart -->
+          <div class="chart">
+              <div class="chartjs-size-monitor">
+                  <div class="chartjs-size-monitor-expand">
+                      <div class="">
+                      </div>
+                  </div>
+                  <div class="chartjs-size-monitor-shrink">
+                      <div class=""></div>
+                  </div>
+              </div>
+            <canvas id="chart-requests" class="chart-canvas chartjs-render-monitor" style="display: block; height: 450px; width: 100%;"></canvas>
+          </div>
+        </div>
+        <div class="card-body" id="analytics">
+          <!-- Chart -->
+            <div class="row">
+                <div class="col-md-9">
+                  <div class="chart">
+                      <div class="chartjs-size-monitor">
+                          <div class="chartjs-size-monitor-expand">
+                              <div class="">
+                              </div>
+                          </div>
+                          <div class="chartjs-size-monitor-shrink">
+                              <div class=""></div>
+                          </div>
+                      </div>
+                    <canvas id="chart-analytics" class="chart-canvas chartjs-render-monitor" style="display: block; height: 450px; width: 100%;"></canvas>
+                  </div>
+                </div>
+              <div class="col-md-3">
+                  <h4> Metrics </h4>
+                  <div class="pre-scrollable pr-3">
+                  {% for chapter in analytics_control %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ chapter }}</h5>
+                            <div class="row">
+                            {% for item in analytics_control[chapter] %}
+                                <div class="col-md-6">
+                                    <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                                      <input class="custom-control-input" id="{{chapter}}_{{item}}" type="checkbox" onchange="{{ analytics_control[chapter][item] }}">
+                                      <label class="custom-control-label" for="{{chapter}}_{{item}}">{{item}}</label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                  {% endfor %}
+                  </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h2 class="text-gray mb-0">Test Results</h2>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <div>
+                        <table id="summary_table" class="table align-items-center">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Ttl req, count</th>
+                                    <th scope="col">Thrghpt, req/sec</th>
+                                    <th scope="col">Errors, count</th>
+                                    <th scope="col">Min, ms</th>
+                                    <th scope="col">Median, ms</th>
+                                    <th scope="col">Pct95, ms</th>
+                                    <th scope="col">Max, ms</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% include 'common/foot.html' %}
+<script>
+    var page_params = new URLSearchParams(window.location.search);
+    var presetsContext=document.getElementById("chart-requests").getContext("2d");
+    var analyticsContext=document.getElementById("chart-analytics").getContext("2d");
+    var build_id;
+    var test_name;
+    var lg_type;
+    var lineChartData;
+    var analyticsData;
+    var analyticsLine;
+
+    function setParams(){
+        build_id = page_params.get("build_id");
+        test_name = page_params.get("test_name");
+        lg_type = page_params.get("lg_type");
+        if (build_id == null) {
+            build_id = document.querySelector("[property~=build_id][content]").content;
+            lg_type = document.querySelector("[property~=lg_type][content]").content;
+            test_name = document.querySelector("[property~=test_name][content]").content;
+        }
+    }
+
+    function displayAnalytics() {
+        if ( ! $("#analytics").is(":visible") ) {
+            $("#preset").hide();
+            analyticsCanvas();
+            $("#analytics").show();
+            if(window.presetLine!=null){
+                window.presetLine.destroy();
+            }
+        }
+    }
+
+    function loadRequestData(url, y_label) {
+        if ( ! $("#preset").is(":visible") ) {
+            $("#preset").show();
+            $("#analytics").hide();
+            if(analyticsLine!=null){
+                analyticsLine.destroy();
+            }
+        }
+        $.get(
+          url,
+          {
+            build_id: build_id,
+            test_name: test_name,
+            lg_type: lg_type,
+            start_time: $("#start_time").html(),
+            end_time: $("#end_time").html(),
+            low_value: $("#input-slider-range-value-low").html(),
+            high_value: $("#input-slider-range-value-high").html()
+          }, function( data ) {
+            lineChartData = $.parseJSON(data);
+            if(window.presetLine!=null){
+                window.presetLine.destroy();
+            }
+            drawCanvas(y_label);
+          }
+         );
+    }
+
+    function fillTable(){
+        $.get(
+        '/report/request/table',
+        {
+            build_id: build_id,
+            test_name: test_name,
+            lg_type: lg_type,
+            start_time: $("#start_time").html(),
+            end_time: $("#end_time").html(),
+            low_value: $("#input-slider-range-value-low").html(),
+            high_value: $("#input-slider-range-value-high").html()
+        },
+        function( data ) {
+            var tbody = $("#summary_table > tbody")
+            tbody.empty();
+            $.parseJSON(data).forEach( item => {
+                tbody.append(`<tr><td>${item["request_name"]}</td><td>${item["total"]}</td><td>${item["throughput"]}</td><td>${item["ko"]}</td><td>${item["min"]}</td><td>${item["pct50"]}</td><td>${item["pct95"]}</td><td>${item["max"]}</td></tr>`)
+            });
+        });
+    }
+
+    function findAndRemoveDataSet(dataset_name){
+        for (var i=0; i<analyticsLine.data.datasets.length; i++) {
+            if (analyticsLine.data.datasets[i].label === dataset_name) {
+                analyticsLine.data.datasets.splice(i, 1);
+                analyticsLine.update();
+                break;
+            }
+        }
+    }
+
+    function getDataForAnalysis(metric, request_name) {
+    $.get(
+      '/report/request/data',
+      {
+        scope: request_name,
+        metric: metric,
+        build_id: build_id,
+        test_name: test_name,
+        lg_type: lg_type,
+        start_time: $("#start_time").html(),
+        end_time: $("#end_time").html(),
+        low_value: $("#input-slider-range-value-low").html(),
+        high_value: $("#input-slider-range-value-high").html()
+      },
+      function( data ) {
+        data = $.parseJSON(data);
+        if (analyticsLine.data.labels.length == 0 || analyticsLine.data.labels.length != data.labels.length)
+        {
+            analyticsData = data;
+            analyticsCanvas();
+        } else {
+            analyticsLine.data.datasets.push(data.datasets[0]);
+            analyticsLine.update();
+        }
+      }
+     );
+    }
+
+    function getData(scope, request_name) {
+        if (! $(`#${request_name}_${scope}`).is(":checked")) {
+            findAndRemoveDataSet(`${request_name}_${scope}`);
+        } else {
+            getDataForAnalysis(scope, request_name)
+        }
+    }
+
+
+    $(document).ready(function() {
+        setParams();
+        loadRequestData('/report/requests/summary', "Response time, ms");
+        analyticsCanvas();
+        fillTable();
+        $("#analytics").hide();
+    });
+
+    function analyticsCanvas() {
+        analyticsLine = Chart.Line(analyticsContext, {
+            data: analyticsData,
+            options: {
+                responsive: true,
+                hoverMode: 'index',
+                stacked: false,
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        fontSize: 10,
+                        usePointStyle: false
+                    }
+                },
+                title:{
+                    display: false,
+                },
+                scales: {
+                    yAxes: [{
+                        type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                        display: true,
+                        position: "left",
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Response Time, ms"
+                        },
+                        id: "time",
+                    }, {
+                        type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                        display: true,
+                        position: "right",
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Count"
+                        },
+                        id: "count",
+                        gridLines: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    }],
+                }
+            }
+        });
+    }
+
+    function drawCanvas(y_label) {
+        window.presetLine = Chart.Line(presetsContext, {
+            data: lineChartData,
+            options: {
+                responsive: true,
+                hoverMode: 'index',
+                stacked: false,
+                legend: {
+                    display: true,
+                    position: 'right',
+                    labels: {
+                        fontSize: 10,
+                        usePointStyle: false,
+                        filter: function(legendItem, data) {
+                            return legendItem.text != "Active Users";
+                        }
+                    }
+                },
+                title:{
+                    display: false,
+                },
+                scales: {
+                    yAxes: [{
+                        type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                        display: true,
+                        position: "left",
+                        scaleLabel: {
+                            display: true,
+                            labelString: y_label
+                        },
+                        id: "response_time",
+                    }, {
+                        type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                        display: true,
+                        position: "right",
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Active users"
+                        },
+                        id: "active_users",
+                        gridLines: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    }],
+                }
+            }
+        });
+    }
+
+    document.getElementById('input-slider-range').noUiSlider.on('set', function() { resizeChart(); });
+
+    function recalculateAnalytics() {
+        var iterator = document.evaluate("//div[@id='analytics']//input[@type='checkbox']", document, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null );
+        var el = iterator.iterateNext();
+        var arr = []
+        while (el) {
+            if (el.checked) {
+                arr.push(el)
+            }
+            el = iterator.iterateNext();
+        }
+        arr.forEach(el => el.onchange());
+    }
+
+    function resizeChart() {
+        if ( $("#analytics").is(":visible") ){
+            analyticsData = null;
+            analyticsLine.destroy();
+            analyticsCanvas();
+            recalculateAnalytics();
+        }
+        ["RT", "AR", "HT", "AN"].forEach( item => {
+            if ($(`#${item}`).hasClass( "active" )) {
+                $(`#${item}`).trigger( "click" );
+            }
+        });
+        fillTable();
+    }
+
+</script>
+</body>
+</html>

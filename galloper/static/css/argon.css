@@ -738,7 +738,7 @@ pre code
 {
     overflow-y: scroll;
 
-    max-height: 340px;
+    max-height: 420px;
 }
 
 .container
@@ -15095,7 +15095,7 @@ button.bg-lighter:focus
 
 .bg-gradient-default
 {
-    background: linear-gradient(87deg, #172b4d 0, #1a174d 100%) !important;
+    background: linear-gradient(87deg, #1976D2 0, #1976D2 100%) !important;
 }
 
 .bg-gradient-white
@@ -17475,8 +17475,7 @@ a.btn-icon-only
 .chart
 {
     position: relative;
-
-    height: 350px;
+    height: 450px;
 }
 
 .chart-sm
@@ -21875,4 +21874,8 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle
     bottom: 0; 
 
     height: 3px;
+}
+
+.header-body {
+   margin-bottom: 20px;
 }
