@@ -30,6 +30,7 @@ class APIReport(db.Model):
 
     def to_json(self):
         return {
+            "id": self.id,
             "start_time": self.start_time,
             "name": self.name,
             "environment": self.environment,

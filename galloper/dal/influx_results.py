@@ -73,9 +73,9 @@ def get_test_details(build_id, test_name, lg_type):
 
 
 def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
-    query = f"select time, sum(active) from {lg_type}..\"users\" where " \
-            f"time>='{start_time}' and time<='{end_time}' and build_id='{build_id}' " \
-            f"group by time(1s)"
+    query = f"select sum(\"max\") from (select max(\"active\") from {lg_type}..\"users\" " \
+            f"where build_id='{build_id}' group by lg_id) " \
+            f"WHERE time>='{start_time}' and time<='{end_time}' GROUP BY time(1s)"
     client = get_client()
     res = client.query(query)['users']
     timestamps = []
@@ -88,7 +88,7 @@ def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
         if _['time'] not in timestamps:
             timestamps.append(_['time'])
         if (len(_tmp) % int(aggregation.replace('s', ''))) == 0:
-            results["users"][_['time']] = int(np.percentile(np.array(_tmp), 50, interpolation='lower'))
+            results["users"][_['time']] = max(_tmp)
             _tmp = []
     return timestamps, results
 
