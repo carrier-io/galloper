@@ -1,4 +1,3 @@
-import numpy as np
 from influxdb import InfluxDBClient
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp

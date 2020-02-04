@@ -120,7 +120,7 @@ RUN mkdir /tmp/db
 ADD start.sh /tmp/start.sh
 RUN chmod +x /tmp/start.sh
 WORKDIR /tmp
-RUN pip install celery==4.3.0 kombu==4.5.0 numpy==1.18.1 selenium==3.141.0
+RUN pip install celery==4.3.0 kombu==4.5.0 selenium==3.141.0
 RUN pip install git+https://github.com/carrier-io/control_tower.git
 RUN echo "Starting point" > /var/log/worker.log
 
