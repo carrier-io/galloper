@@ -54,9 +54,61 @@
                   </div>
               </div>
               <div class="card-body" id="analytics">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Min" type="checkbox" onchange="getData('Min', 'All')">
+                            <label class="custom-control-label" for="All_Min">Min</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Median" type="checkbox" onchange="getData('Median', 'All')">
+                            <label class="custom-control-label" for="All_Median">Median</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_pct95" type="checkbox" onchange="getData('pct95', 'All')">
+                            <label class="custom-control-label" for="All_pct95">Pct95</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Max" type="checkbox" onchange="getData('Max', 'All')">
+                            <label class="custom-control-label" for="All_Max">Max</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Hits" type="checkbox" onchange="getData('Hits', 'All')">
+                            <label class="custom-control-label" for="All_Hits">Hits per second</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Throughput" type="checkbox" onchange="getData('Throughput', 'All')">
+                            <label class="custom-control-label" for="All_Throughput">Throughput</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Errors" type="checkbox" onchange="getData('Errors', 'All')">
+                            <label class="custom-control-label" for="All_Errors">Errors</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="All_Users" type="checkbox" onchange="getData('Users', 'All')">
+                            <label class="custom-control-label" for="All_Users">Users</label>
+                        </div>
+                    </div>
+                </div>
               <!-- Chart -->
                 <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-12">
                       <div class="chart">
                           <div class="chartjs-size-monitor">
                               <div class="chartjs-size-monitor-expand">

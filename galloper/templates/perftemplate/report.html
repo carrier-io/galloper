@@ -15,7 +15,7 @@
                       <div class="col">
                           <ul id="chart-control" class="nav nav-pills justify-content-end">
                             <li class="nav-item mr-2 mr-md-0">
-                              <a id="RT" onclick="#" class="nav-link py-2 px-3 active" data-toggle="tab">
+                              <a id="RT" onclick="runComparison()" class="nav-link py-2 px-3 active" data-toggle="tab">
                                 <span class="d-none d-md-block">Compare</span>
                                 <span class="d-md-none">C</span>
                               </a>
@@ -26,6 +26,7 @@
               </div>
               <div class="card-body" id="preset">
                   <table
+                      id="results"
                       data-toggle="table"
                       data-url="/report/all"
                       data-pagination="true"
@@ -53,6 +54,7 @@
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+</body>
 <script>
 function createLinkToReport(value, row, index){
     return '<a href="/report/backend?report_id='+row['id']+'">'+value+'</a>'
@@ -72,6 +74,13 @@ function lgFormatter(value, row, index){
     }
 }
 
+function runComparison() {
+    var reports = "/report/compare?"
+    $("#results").bootstrapTable('getSelections').forEach(item => {
+        reports+= "id="+item["id"]+"&"
+    });
+    window.location.href = reports.substring(0, reports.length - 1);
+}
+
 </script>
-</body>
 </html>

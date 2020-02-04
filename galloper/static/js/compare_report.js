@@ -1,106 +1,71 @@
 var page_params = new URLSearchParams(window.location.search);
-var chartUsers=document.getElementById("chart-users").getContext("2d");
-var chartResponse=document.getElementById("chart-response").getContext("2d");
-var chartErrors=document.getElementById("chart-errors").getContext("2d");
-var chartHits=document.getElementById("chart-hits").getContext("2d");
-var usersLine;
-var responsesLine;
-var errorsLine;
-var hitsLine;
-var usersData;
-var responsesData;
-var errorsData;
-var hitsData;
+var analyticsContext=document.getElementById("chart-analytics").getContext("2d");
+var analyticsData;
+var analyticsLine;
 
 function setParams(){
     build_ids = page_params.getAll("id");
 }
 
-function loadUsersData() {
-
-    url = "/report/compare/users?"
-    low_value = $("#input-slider-range-value-low").html()
-    high_value=$("#input-slider-range-value-high").html()
-    build_ids.forEach(item => {
-        url += `id=${item}&`
-    })
-    url += `low_value=${low_value}&high_value=${high_value}`,
-    $.get(
-      url,
-      function( data ) {
-        console.log(data);
-        usersData = $.parseJSON(data);
-        if(usersLine!=null){
-            usersLine.destroy();
-        }
-        usersCanvas();
-      }
-     );
-}
-
-function loadResponsesData() {
-
-    url = "/report/compare/response?"
-    low_value = $("#input-slider-range-value-low").html()
-    high_value=$("#input-slider-range-value-high").html()
-    build_ids.forEach(item => {
-        url += `id=${item}&`
-    })
-    url += `low_value=${low_value}&high_value=${high_value}`,
-    $.get(
-      url,
-      function( data ) {
-        console.log(data);
-        responsesData = $.parseJSON(data);
-        if(responsesLine!=null){
-            responsesLine.destroy();
-        }
-        responsesCanvas();
-      }
-     );
+function getDataForAnalysis(metric, request_name) {
+$.get(
+  '/report/compare/data',
+  {
+    scope: request_name,
+    metric: metric,
+    id: build_ids,
+    low_value: $("#input-slider-range-value-low").html(),
+    high_value: $("#input-slider-range-value-high").html()
+  },
+  function( data ) {
+    data = $.parseJSON(data);
+    if (analyticsLine.data.labels.length == 0 || analyticsLine.data.labels.length != data.labels.length)
+    {
+        analyticsData = data;
+        analyticsCanvas();
+    } else {
+        data.datasets.forEach (dataset => {
+            analyticsLine.data.datasets.push(dataset);
+        })
+        analyticsLine.update();
+    }
+  }
+ );
 }
 
 $(document).ready(function() {
     resizeChart();
 });
 
-function usersCanvas() {
-    usersLine = Chart.Line(chartUsers, {
-        data: usersData,
-        options: {
-            responsive: true,
-            hoverMode: 'index',
-            stacked: false,
-            legend: {
-                display: true,
-                position: 'bottom',
-                labels: {
-                    fontSize: 10,
-                    usePointStyle: false
-                }
-            },
-            title:{
-                display: false,
-            },
-            scales: {
-                yAxes: [{
-                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-                    display: true,
-                    position: "left",
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Users"
-                    },
-                    id: "users",
-                }],
-            }
-        }
-    });
+function resizeChart() {
+    setParams();
+    analyticsCanvas();
 }
 
-function responsesCanvas() {
-    responsesLine = Chart.Line(chartResponse, {
-        data: responsesData,
+function findAndRemoveDataSet(dataset_name){
+    index_to_remove = []
+    for (var i=0; i<analyticsLine.data.datasets.length; i++) {
+        if (analyticsLine.data.datasets[i].label.includes(dataset_name.split("_")[1])) {
+            index_to_remove.push(i)
+        }
+    }
+    index_to_remove.reverse().forEach(index => {
+    analyticsLine.data.datasets.splice(index, 1);
+    })
+    analyticsLine.update();
+}
+
+function getData(scope, request_name) {
+    if (! $(`#${request_name}_${scope}`).is(":checked")) {
+        findAndRemoveDataSet(`${request_name}_${scope}`);
+    } else {
+        getDataForAnalysis(scope, request_name)
+    }
+}
+
+function analyticsCanvas() {
+    analyticsLine = Chart.Line(analyticsContext, {
+        data: analyticsData,
         options: {
             responsive: true,
             hoverMode: 'index',
@@ -125,87 +90,21 @@ function responsesCanvas() {
                         display: true,
                         labelString: "Response Time, ms"
                     },
-                    id: "responses",
-                }],
-            }
-        }
-    });
-}
-
-function errorsCanvas() {
-    errorsLine = Chart.Line(chartErrors, {
-        data: errorsData,
-        options: {
-            responsive: true,
-            hoverMode: 'index',
-            stacked: false,
-            legend: {
-                display: true,
-                position: 'bottom',
-                labels: {
-                    fontSize: 10,
-                    usePointStyle: false
-                }
-            },
-            title:{
-                display: false,
-            },
-            scales: {
-                yAxes: [{
+                    id: "time",
+                }, {
                     type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
                     display: true,
-                    position: "left",
+                    position: "right",
                     scaleLabel: {
                         display: true,
-                        labelString: "Errors"
+                        labelString: "Count"
                     },
-                    id: "errors",
+                    id: "count",
+                    gridLines: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                    },
                 }],
             }
         }
     });
-}
-
-function hitsCanvas() {
-    hitsLine = Chart.Line(chartHits, {
-        data: hitsData,
-        options: {
-            responsive: true,
-            hoverMode: 'index',
-            stacked: false,
-            legend: {
-                display: true,
-                position: 'bottom',
-                labels: {
-                    fontSize: 10,
-                    usePointStyle: false
-                }
-            },
-            title:{
-                display: false,
-            },
-            scales: {
-                yAxes: [{
-                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-                    display: true,
-                    position: "left",
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Hits"
-                    },
-                    id: "hits",
-                }],
-            }
-        }
-    });
-}
-
-document.getElementById('input-slider-range').noUiSlider.on('set', function() { resizeChart(); });
-
-function resizeChart() {
-    setParams();
-    loadUsersData();
-    loadResponsesData();
-    errorsCanvas();
-    hitsCanvas();
 }
