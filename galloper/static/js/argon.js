@@ -1061,3 +1061,14 @@ var SalesChart = (function() {
 	}
 
 })();
+
+$('.nav-toggle').click(function(e) {
+  e.preventDefault();
+  $("html").toggleClass("openNav");
+  $(".nav-toggle").toggleClass("active");
+
+});
+
+function openMenu(_id) {
+    $(`#${_id}`).trigger('click');
+}
