@@ -31,7 +31,7 @@ def index():
     hidden = ''
     if message:
         hidden = 'show'
-    return render_template("observer/test.html", message=message, host=APP_HOST, hidden=hidden)
+    return render_template("observer/test.html", message=message, hidden=hidden)
 
 
 @bp.route('/observer/analyze/async', methods=["GET", "POST"])
