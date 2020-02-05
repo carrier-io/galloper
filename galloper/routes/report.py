@@ -73,6 +73,34 @@ def create_dataset(timeline, data, label, axe):
     return dumps(chart_data)
 
 
+def comparison_data(timeline, data):
+    labels = []
+    for _ in timeline:
+        labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
+    chart_data = {
+        "labels": labels,
+        "datasets": [
+        ]
+    }
+    col = colors(len(data.keys()))
+    for record in data:
+        color = col.pop()
+        dataset = {
+            "label": record,
+            "fill": False,
+            "data": list(data[record][0].values()),
+            "yAxisID": data[record][1],
+            "borderWidth": 2,
+            "lineTension": 0,
+            "spanGaps": True,
+            "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
+            "borderColor": f"rgb({color[0]}, {color[1]}, {color[2]})"
+        }
+        chart_data["datasets"].append(dataset)
+    return dumps(chart_data)
+
+
+
 def chart_data(timeline, users, other):
     labels = []
     for _ in timeline:
@@ -233,6 +261,31 @@ def summary_table():
                                 request.args['lg_type'], start_time, end_time))
 
 
+def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_time, aggregation, scope, metric):
+    data = None
+    axe = 'count'
+    if metric == "Throughput":
+        timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        data = data['responses']
+    elif metric == "Hits":
+        timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        data = data['hits']
+    elif metric == "Errors":
+        timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        data = data['errors']
+    elif metric in ["Min", "Median", "Max", "pct90", "pct95", "pct99"]:
+        timestamps, data, _ = get_backend_requests(build_id, test_name, lg_type, start_time, end_time, aggregation,
+                                                   scope=scope, aggr=metric)
+        data = data['response']
+        axe = 'time'
+
+    elif "xx" in metric:
+        timestamps, data, _ = get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggregation,
+                                                 scope=scope, aggr=metric)
+        data = data['rcodes']
+    return data, axe
+
+
 @bp.route("/report/request/data", methods=["GET"])
 def get_data_from_influx():
     data = None
@@ -247,33 +300,70 @@ def get_data_from_influx():
     axe = 'count'
     if metric == "Users":
         return create_dataset(timestamps, users['users'], f"{scope}_{metric}", axe)
-    elif metric == "Throughput":
-        timestamps, data, _ = get_tps(request.args['build_id'], request.args['test_name'],
-                                      request.args['lg_type'], start_time, end_time, aggregation, scope=scope)
-        data = data['responses']
-    elif metric == "Hits":
-        timestamps, data, _ = get_hits(request.args['build_id'], request.args['test_name'],
-                                       request.args['lg_type'], start_time, end_time, aggregation, scope=scope)
-        data = data['hits']
-    elif metric == "Errors":
-        timestamps, data, _ = get_errors(request.args['build_id'], request.args['test_name'],
-                                         request.args['lg_type'], start_time, end_time, aggregation, scope=scope)
-        data = data['errors']
-    elif metric in ["Min", "Median", "Max", "pct90", "pct95", "pct99"]:
-        timestamps, data, _ = get_backend_requests(request.args['build_id'], request.args['test_name'],
-                                                   request.args['lg_type'], start_time, end_time, aggregation,
-                                                   scope=scope, aggr=metric)
-        data = data['response']
-        axe = 'time'
-
-    elif "xx" in metric:
-        timestamps, data, _ = get_response_codes(request.args['build_id'], request.args['test_name'],
-                                                 request.args['lg_type'], start_time, end_time, aggregation,
-                                                 scope=scope, aggr=metric)
-        data = data['rcodes']
+    data, axe = calculate_analytics_dataset(request.args['build_id'], request.args['test_name'],
+                                            request.args['lg_type'], start_time, end_time,
+                                            aggregation, scope, metric)
     if data:
         return create_dataset(timestamps, data, f"{scope}_{metric}", axe)
     else:
         return {}
 
+
+@bp.route("/report", methods=["GET"])
+def report():
+    return render_template('perftemplate/report.html')
+
+
+@bp.route("/report/all", methods=["GET"])
+def get_reports():
+    reports = []
+    for each in APIReport.query.order_by(APIReport.id.asc()).all():
+        each_json = each.to_json()
+        each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
+        each_json['duration'] = int(each_json['duration'])
+        each_json['failure_rate'] = round((each_json['failures']/each_json['total'])*100, 2)
+        reports.append(each_json)
+    return dumps(reports)
+
+
+@bp.route("/report/compare", methods=["GET"])
+def compare_reports():
+    return render_template('perftemplate/comparison_report.html')
+
+
+@bp.route("/report/compare/data", methods=["GET"])
+def prepare_comparison_responses():
+    tests = request.args.getlist('id[]')
+    tests_meta = []
+    longest_test = 0
+    longest_time = 0
+    for i in range(len(tests)):
+        data = APIReport.query.filter_by(id=tests[i]).first().to_json()
+        if data['duration'] > longest_time:
+            longest_time = data['duration']
+            longest_test = i
+        tests_meta.append(data)
+    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
+                                                                   request.args.get('high_value', 100),
+                                                                   tests_meta[longest_test]['start_time'],
+                                                                   tests_meta[longest_test]['end_time'])
+    metric = request.args.get('metric', '')
+    scope = request.args.get('scope', '')
+    timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
+                                          start_time, end_time, aggregation)
+    test_start_time = "{}_{}".format(tests_meta[longest_test]['start_time'].replace("T", " ").split(".")[0], metric)
+    data = {test_start_time: calculate_analytics_dataset(tests_meta[longest_test]['build_id'],
+                                                         tests_meta[longest_test]['name'],
+                                                         tests_meta[longest_test]['lg_type'],
+                                                         start_time, end_time, aggregation,
+                                                         scope, metric)}
+    for i in range(len(tests_meta)):
+        if i != longest_test:
+            test_start_time = "{}_{}".format(tests_meta[i]['start_time'].replace("T", " ").split(".")[0], metric)
+            data[test_start_time] = calculate_analytics_dataset(tests_meta[i]['build_id'], tests_meta[i]['name'],
+                                                                tests_meta[i]['lg_type'],
+                                                                tests_meta[i]['start_time'],
+                                                                tests_meta[i]['end_time'],
+                                                                aggregation, scope, metric)
+    return comparison_data(timeline=timestamps, data=data)
 
