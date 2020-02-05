@@ -108,3 +108,11 @@ function analyticsCanvas() {
         }
     });
 }
+
+function downloadPic() {
+    var link = document.createElement('a');
+    link.download = "comparison.png"
+    link.href = document.getElementById("chart-analytics").toDataURL('image/png');
+    link.click();
+    link.remove();
+}
