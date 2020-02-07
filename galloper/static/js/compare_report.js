@@ -4,7 +4,7 @@ var analyticsData;
 var analyticsLine;
 
 function setParams(){
-    build_ids = page_params.getAll("id");
+    build_ids = page_params.getAll("id[]");
 }
 
 function getDataForAnalysis(metric, request_name) {
@@ -115,4 +115,10 @@ function downloadPic() {
     link.href = document.getElementById("chart-analytics").toDataURL('image/png');
     link.click();
     link.remove();
+}
+
+
+function switchSampler() {
+    samplerType = $("#sampler").val().toUpperCase();
+    resizeChart();
 }

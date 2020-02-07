@@ -1,6 +1,7 @@
 var page_params = new URLSearchParams(window.location.search);
 var presetsContext=document.getElementById("chart-requests").getContext("2d");
 var analyticsContext=document.getElementById("chart-analytics").getContext("2d");
+var samplerType;
 var build_id;
 var test_name;
 var lg_type;
@@ -12,6 +13,7 @@ function setParams(){
     build_id = page_params.get("build_id");
     test_name = page_params.get("test_name");
     lg_type = page_params.get("lg_type");
+    samplerType = $("#sampler").val().toUpperCase();
     if (build_id == null) {
         build_id = document.querySelector("[property~=build_id][content]").content;
         lg_type = document.querySelector("[property~=lg_type][content]").content;
@@ -44,6 +46,7 @@ function loadRequestData(url, y_label) {
         build_id: build_id,
         test_name: test_name,
         lg_type: lg_type,
+        sampler: samplerType,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -65,6 +68,7 @@ function fillTable(){
         build_id: build_id,
         test_name: test_name,
         lg_type: lg_type,
+        sampler: samplerType,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -98,6 +102,7 @@ $.get(
     build_id: build_id,
     test_name: test_name,
     lg_type: lg_type,
+    sampler: samplerType,
     start_time: $("#start_time").html(),
     end_time: $("#end_time").html(),
     low_value: $("#input-slider-range-value-low").html(),
@@ -274,4 +279,9 @@ function downloadPic() {
     link.href = canvas.toDataURL('image/png');
     link.click();
     link.remove();
+}
+
+function switchSampler() {
+    samplerType = $("#sampler").val().toUpperCase();
+    resizeChart();
 }

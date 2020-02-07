@@ -39,6 +39,7 @@
                       <th data-sortable="true" data-field="duration">Duration</th>
                       <th data-sortable="true" data-field="vusers">vUsers</th>
                       <th data-sortable="true" data-field="environment">Env</th>
+                      <th data-sortable="true" data-field="type">Test Type</th>
                       <th data-field="throughput">TPS</th>
                       <th data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
                       <th data-field="lg_type" data-formatter=lgFormatter>Runner</th>
@@ -75,7 +76,7 @@ function lgFormatter(value, row, index){
 function runComparison() {
     var reports = "/report/compare?"
     $("#results").bootstrapTable('getSelections').forEach(item => {
-        reports+= "id="+item["id"]+"&"
+        reports+= "id[]="+item["id"]+"&"
     });
     window.location.href = reports.substring(0, reports.length - 1);
 }

@@ -46,6 +46,13 @@
                               <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
                           </a>
                         </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                            <select class="selectpicker show-tick form-control form-control-md " id="sampler" onchange="switchSampler()">
+                                {% for sampler in samplers %}
+                                  <option>{{ sampler }}</option>
+                                {% endfor %}
+                            </select>
+                        </li>
                       </ul>
                   </div>
               </div>

@@ -199,6 +199,13 @@
                   </a>
                 </li>
                 <li class="nav-item mr-2 mr-md-0">
+                    <select class="selectpicker show-tick form-control form-control-md " id="sampler" onchange="switchSampler()">
+                        {% for sampler in samplers %}
+                          <option>{{ sampler }}</option>
+                        {% endfor %}
+                    </select>
+                </li>
+                <li class="nav-item mr-2 mr-md-0">
                   <a id="RT" onclick="loadRequestData('/report/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Responses</span>
                     <span class="d-md-none">M</span>
