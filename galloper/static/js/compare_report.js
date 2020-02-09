@@ -3,9 +3,43 @@ var analyticsContext=document.getElementById("chart-analytics").getContext("2d")
 var analyticsData;
 var analyticsLine;
 
+var responseContext=document.getElementById("chart-response").getContext("2d");
+var responseData;
+var responseLine;
+
+var errorsContext=document.getElementById("chart-errors").getContext("2d");
+var errorsData;
+var errorsLine;
+
+var rpsContext=document.getElementById("chart-rps").getContext("2d");
+var rpsData;
+var rpsLine;
+
+
 function setParams(){
     build_ids = page_params.getAll("id[]");
 }
+
+
+
+function getPerTestData() {
+    $.get(
+  '/report/compare/tests',
+    {
+    id: build_ids,
+    },
+      function( data ) {
+        data = $.parseJSON(data);
+        responseData = data['response'];
+        errorsData = data['errors'];
+        rpsData = data['rps'];
+        responsesCanvas();
+        errorsCanvas();
+        rpsCanvas();
+      }
+ );
+}
+
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
@@ -40,6 +74,7 @@ $(document).ready(function() {
 function resizeChart() {
     setParams();
     analyticsCanvas();
+    getPerTestData();
 }
 
 function findAndRemoveDataSet(dataset_name){
@@ -62,6 +97,146 @@ function getData(scope, request_name) {
         getDataForAnalysis(scope, request_name)
     }
 }
+
+
+function responsesCanvas() {
+    responseLine = Chart.Line(responseContext, {
+        data: responseData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Response Time, ms"
+                    },
+                    id: "time",
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
+function errorsCanvas() {
+    errorsLine = Chart.Line(errorsContext, {
+        data: errorsData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Errors"
+                    },
+                    id: "count",
+                    gridLines: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                    },
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
+function rpsCanvas() {
+    rpsLine = Chart.Line(rpsContext, {
+        data: rpsData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "RPS, count"
+                    },
+                    id: "count",
+                    gridLines: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                    },
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
 
 function analyticsCanvas() {
     analyticsLine = Chart.Line(analyticsContext, {
@@ -109,10 +284,10 @@ function analyticsCanvas() {
     });
 }
 
-function downloadPic() {
+function downloadPic(chart_id) {
     var link = document.createElement('a');
-    link.download = "comparison.png"
-    link.href = document.getElementById("chart-analytics").toDataURL('image/png');
+    link.download = chart_id+".png"
+    link.href = document.getElementById(chart_id).toDataURL('image/png');
     link.click();
     link.remove();
 }

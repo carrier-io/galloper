@@ -17525,7 +17525,8 @@ a.btn-icon-only
 
 .chart-sm
 {
-    height: 230px;
+    margin-top: 15px;
+    height: 300px;
 }
 
 .chart-legend

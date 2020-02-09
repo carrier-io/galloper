@@ -100,12 +100,14 @@ def comparison_data(timeline, data):
     return dumps(chart_data)
 
 
-
-def chart_data(timeline, users, other):
+def chart_data(timeline, users, other, yAxis="response_time", dump=True):
     labels = []
-    for _ in timeline:
-        labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    chart_data = {
+    try:
+        for _ in timeline:
+            labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
+    except:
+        labels = timeline
+    _data = {
         "labels": labels,
         "datasets": [
             {
@@ -126,7 +128,7 @@ def chart_data(timeline, users, other):
             "label": each,
             "fill": False,
             "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-            "yAxisID": "response_time",
+            "yAxisID": yAxis,
             "borderWidth": 1,
             "lineTension": 0.2,
             "pointRadius": 1,
@@ -139,8 +141,11 @@ def chart_data(timeline, users, other):
                 dataset['data'].append(other[each][_])
             else:
                 dataset['data'].append(None)
-        chart_data['datasets'].append(dataset)
-    return dumps(chart_data)
+        _data['datasets'].append(dataset)
+    if dump:
+        return dumps(_data)
+    else:
+        return _data
 
 
 def render_analytics_control(requests):
@@ -297,7 +302,6 @@ def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_ti
 
 @bp.route("/report/request/data", methods=["GET"])
 def get_data_from_influx():
-    data = None
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
@@ -316,6 +320,7 @@ def get_data_from_influx():
         return create_dataset(timestamps, data, f"{scope}_{metric}", axe)
     else:
         return {}
+
 
 @bp.route("/report/all", methods=["GET"])
 def get_reports():
@@ -375,6 +380,29 @@ def prepare_comparison_responses():
                                                                 aggregation, sampler, scope, metric)
     return comparison_data(timeline=timestamps, data=data)
 
+
+@bp.route("/report/compare/tests", methods=["GET"])
+def compare_tests():
+    tests = request.args.getlist('id[]')
+    tests_meta = APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all()
+    users_data = {}
+    responses_data = {}
+    errors_data = {}
+    rps_data = {}
+    labels = []
+    for each in tests_meta:
+        ts = datetime.fromtimestamp(str_to_timestamp(each.start_time),
+                                    tz=timezone.utc).strftime("%m-%d %H:%M:%S")
+        labels.append(ts)
+        users_data[ts] = each.vusers
+        responses_data[ts] = each.pct95
+        errors_data[ts] = each.failures
+        rps_data[ts] = each.throughput
+    return dumps({
+        "response": chart_data(labels, {"users": users_data}, {"pct95": responses_data}, "time", False),
+        "errors": chart_data(labels, {"users": users_data}, {"errors": errors_data}, "count", False),
+        "rps": chart_data(labels, {"users": users_data}, {"RPS": rps_data}, "count", False)
+    })
 
 @bp.route("/report", methods=["GET"])
 def report():

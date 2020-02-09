@@ -285,3 +285,5 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler):
     requests = "|".join([f"'{each['request_name']}'" for each in res])
     query = f"select * from comparison..api_comparison where build_id='{build_id}' and request_name=~/^[{requests}]/"
     return list(get_client().query(query)['api_comparison'])
+
+
