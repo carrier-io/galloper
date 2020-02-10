@@ -87,6 +87,8 @@ def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
     results = {"users": {}}
     # aggregation of users
     _tmp = []
+    if 'm' in aggregation:
+        aggregation = f"{str(int(aggregation.replace('m', ''))*60)}s"
     for _ in res:
         _tmp.append(_['sum'] if _['sum'] else 0)
         results["users"][_['time']] = None
@@ -165,6 +167,8 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
         results['responses'][_] = None
     # aggregation of responses
     _tmp = []
+    if 'm' in aggregation:
+        aggregation = f"{str(int(aggregation.replace('m', ''))*60)}s"
     for _ in res:
         _tmp.append(_['count'])
         if (len(_tmp) % int(aggregation.replace('s', ''))) == 0:
@@ -207,6 +211,8 @@ def get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, 
         results['errors'][_] = None
     res = get_client().query(error_query)[test_name]
     _tmp = []
+    if 'm' in aggregation:
+        aggregation = f"{str(int(aggregation.replace('m', ''))*60)}s"
     for _ in res:
         _tmp.append(_['count'])
         if (len(_tmp) % int(aggregation.replace('s', ''))) == 0:
@@ -236,6 +242,8 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
             results['hits'][hit_time.strftime("%Y-%m-%dT%H:%M:%SZ")] += 1
     # aggregation of hits
     _tmp = []
+    if 'm' in aggregation:
+        aggregation = f"{str(int(aggregation.replace('m', ''))*60)}s"
     _ts = None
     for _ in results['hits']:
         if len(_tmp) == 0:

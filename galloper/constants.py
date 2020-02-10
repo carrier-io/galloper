@@ -27,6 +27,7 @@ MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://localhost:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
 MINIO_REGION = environ.get('MINIO_REGION', 'us-east-1')
+LOKI_HOST = environ.get('LOKI', 'http://carrier-loki:3100')
 
 
 NAME_CONTAINER_MAPPING = {

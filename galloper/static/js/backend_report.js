@@ -8,6 +8,7 @@ var lg_type;
 var lineChartData;
 var analyticsData;
 var analyticsLine;
+var aggregator="auto";
 
 function setParams(){
     build_id = page_params.get("build_id");
@@ -47,6 +48,7 @@ function loadRequestData(url, y_label) {
         test_name: test_name,
         lg_type: lg_type,
         sampler: samplerType,
+        aggregator: aggregator,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -103,6 +105,7 @@ $.get(
     test_name: test_name,
     lg_type: lg_type,
     sampler: samplerType,
+    aggregator: aggregator,
     start_time: $("#start_time").html(),
     end_time: $("#end_time").html(),
     low_value: $("#input-slider-range-value-low").html(),
@@ -136,6 +139,8 @@ $(document).ready(function() {
     loadRequestData('/report/requests/summary', "Response time, ms");
     analyticsCanvas();
     fillTable();
+    fillErrorTable();
+    $('#RT').trigger( "click" )
     $("#analytics").hide();
 });
 
@@ -262,6 +267,7 @@ function resizeChart() {
         }
     });
     fillTable();
+    fillErrorTable();
 }
 
 function downloadPic() {
@@ -284,4 +290,19 @@ function downloadPic() {
 function switchSampler() {
     samplerType = $("#sampler").val().toUpperCase();
     resizeChart();
+}
+
+function switchAggregator() {
+    aggregator = $("#aggregator").val();
+    console.log(aggregator)
+    resizeChart();
+}
+
+
+function fillErrorTable() {
+    var start_time = $("#start_time").html()
+    var end_time = $("#end_time").html()
+    var low_value = $("#input-slider-range-value-low").html()
+    var high_value = $("#input-slider-range-value-high").html()
+    $("#errors").bootstrapTable('refreshOptions', {url: `/report/request/issues?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
 }

@@ -12,8 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-from copy import deepcopy
+
 from datetime import datetime, timezone
 from json import dumps
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
@@ -22,6 +21,7 @@ from galloper.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_test_details, get_backend_requests, get_backend_users, get_errors,
                                          get_hits_tps, average_responses, get_build_data, get_tps, get_hits,
                                          get_response_codes, get_sampler_types)
+from galloper.dal.loki import get_results
 
 bp = Blueprint('reports', __name__)
 
@@ -174,7 +174,7 @@ def render_analytics_control(requests):
     return control
 
 
-def calculate_proper_timeframe(low_value, high_value, start_time, end_time):
+def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggregation, time_as_ts=False):
     start_time = str_to_timestamp(start_time)
     end_time = str_to_timestamp(end_time)
     interval = end_time-start_time
@@ -188,8 +188,12 @@ def calculate_proper_timeframe(low_value, high_value, start_time, end_time):
         seconds = int(seconds)
     else:
         seconds = 1
+    if aggregation == 'auto':
+        aggregation = f'{seconds}s'
+    if time_as_ts:
+        return int(start_time), int(end_time), aggregation
     return datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), \
-           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), f'{seconds}s'
+           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), aggregation
 
 
 @bp.route("/report/create", methods=["GET", "POST"])
@@ -229,7 +233,9 @@ def requests_summary():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
+
     timeline, results, users = get_backend_requests(request.args['build_id'], request.args['test_name'],
                                                     request.args['lg_type'], start_time, end_time, aggregation,
                                                     request.args['sampler'])
@@ -241,7 +247,8 @@ def requests_hits():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     timeline, results, users = get_hits_tps(request.args['build_id'], request.args['test_name'],
                                             request.args['lg_type'], start_time, end_time, aggregation,
                                             request.args['sampler'])
@@ -253,7 +260,8 @@ def avg_responses():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     timeline, results, users = average_responses(request.args['build_id'], request.args['test_name'],
                                                  request.args['lg_type'], start_time, end_time, aggregation,
                                                  request.args['sampler'])
@@ -265,7 +273,8 @@ def summary_table():
     start_time, end_time, _ = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                          request.args.get('high_value', 100),
                                                          request.args['start_time'],
-                                                         request.args['end_time'])
+                                                         request.args['end_time'],
+                                                         request.args.get('aggregator', 'auto'))
     return dumps(get_build_data(request.args['build_id'], request.args['test_name'],
                                 request.args['lg_type'], start_time, end_time,
                                 request.args['sampler']))
@@ -305,7 +314,8 @@ def get_data_from_influx():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     metric = request.args.get('metric', '')
     scope = request.args.get('scope', '')
     timestamps, users = get_backend_users(request.args['build_id'], request.args['lg_type'],
@@ -359,7 +369,10 @@ def prepare_comparison_responses():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    tests_meta[longest_test]['start_time'],
-                                                                   tests_meta[longest_test]['end_time'])
+                                                                   tests_meta[longest_test]['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
+    if request.args.get('aggregator', 'auto') != "auto":
+        aggregation = request.args.get('aggregator')
     metric = request.args.get('metric', '')
     scope = request.args.get('scope', '')
     timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
@@ -404,6 +417,20 @@ def compare_tests():
         "rps": chart_data(labels, {"users": users_data}, {"RPS": rps_data}, "count", False)
     })
 
+
 @bp.route("/report", methods=["GET"])
 def report():
     return render_template('perftemplate/report.html')
+
+
+@bp.route("/report/request/issues")
+def get_issues():
+    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
+                                                                   request.args.get('high_value', 100),
+                                                                   request.args['start_time'],
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'),
+                                                                   time_as_ts=True)
+    test_name = request.args['test_name']
+    return dumps(list(get_results(test_name, start_time, end_time).values()))
+

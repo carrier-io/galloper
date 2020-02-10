@@ -22171,3 +22171,10 @@ input#menu[type="checkbox"] {
 	/* label.hamburger {
 		display: none;
 	} */
+
+.preview {
+    width:400px; height:400px;
+    -webkit-transform-origin:0 0;
+    -ms-transform-origin:0 0;
+    transform-origin:0 0;
+}

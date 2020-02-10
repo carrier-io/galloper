@@ -187,16 +187,22 @@
   <div class="card bg-gradient-white shadow">
     <div class="card-header bg-transparent">
       <div class="row align-items-center">
-        <div class="col">
+        <div class="col-xl-4">
           <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
           <h2 class="text-gray mb-0">Requests summary</h2>
         </div>
-        <div class="col">
+        <div class="col-xl-8">
             <ul id="chart-control" class="nav nav-pills justify-content-end">
                 <li class="nav-item mr-2 mr-md-0">
-                  <a id="DW" onclick="downloadPic()" class="nav-link py-2 px-3" download="download">
-                      <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
-                  </a>
+                    <select class="selectpicker show-tick form-control form-control-md " id="aggregator" onchange="switchAggregator()">
+                        <option>auto</option>
+                        <option>1s</option>
+                        <option>5s</option>
+                        <option>30s</option>
+                        <option>1m</option>
+                        <option>5m</option>
+                        <option>10m</option>
+                    </select>
                 </li>
                 <li class="nav-item mr-2 mr-md-0">
                     <select class="selectpicker show-tick form-control form-control-md " id="sampler" onchange="switchSampler()">
@@ -227,6 +233,11 @@
                   <a id="AN" onclick="displayAnalytics()" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Analytics</span>
                     <span class="d-md-none">N</span>
+                  </a>
+                </li>
+                <li class="nav-item mr-2 mr-md-0">
+                  <a id="DW" onclick="downloadPic()" class="nav-link py-2 px-3" download="download">
+                      <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
                   </a>
                 </li>
               </ul>
@@ -327,7 +338,54 @@
     </div>
 </div>
 </div>
+<div class="row header-body">
+<div class="col-xl-12 col-lg-12">
+    <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-header bg-transparent">
+          <div class="row align-items-center">
+            <div class="col">
+              <h2 class="text-gray mb-0">Errors</h2>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+            <table
+              id="errors"
+              data-toggle="table"
+              data-url=""
+              data-pagination="true"
+              data-detail-view="true"
+              data-detail-view-icon="false"
+              data-detail-view-by-click="true"
+              data-detail-formatter="detailFormatter"
+            >
+              <thead>
+                <tr>
+                  <th data-sortable="true" data-field="name">Request name</th>
+                  <th data-sortable="true" data-field="url">URL</th>
+                  <th data-sortable="true" data-field="code">Response Code</th>
+                  <th data-sortable="true" data-field="error">Error Message</th>
+                  <th data-sortable="true" data-field="count">Count</th>
+                </tr>
+              </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
 {% include 'common/foot.html' %}
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script src="{{ url_for('static', filename='js/backend_report.js') }}"></script>
+<script>
+    function detailFormatter(index, row) {
+        var html = []
+        html.push('<p><b>Method:</b> ' + row['method'] + '</p>')
+        html.push('<p><b>Request Params:</b> ' + row['params'] + '</p>')
+        html.push('<p><b>Headers:</b> ' + row['headers'] + '</p>')
+        html.push('<p><b>Response body:</b></p>')
+        html.push('<textarea disabled style="width: 100%">'+row['response']+'</textarea>')
+        return html.join('')
+  }
+</script>
 </body>
 </html>
