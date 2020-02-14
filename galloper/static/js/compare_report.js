@@ -15,6 +15,14 @@ var rpsContext=document.getElementById("chart-rps").getContext("2d");
 var rpsData;
 var rpsLine;
 
+var benchmarkContext=document.getElementById("chart-benchmark").getContext("2d");
+var benchmarkLine;
+var benchmarkData;
+var aggregator="auto";
+var request="";
+var calculation="";
+
+
 
 function setParams(){
     build_ids = page_params.getAll("id[]");
@@ -75,6 +83,7 @@ function resizeChart() {
     setParams();
     analyticsCanvas();
     getPerTestData();
+    switchAggregator();
 }
 
 function findAndRemoveDataSet(dataset_name){
@@ -296,4 +305,80 @@ function downloadPic(chart_id) {
 function switchSampler() {
     samplerType = $("#sampler").val().toUpperCase();
     resizeChart();
+}
+
+function loadBenchmarkData(aggregator, request, calculation) {
+    $.get(
+      "/report/benchmark/data",
+      {
+        id: page_params.getAll("id[]"),
+        aggregator: aggregator,
+        request: request,
+        calculation: calculation
+      }, function( data ) {
+      data = $.parseJSON(data);
+        benchmarkData = data["data"]
+        if(benchmarkLine!=null){
+            benchmarkLine.destroy();
+        }
+        drawCanvas(data["label"]);
+      }
+     );
+}
+
+function drawCanvas(y_label) {
+//    stepSize = 0
+//    max_value = 0
+//    benchmarkData.datasets.forEach(set => {
+//        set.data.forEach(item => {
+//            if (item != null && max_value < item) {
+//                      max_value=item;
+//                }
+//            })
+//        })
+//    console.log(max_value);
+//
+//    sSize = Math.floor(max_value / 5);
+//    if (sSize === 0) {
+//        sSize = 1;
+//    }
+//    console.log(sSize)
+    benchmarkLine = Chart.Line(benchmarkContext, {
+        data: benchmarkData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false,
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: y_label
+                    },
+                    id: "data",
+                }],
+            }
+        }
+    });
+}
+
+function switchAggregator() {
+    aggregator = $("#timeaggr").val();
+    request = $("#requestsaggr").val();
+    calculation = $("#calculationaggr").val();
+    loadBenchmarkData(aggregator, request, calculation);
 }

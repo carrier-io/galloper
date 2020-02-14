@@ -151,6 +151,40 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
     return timestamps, results, users
 
 
+def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, aggr):
+    scope_addon = ""
+    group_by = ""
+    if scope and scope != 'All':
+        scope_addon = f"and request_name='{scope}'"
+    elif scope != 'All':
+        group_by = "group by request_name"
+    if aggr in ["min", "max", "mean"]:
+        aggr_func = f"{aggr.lower()}(response_time)"
+    elif 'pct' in aggr:
+        aggr = aggr.replace('pct', '')
+        aggr_func = f"percentile(response_time, {aggr})"
+    elif 'errors' in aggr:
+        aggr_func = 'sum(errorCount)'
+    else:
+        aggr_func = f"percentile(response_time, 50)"
+
+    query = f"select {aggr_func} as rt from {lg_type}..{test_name} where sampler_type='{sampler}' and " \
+            f"build_id='{build_id}' {scope_addon} {group_by}"
+    return round(list(get_client().query(query)[test_name])[0]["rt"], 2)
+
+
+def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope):
+    scope_addon = ""
+    group_by_addon = ""
+    if scope and scope != 'All':
+        scope_addon = f"and request_name='{scope}'"
+    elif scope != 'All':
+        group_by_addon = "request_name"
+    group_by = f"group by {group_by_addon} time(1s)"
+    query = f"select mean(rt) as throughput from (select count(response_time) as rt from {lg_type}..{test_name} " \
+            f"where sampler_type='{sampler}' and build_id='{build_id}' {scope_addon} {group_by} )"
+    return round(list(get_client().query(query)[test_name])[0]["throughput"], 2)
+
 def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
             timestamps=None, users=None, scope=None):
     if not (timestamps and users):

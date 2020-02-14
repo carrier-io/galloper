@@ -20,7 +20,8 @@ from galloper.constants import str_to_timestamp
 from galloper.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_test_details, get_backend_requests, get_backend_users, get_errors,
                                          get_hits_tps, average_responses, get_build_data, get_tps, get_hits,
-                                         get_response_codes, get_sampler_types)
+                                         get_response_codes, get_sampler_types, get_response_time_per_test,
+                                         get_throughput_per_test)
 from galloper.dal.loki import get_results
 
 bp = Blueprint('reports', __name__)
@@ -109,18 +110,18 @@ def chart_data(timeline, users, other, yAxis="response_time", dump=True):
         labels = timeline
     _data = {
         "labels": labels,
-        "datasets": [
-            {
-                "label": "Active Users",
-                "fill": False,
-                "data": list(users['users'].values()),
-                "yAxisID": "active_users",
-                "borderWidth": 2,
-                "lineTension": 0,
-                "spanGaps": True
-            }
-        ]
+        "datasets": []
     }
+    if users:
+        _data['datasets'].append({
+            "label": "Active Users",
+            "fill": False,
+            "data": list(users['users'].values()),
+            "yAxisID": "active_users",
+            "borderWidth": 2,
+            "lineTension": 0,
+            "spanGaps": True
+        })
     colors_array = colors(len(other.keys()))
     for each in other:
         color = colors_array.pop()
@@ -137,8 +138,8 @@ def chart_data(timeline, users, other, yAxis="response_time", dump=True):
             "data": []
         }
         for _ in timeline:
-            if _ in other[each]:
-                dataset['data'].append(other[each][_])
+            if str(_) in other[each]:
+                dataset['data'].append(other[each][str(_)])
             else:
                 dataset['data'].append(None)
         _data['datasets'].append(dataset)
@@ -347,10 +348,12 @@ def get_reports():
 @bp.route("/report/compare", methods=["GET"])
 def compare_reports():
     samplers = set()
+    requests_data = set()
     tests = request.args.getlist('id[]')
     for each in APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all():
         samplers.update(get_sampler_types(each.build_id, each.name, each.lg_type))
-    return render_template('perftemplate/comparison_report.html', samplers=samplers)
+        requests_data.update(set(each.requests.split(";")))
+    return render_template('perftemplate/comparison_report.html', samplers=samplers, requests=requests_data)
 
 
 @bp.route("/report/compare/data", methods=["GET"])
@@ -394,15 +397,14 @@ def prepare_comparison_responses():
     return comparison_data(timeline=timestamps, data=data)
 
 
-@bp.route("/report/compare/tests", methods=["GET"])
-def compare_tests():
-    tests = request.args.getlist('id[]')
+def get_tests_metadata(tests):
     tests_meta = APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all()
     users_data = {}
     responses_data = {}
     errors_data = {}
     rps_data = {}
     labels = []
+
     for each in tests_meta:
         ts = datetime.fromtimestamp(str_to_timestamp(each.start_time),
                                     tz=timezone.utc).strftime("%m-%d %H:%M:%S")
@@ -411,6 +413,12 @@ def compare_tests():
         responses_data[ts] = each.pct95
         errors_data[ts] = each.failures
         rps_data[ts] = each.throughput
+    return labels, rps_data, errors_data, users_data, responses_data
+
+
+@bp.route("/report/compare/tests", methods=["GET"])
+def compare_tests():
+    labels, rps_data, errors_data, users_data, responses_data = get_tests_metadata(request.args.getlist('id[]'))
     return dumps({
         "response": chart_data(labels, {"users": users_data}, {"pct95": responses_data}, "time", False),
         "errors": chart_data(labels, {"users": users_data}, {"errors": errors_data}, "count", False),
@@ -433,4 +441,42 @@ def get_issues():
                                                                    time_as_ts=True)
     test_name = request.args['test_name']
     return dumps(list(get_results(test_name, start_time, end_time).values()))
+
+
+@bp.route("/report/benchmark/data", methods=["GET"])
+def create_benchmark_dataset():
+    build_ids = request.args.getlist('id[]')
+    aggregator = request.args.get('aggregator')
+    req = request.args.get('request')
+    calculation = request.args.get('calculation')
+    tests_meta = APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.vusers.asc()).all()
+    labels = set()
+    data = {}
+    y_axis = ''
+    for _ in tests_meta:
+        labels.add(_.vusers)
+        if _.environment not in data:
+            data[_.environment] = {}
+        if calculation == 'throughput':
+            y_axis = 'Requests per second'
+            if req == 'All':
+                data[_.environment][str(_.vusers)] = _.throughput
+            else:
+                data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
+                                                                             _.lg_type, "REQUEST", req)
+        elif calculation != ['throughput']:
+            y_axis = 'Response time, ms'
+            if calculation == 'errors':
+                y_axis = 'Errors'
+            data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
+                                                                            _.lg_type, "REQUEST", req, calculation)
+        else:
+            data[_.environment][str(_.vusers)] = None
+    labels = [""] + sorted(list(labels)) + [""]
+    return dumps({"data": chart_data(labels, [], data, "data", False), "label": y_axis})
+
+
+
+
+
 
