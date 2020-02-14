@@ -3,9 +3,51 @@ var analyticsContext=document.getElementById("chart-analytics").getContext("2d")
 var analyticsData;
 var analyticsLine;
 
+var responseContext=document.getElementById("chart-response").getContext("2d");
+var responseData;
+var responseLine;
+
+var errorsContext=document.getElementById("chart-errors").getContext("2d");
+var errorsData;
+var errorsLine;
+
+var rpsContext=document.getElementById("chart-rps").getContext("2d");
+var rpsData;
+var rpsLine;
+
+var benchmarkContext=document.getElementById("chart-benchmark").getContext("2d");
+var benchmarkLine;
+var benchmarkData;
+var aggregator="auto";
+var request="";
+var calculation="";
+
+
+
 function setParams(){
-    build_ids = page_params.getAll("id");
+    build_ids = page_params.getAll("id[]");
 }
+
+
+
+function getPerTestData() {
+    $.get(
+  '/report/compare/tests',
+    {
+    id: build_ids,
+    },
+      function( data ) {
+        data = $.parseJSON(data);
+        responseData = data['response'];
+        errorsData = data['errors'];
+        rpsData = data['rps'];
+        responsesCanvas();
+        errorsCanvas();
+        rpsCanvas();
+      }
+ );
+}
+
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
@@ -40,6 +82,8 @@ $(document).ready(function() {
 function resizeChart() {
     setParams();
     analyticsCanvas();
+    getPerTestData();
+    switchAggregator();
 }
 
 function findAndRemoveDataSet(dataset_name){
@@ -62,6 +106,146 @@ function getData(scope, request_name) {
         getDataForAnalysis(scope, request_name)
     }
 }
+
+
+function responsesCanvas() {
+    responseLine = Chart.Line(responseContext, {
+        data: responseData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Response Time, ms"
+                    },
+                    id: "time",
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
+function errorsCanvas() {
+    errorsLine = Chart.Line(errorsContext, {
+        data: errorsData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Errors"
+                    },
+                    id: "count",
+                    gridLines: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                    },
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
+function rpsCanvas() {
+    rpsLine = Chart.Line(rpsContext, {
+        data: rpsData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "RPS, count"
+                    },
+                    id: "count",
+                    gridLines: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                    },
+                },
+                {
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "right",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Users"
+                    },
+                    id: "active_users",
+                }],
+            }
+        }
+    });
+}
+
 
 function analyticsCanvas() {
     analyticsLine = Chart.Line(analyticsContext, {
@@ -109,10 +293,92 @@ function analyticsCanvas() {
     });
 }
 
-function downloadPic() {
+function downloadPic(chart_id) {
     var link = document.createElement('a');
-    link.download = "comparison.png"
-    link.href = document.getElementById("chart-analytics").toDataURL('image/png');
+    link.download = chart_id+".png"
+    link.href = document.getElementById(chart_id).toDataURL('image/png');
     link.click();
     link.remove();
+}
+
+
+function switchSampler() {
+    samplerType = $("#sampler").val().toUpperCase();
+    resizeChart();
+}
+
+function loadBenchmarkData(aggregator, request, calculation) {
+    $.get(
+      "/report/benchmark/data",
+      {
+        id: page_params.getAll("id[]"),
+        aggregator: aggregator,
+        request: request,
+        calculation: calculation
+      }, function( data ) {
+      data = $.parseJSON(data);
+        benchmarkData = data["data"]
+        if(benchmarkLine!=null){
+            benchmarkLine.destroy();
+        }
+        drawCanvas(data["label"]);
+      }
+     );
+}
+
+function drawCanvas(y_label) {
+//    stepSize = 0
+//    max_value = 0
+//    benchmarkData.datasets.forEach(set => {
+//        set.data.forEach(item => {
+//            if (item != null && max_value < item) {
+//                      max_value=item;
+//                }
+//            })
+//        })
+//    console.log(max_value);
+//
+//    sSize = Math.floor(max_value / 5);
+//    if (sSize === 0) {
+//        sSize = 1;
+//    }
+//    console.log(sSize)
+    benchmarkLine = Chart.Line(benchmarkContext, {
+        data: benchmarkData,
+        options: {
+            responsive: true,
+            hoverMode: 'index',
+            stacked: false,
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 10,
+                    usePointStyle: false,
+                }
+            },
+            title:{
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+                    display: true,
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: y_label
+                    },
+                    id: "data",
+                }],
+            }
+        }
+    });
+}
+
+function switchAggregator() {
+    aggregator = $("#timeaggr").val();
+    request = $("#requestsaggr").val();
+    calculation = $("#calculationaggr").val();
+    loadBenchmarkData(aggregator, request, calculation);
 }

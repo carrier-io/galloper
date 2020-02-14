@@ -2,6 +2,114 @@
 {% include 'common/nav.html' %}
 {% include 'common/page_nav.html' %}
 <div class="row header-body">
+    <div class="col-xl-4 mb-2 mb-xl-0">
+        <div class="card bg-gradient-white shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="text-uppercase text-light ls-1 mb-1">Response Time</h4>
+                    </div>
+                    <div class="col">
+                        <ul class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a onclick="downloadPic('chart-response')" class="nav-link py-2 px-3" download="download">
+                              <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="chart chart-sm">
+                          <div class="chartjs-size-monitor">
+                              <div class="chartjs-size-monitor-expand">
+                                  <div class="">
+                                  </div>
+                              </div>
+                              <div class="chartjs-size-monitor-shrink">
+                                  <div class=""></div>
+                              </div>
+                          </div>
+                        <canvas id="chart-response" class="chart-canvas chartjs-render-monitor" style="display: block; width: 100%;"></canvas>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 mb-2 mb-xl-0">
+        <div class="card bg-gradient-white shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="text-uppercase text-light ls-1 mb-1">Requests per second</h4>
+                    </div>
+                    <ul class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a onclick="downloadPic('chart-rps')" class="nav-link py-2 px-3" download="download">
+                              <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
+                          </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="chart chart-sm">
+                          <div class="chartjs-size-monitor">
+                              <div class="chartjs-size-monitor-expand">
+                                  <div class="">
+                                  </div>
+                              </div>
+                              <div class="chartjs-size-monitor-shrink">
+                                  <div class=""></div>
+                              </div>
+                          </div>
+                        <canvas id="chart-rps" class="chart-canvas chartjs-render-monitor" style="display: block; width: 100%;"></canvas>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 mb-2 mb-xl-0">
+        <div class="card bg-gradient-white shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="text-uppercase text-light ls-1 mb-1">Errors</h4>
+                    </div>
+                    <div class="col">
+                        <ul class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a onclick="downloadPic('chart-errors')" class="nav-link py-2 px-3" download="download">
+                              <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="chart chart-sm">
+                          <div class="chartjs-size-monitor">
+                              <div class="chartjs-size-monitor-expand">
+                                  <div class="">
+                                  </div>
+                              </div>
+                              <div class="chartjs-size-monitor-shrink">
+                                  <div class=""></div>
+                              </div>
+                          </div>
+                        <canvas id="chart-errors" class="chart-canvas chartjs-render-monitor" style="display: block; width: 100%;"></canvas>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row header-body">
 <div class="col-xl-12 mb-6 mb-xl-0">
   <div class="card bg-gradient-white shadow">
     <div class="card-header bg-transparent">
@@ -9,6 +117,17 @@
           <div class="col">
             <h2 class="text-gray mb-0">Build Comparison</h2>
           </div>
+            <div class="col">
+                <ul class="nav nav-pills justify-content-end">
+                    <li class="nav-item mr-2 mr-md-0">
+                        <select class="selectpicker show-tick form-control form-control-md " id="sampler" onchange="switchSampler()">
+                            {% for sampler in samplers %}
+                              <option>{{ sampler }}</option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                  </ul>
+            </div>
       </div>
       <div class="row align-items-center">
         <div class="col">
@@ -42,7 +161,7 @@
                   <div class="col">
                     <ul id="chart-control" class="nav nav-pills justify-content-end">
                         <li class="nav-item mr-2 mr-md-0">
-                          <a id="DW" onclick="downloadPic()" class="nav-link py-2 px-3 active" download="download">
+                          <a id="DW" onclick="downloadPic('chart-analytics')" class="nav-link py-2 px-3" download="download">
                               <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
                           </a>
                         </li>
@@ -117,6 +236,80 @@
                           </div>
                       </div>
                     <canvas id="chart-analytics" class="chart-canvas chartjs-render-monitor" style="display: block; height: 450px; width: 100%;"></canvas>
+                  </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row header-body">
+<div class="col-xl-12 mb-6 mb-xl-0">
+  <div class="card bg-gradient-white shadow">
+      <div class="card bg-gradient-white shadow">
+          <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                  <div class="col">
+                      <h2 class="text-gray mb-0">Benchmark Report</h2>
+                  </div>
+                  <div class="col">
+                    <ul id="benchmark-control" class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                            <select class="selectpicker show-tick form-control form-control-md " id="timeaggr" onchange="switchAggregator()">
+                                <option>auto</option>
+                                <option>1s</option>
+                                <option>5s</option>
+                                <option>30s</option>
+                                <option>1m</option>
+                                <option>5m</option>
+                                <option>10m</option>
+                            </select>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                            <select class="selectpicker show-tick form-control form-control-md " id="requestsaggr" onchange="switchAggregator()">
+                                <option>All</option>
+                                {% for request in requests %}
+                                    <option>{{ request }}</option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                            <select class="selectpicker show-tick form-control form-control-md " id="calculationaggr" onchange="switchAggregator()">
+                                <option>min</option>
+                                <option>median</option>
+                                <option>mean</option>
+                                <option>pct95</option>
+                                <option>pct99</option>
+                                <option>max</option>
+                                <option>throughput</option>
+                                <option>errors</option>
+                            </select>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="DP" onclick="downloadPic('chart-benchmark')" class="nav-link py-2 px-3" download="download">
+                              <span class="btn-inner--icon"><i class="ni ni-cloud-download-95"></i></span>
+                          </a>
+                        </li>
+                      </ul>
+                  </div>
+              </div>
+          </div>
+          <div class="card-body" id="benchmark">
+          <!-- Chart -->
+            <div class="row">
+                <div class="col-md-12">
+                  <div class="chart">
+                      <div class="chartjs-size-monitor">
+                          <div class="chartjs-size-monitor-expand">
+                              <div class="">
+                              </div>
+                          </div>
+                          <div class="chartjs-size-monitor-shrink">
+                              <div class=""></div>
+                          </div>
+                      </div>
+                    <canvas id="chart-benchmark" class="chart-canvas chartjs-render-monitor" style="display: block; height: 450px; width: 100%;"></canvas>
                   </div>
                 </div>
             </div>

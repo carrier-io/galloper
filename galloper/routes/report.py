@@ -12,8 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-from copy import deepcopy
+
 from datetime import datetime, timezone
 from json import dumps
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
@@ -21,7 +20,9 @@ from galloper.constants import str_to_timestamp
 from galloper.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_test_details, get_backend_requests, get_backend_users, get_errors,
                                          get_hits_tps, average_responses, get_build_data, get_tps, get_hits,
-                                         get_response_codes)
+                                         get_response_codes, get_sampler_types, get_response_time_per_test,
+                                         get_throughput_per_test)
+from galloper.dal.loki import get_results
 
 bp = Blueprint('reports', __name__)
 
@@ -100,25 +101,27 @@ def comparison_data(timeline, data):
     return dumps(chart_data)
 
 
-
-def chart_data(timeline, users, other):
+def chart_data(timeline, users, other, yAxis="response_time", dump=True):
     labels = []
-    for _ in timeline:
-        labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    chart_data = {
+    try:
+        for _ in timeline:
+            labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
+    except:
+        labels = timeline
+    _data = {
         "labels": labels,
-        "datasets": [
-            {
-                "label": "Active Users",
-                "fill": False,
-                "data": list(users['users'].values()),
-                "yAxisID": "active_users",
-                "borderWidth": 2,
-                "lineTension": 0,
-                "spanGaps": True
-            }
-        ]
+        "datasets": []
     }
+    if users:
+        _data['datasets'].append({
+            "label": "Active Users",
+            "fill": False,
+            "data": list(users['users'].values()),
+            "yAxisID": "active_users",
+            "borderWidth": 2,
+            "lineTension": 0,
+            "spanGaps": True
+        })
     colors_array = colors(len(other.keys()))
     for each in other:
         color = colors_array.pop()
@@ -126,7 +129,7 @@ def chart_data(timeline, users, other):
             "label": each,
             "fill": False,
             "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-            "yAxisID": "response_time",
+            "yAxisID": yAxis,
             "borderWidth": 1,
             "lineTension": 0.2,
             "pointRadius": 1,
@@ -135,12 +138,15 @@ def chart_data(timeline, users, other):
             "data": []
         }
         for _ in timeline:
-            if _ in other[each]:
-                dataset['data'].append(other[each][_])
+            if str(_) in other[each]:
+                dataset['data'].append(other[each][str(_)])
             else:
                 dataset['data'].append(None)
-        chart_data['datasets'].append(dataset)
-    return dumps(chart_data)
+        _data['datasets'].append(dataset)
+    if dump:
+        return dumps(_data)
+    else:
+        return _data
 
 
 def render_analytics_control(requests):
@@ -169,7 +175,7 @@ def render_analytics_control(requests):
     return control
 
 
-def calculate_proper_timeframe(low_value, high_value, start_time, end_time):
+def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggregation, time_as_ts=False):
     start_time = str_to_timestamp(start_time)
     end_time = str_to_timestamp(end_time)
     interval = end_time-start_time
@@ -183,8 +189,12 @@ def calculate_proper_timeframe(low_value, high_value, start_time, end_time):
         seconds = int(seconds)
     else:
         seconds = 1
+    if aggregation == 'auto':
+        aggregation = f'{seconds}s'
+    if time_as_ts:
+        return int(start_time), int(end_time), aggregation
     return datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), \
-           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), f'{seconds}s'
+           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), aggregation
 
 
 @bp.route("/report/create", methods=["GET", "POST"])
@@ -214,8 +224,9 @@ def view_report():
             test_data = get_test_details(build_id=request.args['build_id'], test_name=request.args['test_name'],
                                          lg_type=request.args['lg_type'])
         analytics_control = render_analytics_control(test_data['requests'])
+        samplers = get_sampler_types(test_data['build_id'], test_data['name'], test_data['lg_type'])
         return render_template('perftemplate/api_test_report.html', test_data=test_data,
-                               analytics_control=analytics_control)
+                               analytics_control=analytics_control, samplers=samplers)
 
 
 @bp.route('/report/requests/summary', methods=["GET"])
@@ -223,9 +234,12 @@ def requests_summary():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
+
     timeline, results, users = get_backend_requests(request.args['build_id'], request.args['test_name'],
-                                                    request.args['lg_type'], start_time, end_time, aggregation)
+                                                    request.args['lg_type'], start_time, end_time, aggregation,
+                                                    request.args['sampler'])
     return chart_data(timeline, users, results)
 
 
@@ -234,9 +248,11 @@ def requests_hits():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     timeline, results, users = get_hits_tps(request.args['build_id'], request.args['test_name'],
-                                            request.args['lg_type'], start_time, end_time, aggregation)
+                                            request.args['lg_type'], start_time, end_time, aggregation,
+                                            request.args['sampler'])
     return chart_data(timeline, users, results)
 
 
@@ -245,9 +261,11 @@ def avg_responses():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     timeline, results, users = average_responses(request.args['build_id'], request.args['test_name'],
-                                                 request.args['lg_type'], start_time, end_time, aggregation)
+                                                 request.args['lg_type'], start_time, end_time, aggregation,
+                                                 request.args['sampler'])
     return chart_data(timeline, users, results)
 
 
@@ -256,43 +274,49 @@ def summary_table():
     start_time, end_time, _ = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                          request.args.get('high_value', 100),
                                                          request.args['start_time'],
-                                                         request.args['end_time'])
+                                                         request.args['end_time'],
+                                                         request.args.get('aggregator', 'auto'))
     return dumps(get_build_data(request.args['build_id'], request.args['test_name'],
-                                request.args['lg_type'], start_time, end_time))
+                                request.args['lg_type'], start_time, end_time,
+                                request.args['sampler']))
 
 
-def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_time, aggregation, scope, metric):
+def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
+                                scope, metric):
     data = None
     axe = 'count'
     if metric == "Throughput":
-        timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
+                                      scope=scope)
         data = data['responses']
     elif metric == "Hits":
-        timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
+                                       scope=scope)
         data = data['hits']
     elif metric == "Errors":
-        timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, scope=scope)
+        timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
+                                         scope=scope)
         data = data['errors']
     elif metric in ["Min", "Median", "Max", "pct90", "pct95", "pct99"]:
         timestamps, data, _ = get_backend_requests(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                   scope=scope, aggr=metric)
+                                                   sampler, scope=scope, aggr=metric)
         data = data['response']
         axe = 'time'
 
     elif "xx" in metric:
         timestamps, data, _ = get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                 scope=scope, aggr=metric)
+                                                 sampler, scope=scope, aggr=metric)
         data = data['rcodes']
     return data, axe
 
 
 @bp.route("/report/request/data", methods=["GET"])
 def get_data_from_influx():
-    data = None
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    request.args['start_time'],
-                                                                   request.args['end_time'])
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
     metric = request.args.get('metric', '')
     scope = request.args.get('scope', '')
     timestamps, users = get_backend_users(request.args['build_id'], request.args['lg_type'],
@@ -302,16 +326,11 @@ def get_data_from_influx():
         return create_dataset(timestamps, users['users'], f"{scope}_{metric}", axe)
     data, axe = calculate_analytics_dataset(request.args['build_id'], request.args['test_name'],
                                             request.args['lg_type'], start_time, end_time,
-                                            aggregation, scope, metric)
+                                            aggregation, request.args['sampler'], scope, metric)
     if data:
         return create_dataset(timestamps, data, f"{scope}_{metric}", axe)
     else:
         return {}
-
-
-@bp.route("/report", methods=["GET"])
-def report():
-    return render_template('perftemplate/report.html')
 
 
 @bp.route("/report/all", methods=["GET"])
@@ -328,7 +347,13 @@ def get_reports():
 
 @bp.route("/report/compare", methods=["GET"])
 def compare_reports():
-    return render_template('perftemplate/comparison_report.html')
+    samplers = set()
+    requests_data = set()
+    tests = request.args.getlist('id[]')
+    for each in APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all():
+        samplers.update(get_sampler_types(each.build_id, each.name, each.lg_type))
+        requests_data.update(set(each.requests.split(";")))
+    return render_template('perftemplate/comparison_report.html', samplers=samplers, requests=requests_data)
 
 
 @bp.route("/report/compare/data", methods=["GET"])
@@ -337,6 +362,7 @@ def prepare_comparison_responses():
     tests_meta = []
     longest_test = 0
     longest_time = 0
+    sampler = request.args.get('sampler', "REQUEST")
     for i in range(len(tests)):
         data = APIReport.query.filter_by(id=tests[i]).first().to_json()
         if data['duration'] > longest_time:
@@ -346,7 +372,10 @@ def prepare_comparison_responses():
     start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
                                                                    request.args.get('high_value', 100),
                                                                    tests_meta[longest_test]['start_time'],
-                                                                   tests_meta[longest_test]['end_time'])
+                                                                   tests_meta[longest_test]['end_time'],
+                                                                   request.args.get('aggregator', 'auto'))
+    if request.args.get('aggregator', 'auto') != "auto":
+        aggregation = request.args.get('aggregator')
     metric = request.args.get('metric', '')
     scope = request.args.get('scope', '')
     timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
@@ -356,7 +385,7 @@ def prepare_comparison_responses():
                                                          tests_meta[longest_test]['name'],
                                                          tests_meta[longest_test]['lg_type'],
                                                          start_time, end_time, aggregation,
-                                                         scope, metric)}
+                                                         sampler, scope, metric)}
     for i in range(len(tests_meta)):
         if i != longest_test:
             test_start_time = "{}_{}".format(tests_meta[i]['start_time'].replace("T", " ").split(".")[0], metric)
@@ -364,6 +393,90 @@ def prepare_comparison_responses():
                                                                 tests_meta[i]['lg_type'],
                                                                 tests_meta[i]['start_time'],
                                                                 tests_meta[i]['end_time'],
-                                                                aggregation, scope, metric)
+                                                                aggregation, sampler, scope, metric)
     return comparison_data(timeline=timestamps, data=data)
+
+
+def get_tests_metadata(tests):
+    tests_meta = APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all()
+    users_data = {}
+    responses_data = {}
+    errors_data = {}
+    rps_data = {}
+    labels = []
+
+    for each in tests_meta:
+        ts = datetime.fromtimestamp(str_to_timestamp(each.start_time),
+                                    tz=timezone.utc).strftime("%m-%d %H:%M:%S")
+        labels.append(ts)
+        users_data[ts] = each.vusers
+        responses_data[ts] = each.pct95
+        errors_data[ts] = each.failures
+        rps_data[ts] = each.throughput
+    return labels, rps_data, errors_data, users_data, responses_data
+
+
+@bp.route("/report/compare/tests", methods=["GET"])
+def compare_tests():
+    labels, rps_data, errors_data, users_data, responses_data = get_tests_metadata(request.args.getlist('id[]'))
+    return dumps({
+        "response": chart_data(labels, {"users": users_data}, {"pct95": responses_data}, "time", False),
+        "errors": chart_data(labels, {"users": users_data}, {"errors": errors_data}, "count", False),
+        "rps": chart_data(labels, {"users": users_data}, {"RPS": rps_data}, "count", False)
+    })
+
+
+@bp.route("/report", methods=["GET"])
+def report():
+    return render_template('perftemplate/report.html')
+
+
+@bp.route("/report/request/issues")
+def get_issues():
+    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
+                                                                   request.args.get('high_value', 100),
+                                                                   request.args['start_time'],
+                                                                   request.args['end_time'],
+                                                                   request.args.get('aggregator', 'auto'),
+                                                                   time_as_ts=True)
+    test_name = request.args['test_name']
+    return dumps(list(get_results(test_name, start_time, end_time).values()))
+
+
+@bp.route("/report/benchmark/data", methods=["GET"])
+def create_benchmark_dataset():
+    build_ids = request.args.getlist('id[]')
+    aggregator = request.args.get('aggregator')
+    req = request.args.get('request')
+    calculation = request.args.get('calculation')
+    tests_meta = APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.vusers.asc()).all()
+    labels = set()
+    data = {}
+    y_axis = ''
+    for _ in tests_meta:
+        labels.add(_.vusers)
+        if _.environment not in data:
+            data[_.environment] = {}
+        if calculation == 'throughput':
+            y_axis = 'Requests per second'
+            if req == 'All':
+                data[_.environment][str(_.vusers)] = _.throughput
+            else:
+                data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
+                                                                             _.lg_type, "REQUEST", req)
+        elif calculation != ['throughput']:
+            y_axis = 'Response time, ms'
+            if calculation == 'errors':
+                y_axis = 'Errors'
+            data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
+                                                                            _.lg_type, "REQUEST", req, calculation)
+        else:
+            data[_.environment][str(_.vusers)] = None
+    labels = [""] + sorted(list(labels)) + [""]
+    return dumps({"data": chart_data(labels, [], data, "data", False), "label": y_axis})
+
+
+
+
+
 

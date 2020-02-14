@@ -1,17 +1,20 @@
 var page_params = new URLSearchParams(window.location.search);
 var presetsContext=document.getElementById("chart-requests").getContext("2d");
 var analyticsContext=document.getElementById("chart-analytics").getContext("2d");
+var samplerType;
 var build_id;
 var test_name;
 var lg_type;
 var lineChartData;
 var analyticsData;
 var analyticsLine;
+var aggregator="auto";
 
 function setParams(){
     build_id = page_params.get("build_id");
     test_name = page_params.get("test_name");
     lg_type = page_params.get("lg_type");
+    samplerType = $("#sampler").val().toUpperCase();
     if (build_id == null) {
         build_id = document.querySelector("[property~=build_id][content]").content;
         lg_type = document.querySelector("[property~=lg_type][content]").content;
@@ -44,6 +47,8 @@ function loadRequestData(url, y_label) {
         build_id: build_id,
         test_name: test_name,
         lg_type: lg_type,
+        sampler: samplerType,
+        aggregator: aggregator,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -65,6 +70,7 @@ function fillTable(){
         build_id: build_id,
         test_name: test_name,
         lg_type: lg_type,
+        sampler: samplerType,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -98,6 +104,8 @@ $.get(
     build_id: build_id,
     test_name: test_name,
     lg_type: lg_type,
+    sampler: samplerType,
+    aggregator: aggregator,
     start_time: $("#start_time").html(),
     end_time: $("#end_time").html(),
     low_value: $("#input-slider-range-value-low").html(),
@@ -131,6 +139,8 @@ $(document).ready(function() {
     loadRequestData('/report/requests/summary', "Response time, ms");
     analyticsCanvas();
     fillTable();
+    fillErrorTable();
+    $('#RT').trigger( "click" )
     $("#analytics").hide();
 });
 
@@ -257,6 +267,7 @@ function resizeChart() {
         }
     });
     fillTable();
+    fillErrorTable();
 }
 
 function downloadPic() {
@@ -274,4 +285,24 @@ function downloadPic() {
     link.href = canvas.toDataURL('image/png');
     link.click();
     link.remove();
+}
+
+function switchSampler() {
+    samplerType = $("#sampler").val().toUpperCase();
+    resizeChart();
+}
+
+function switchAggregator() {
+    aggregator = $("#aggregator").val();
+    console.log(aggregator)
+    resizeChart();
+}
+
+
+function fillErrorTable() {
+    var start_time = $("#start_time").html()
+    var end_time = $("#end_time").html()
+    var low_value = $("#input-slider-range-value-low").html()
+    var high_value = $("#input-slider-range-value-high").html()
+    $("#errors").bootstrapTable('refreshOptions', {url: `/report/request/issues?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
 }
