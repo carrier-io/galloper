@@ -20,7 +20,7 @@ def get_results(test, int_start_time, int_end_time):
             _issue_key = ''
             for _ in _values:
                 if "Error key: " in _:
-                    _issue_key =  _.replace("Error key: ", "")
+                    _issue_key = _.replace("Error key: ", "")
                     if _issue_key in issues:
                         issues[_issue_key]["count"] += 1
                         continue
@@ -44,6 +44,6 @@ def get_results(test, int_start_time, int_end_time):
                     _issue['headers'] = _.replace("Headers: ", "")
                 elif "Response body: " in _:
                     _issue['response'] = _.replace("Response body: ", "")
-            if not issues[_issue_key]:
+            if _issue_key and not issues[_issue_key]:
                 issues[_issue_key] = _issue
     return issues
