@@ -341,7 +341,7 @@ def get_reports():
     search_param = request.args.get("search", None)
     sort = request.args.get("sort", None)
     sort_order = request.args.get("order", None)
-    if sort_order:
+    if sort:
         sort_rule = getattr(getattr(APIReport, sort), sort_order)()
     else:
         sort_rule = APIReport.id.asc()
