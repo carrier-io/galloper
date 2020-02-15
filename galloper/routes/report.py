@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
+from sqlalchemy import or_
 from datetime import datetime, timezone
 from json import dumps
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
@@ -336,13 +336,25 @@ def get_data_from_influx():
 @bp.route("/report/all", methods=["GET"])
 def get_reports():
     reports = []
-    for each in APIReport.query.order_by(APIReport.id.asc()).all():
+    offset = request.args.get("offset", 0)
+    limit = request.args.get("limit", 0)
+    search_param = request.args.get("search", None)
+    if not search_param:
+        total = APIReport.query.order_by(APIReport.id.asc()).count()
+        res = APIReport.query.order_by(APIReport.id.asc()).limit(limit).offset(offset).all()
+    else:
+        filter_ = or_(APIReport.name.like(f'%{search_param}%'),
+                      APIReport.environment.like(f'%{search_param}%'),
+                      APIReport.type.like(f'%{search_param}%'))
+        res = APIReport.query.filter(filter_).order_by(APIReport.id.asc()).limit(limit).offset(offset).all()
+        total = APIReport.query.order_by(APIReport.id.asc()).filter(filter_).count()
+    for each in res:
         each_json = each.to_json()
         each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
         each_json['duration'] = int(each_json['duration'])
-        each_json['failure_rate'] = round((each_json['failures']/each_json['total'])*100, 2)
+        each_json['failure_rate'] = round((each_json['failures'] / each_json['total']) * 100, 2)
         reports.append(each_json)
-    return dumps(reports)
+    return dumps({"total": total, "rows": reports})
 
 
 @bp.route("/report/compare", methods=["GET"])
