@@ -339,15 +339,21 @@ def get_reports():
     offset = request.args.get("offset", 0)
     limit = request.args.get("limit", 0)
     search_param = request.args.get("search", None)
-    if not search_param:
-        total = APIReport.query.order_by(APIReport.id.asc()).count()
-        res = APIReport.query.order_by(APIReport.id.asc()).limit(limit).offset(offset).all()
+    sort = request.args.get("sort", None)
+    sort_order = request.args.get("order", None)
+    if sort_order:
+        sort_rule = getattr(getattr(APIReport, sort), sort_order)()
+    else:
+        sort_rule = APIReport.id.asc()
+    if not search_param and not sort:
+        total = APIReport.query.order_by(sort_rule).count()
+        res = APIReport.query.order_by(sort_rule).limit(limit).offset(offset).all()
     else:
         filter_ = or_(APIReport.name.like(f'%{search_param}%'),
                       APIReport.environment.like(f'%{search_param}%'),
                       APIReport.type.like(f'%{search_param}%'))
-        res = APIReport.query.filter(filter_).order_by(APIReport.id.asc()).limit(limit).offset(offset).all()
-        total = APIReport.query.order_by(APIReport.id.asc()).filter(filter_).count()
+        res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit).offset(offset).all()
+        total = APIReport.query.order_by(sort_rule).filter(filter_).count()
     for each in res:
         each_json = each.to_json()
         each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
