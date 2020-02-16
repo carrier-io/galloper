@@ -357,14 +357,13 @@
               data-detail-view="true"
               data-detail-view-icon="false"
               data-detail-view-by-click="true"
-              data-detail-formatter="detailFormatter"
-            >
+              data-detail-formatter="detailFormatter">
               <thead>
                 <tr>
-                  <th data-sortable="true" data-field="name">Request name</th>
-                  <th data-sortable="true" data-field="url">URL</th>
-                  <th data-sortable="true" data-field="code">Response Code</th>
-                  <th data-sortable="true" data-field="error">Error Message</th>
+                  <th data-sortable="true" data-field="Request name">Request name</th>
+                  <th data-sortable="true" data-field="URL">URL</th>
+                  <th data-sortable="true" data-field="Response code">Response Code</th>
+                  <th data-sortable="true" data-field="Error Message">Error Message</th>
                   <th data-sortable="true" data-field="count">Count</th>
                 </tr>
               </thead>
@@ -379,11 +378,11 @@
 <script>
     function detailFormatter(index, row) {
         var html = []
-        html.push('<p><b>Method:</b> ' + row['method'] + '</p>')
-        html.push('<p><b>Request Params:</b> ' + row['params'] + '</p>')
-        html.push('<p><b>Headers:</b> ' + row['headers'] + '</p>')
+        html.push('<p><b>Method:</b> ' + row['Method'] + '</p>')
+        html.push('<p><b>Request Params:</b> ' + row['Request params'] + '</p>')
+        html.push('<p><b>Headers:</b> ' + row['Headers'] + '</p>')
         html.push('<p><b>Response body:</b></p>')
-        html.push('<textarea disabled style="width: 100%">'+row['response']+'</textarea>')
+        html.push('<textarea disabled style="width: 100%">'+row['Response body']+'</textarea>')
         return html.join('')
   }
 </script>
