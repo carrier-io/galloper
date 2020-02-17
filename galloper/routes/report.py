@@ -21,7 +21,7 @@ from galloper.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_test_details, get_backend_requests, get_backend_users, get_errors,
                                          get_hits_tps, average_responses, get_build_data, get_tps, get_hits,
                                          get_response_codes, get_sampler_types, get_response_time_per_test,
-                                         get_throughput_per_test)
+                                         get_throughput_per_test, delete_test_data)
 from galloper.dal.loki import get_results
 
 bp = Blueprint('reports', __name__)
@@ -212,6 +212,15 @@ def add_report():
                        fourxx=test_data["4xx"], fivexx=test_data["5xx"],
                        requests=";".join(test_data["requests"]))
     report.insert()
+    return "OK", 201
+
+
+@bp.route("/report/delete", methods=["DELETE"])
+def delete_report():
+    build_ids = request.args.getlist('id[]')
+    for each in APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.id.asc()).all():
+        delete_test_data(each.build_id, each.name, each.lg_type)
+        each.delete()
     return "OK", 201
 
 

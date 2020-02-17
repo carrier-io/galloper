@@ -5,7 +5,9 @@ from galloper.constants import str_to_timestamp
 influx_client = None
 
 
-def get_client():
+def get_client(db_name=None):
+    if db_name:
+        return InfluxDBClient("carrier-influx", 8086, '', '', db_name)
     global influx_client
     if not influx_client:
         influx_client = InfluxDBClient("carrier-influx", 8086, '', '')
@@ -329,3 +331,13 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler):
     return list(get_client().query(query)['api_comparison'])
 
 
+def delete_test_data(build_id, test_name, lg_type):
+    query_one = f"DELETE from {test_name} where build_id='{build_id}'"
+    query_two = f"DELETE from api_comparison where build_id='{build_id}'"
+    client = get_client(lg_type)
+    client.query(query_one)
+    client.close()
+    client = get_client('comparison')
+    client.query(query_two)
+    client.close()
+    return True
