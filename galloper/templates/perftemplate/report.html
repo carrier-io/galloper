@@ -81,8 +81,8 @@ function lgFormatter(value, row, index){
     }
 }
 
- $("#results").on("check-some.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function(rows) {
-    if ($("#results").bootstrapTable('getSelections') == 0) {
+ $("#results").on("check-some.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {
+    if ($("#results").bootstrapTable('getSelections').length == 0) {
         $("#RT").prop("disabled", true);
         $("#RT").prop("disabled", true);
     } else {
