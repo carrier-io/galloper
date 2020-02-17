@@ -42,7 +42,11 @@ def get_schedule():
     return result
 
 
-app.conf.update(beat_schedule=get_schedule(), timezone='UTC', result_expires=1800)
+app.conf.update(
+    beat_schedule=get_schedule(),
+    timezone='UTC',
+    result_expires=1800,
+    broker_transport_options={'visibility_timeout': 57600})
 
 
 def run_lambda(task, event):
