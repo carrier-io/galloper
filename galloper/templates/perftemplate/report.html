@@ -14,16 +14,15 @@
                   <div class="col">
                       <ul id="chart-control" class="nav nav-pills justify-content-end">
                           <li class="nav-item mr-2 mr-md-0">
-                          <a id="DR" onclick="deleteReports()" class="nav-link py-2 px-3 active" data-toggle="tab">
+                          <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
                             <span class="d-none d-md-block">Delete</span>
-                            <span class="d-md-none">D</span>
-                          </a>
+                          </button>
                         </li>
                         <li class="nav-item mr-2 mr-md-0">
-                          <a id="RT" onclick="runComparison()" class="nav-link py-2 px-3 active" data-toggle="tab">
+                          <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
                             <span class="d-none d-md-block">Compare</span>
                             <span class="d-md-none">C</span>
-                          </a>
+                          </button>
                         </li>
                       </ul>
                   </div>
@@ -81,6 +80,16 @@ function lgFormatter(value, row, index){
         return value
     }
 }
+
+ $("#results").on("check-some.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function(rows) {
+    if ($("#results").bootstrapTable('getSelections') == 0) {
+        $("#RT").prop("disabled", true);
+        $("#RT").prop("disabled", true);
+    } else {
+        $("#DR").removeAttr("disabled");
+        $("#RT").removeAttr("disabled");
+    }
+ })
 
 function runComparison() {
     var reports = "/report/compare?"
