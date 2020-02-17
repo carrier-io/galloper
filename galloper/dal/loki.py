@@ -19,11 +19,12 @@ def get_results(test, int_start_time, int_end_time):
             _issue = {"count": 1}
             _issue_key = ''
             for _ in _values:
-                key, value = _[:_.index(':')], _[_.index(':')+1:].strip()
-                if key == 'Error key' and value in issues:
-                    issues[value]["count"] += 1
-                    continue
-                _issue[key] = value
+                if ":" in _:
+                    key, value = _[:_.index(':')], _[_.index(':')+1:].strip()
+                    if key == 'Error key' and value in issues:
+                        issues[value]["count"] += 1
+                        continue
+                    _issue[key] = value
             if 'Error key' in _issue and _issue['Error key'] not in issues.keys():
                 issues[_issue['Error key']] = _issue
     return issues
