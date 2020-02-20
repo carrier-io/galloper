@@ -18538,6 +18538,15 @@ textarea[resize='horizontal']
     border-radius: .375rem;
 }
 
+.form-red {
+    border-color: #EC745A;
+}
+
+.form-yellow {
+    border-color: #F0D04C;
+}
+
+
 .list-group-img
 {
     width: 3rem;
@@ -22177,4 +22186,8 @@ input#menu[type="checkbox"] {
     -webkit-transform-origin:0 0;
     -ms-transform-origin:0 0;
     transform-origin:0 0;
+}
+
+.modal {
+    font-size: 0.8rem;
 }
