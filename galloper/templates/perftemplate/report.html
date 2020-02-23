@@ -32,7 +32,7 @@
               <table
                   id="results"
                   data-toggle="table"
-                  data-url="/report/all"
+                  data-url="/api/report"
                   data-page-size=10
                   data-page-list=[10,20,50,100]
                   data-side-pagination="server"
@@ -80,9 +80,10 @@ function lgFormatter(value, row, index){
     }
 }
 
- $("#results").on("check-some.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {
+ $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {
+    console.log("here");
     if ($("#results").bootstrapTable('getSelections').length == 0) {
-        $("#RT").prop("disabled", true);
+        $("#DR").prop("disabled", true);
         $("#RT").prop("disabled", true);
     } else {
         $("#DR").removeAttr("disabled");
@@ -99,7 +100,7 @@ function runComparison() {
 }
 
 function deleteReports() {
-    var reports = "/report/delete?"
+    var reports = "/api/report?"
     $("#results").bootstrapTable('getSelections').forEach(item => {
         reports+= "id[]="+item["id"]+"&"
     });

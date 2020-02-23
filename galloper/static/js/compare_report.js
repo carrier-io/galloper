@@ -32,12 +32,11 @@ function setParams(){
 
 function getPerTestData() {
     $.get(
-  '/report/compare/tests',
+  '/api/compare/tests',
     {
     id: build_ids,
     },
       function( data ) {
-        data = $.parseJSON(data);
         responseData = data['response'];
         errorsData = data['errors'];
         rpsData = data['rps'];
@@ -51,7 +50,7 @@ function getPerTestData() {
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
-  '/report/compare/data',
+  '/api/compare/data',
   {
     scope: request_name,
     metric: metric,
@@ -60,7 +59,6 @@ $.get(
     high_value: $("#input-slider-range-value-high").html()
   },
   function( data ) {
-    data = $.parseJSON(data);
     if (analyticsLine.data.labels.length == 0 || analyticsLine.data.labels.length != data.labels.length)
     {
         analyticsData = data;
@@ -309,14 +307,13 @@ function switchSampler() {
 
 function loadBenchmarkData(aggregator, request, calculation) {
     $.get(
-      "/report/benchmark/data",
+      "/api/compare/benchmark",
       {
         id: page_params.getAll("id[]"),
         aggregator: aggregator,
         request: request,
         calculation: calculation
       }, function( data ) {
-      data = $.parseJSON(data);
         benchmarkData = data["data"]
         if(benchmarkLine!=null){
             benchmarkLine.destroy();
