@@ -35,7 +35,7 @@ setup(
         'console_scripts': [
             'celery_app=galloper.celeryapp:main',
             'app=galloper.app:main',
-            'superconf=galloper.data_utils.config_supervisor:main'
+            'superconf=galloper.utils.config_supervisor:main'
         ]
     },
 )
