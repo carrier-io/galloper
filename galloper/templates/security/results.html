@@ -1,0 +1,144 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+
+<div class="row header-body">
+     <div class="col-xl-12 col-lg-12">
+         <div class="card card-stats mb-4 mb-xl-0">
+             <div class="card-header bg-transparent">
+                  <div class="row align-items-center">
+                      <div class="col">
+                          <h2 class="text-gray mb-0">Security Report for {{test_data['app_name']}}</h2>
+                      </div>
+                  </div>
+              </div>
+             <div class="card-body">
+                 <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Duration</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['scan_duration'] }} s</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Scan Date</h5>
+                        <span id="scan_time" class="h4 font-weight-bold mb-0">{{ test_data['scan_time'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Project</h5>
+                        <span id="project_name" class="h4 font-weight-bold mb-0">{{ test_data['project_name'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Environment</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['environment'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Scan Type</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['scan_type'] }}</span>
+                    </div>
+                 </div>
+                 <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Endpoint</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['endpoint'] }} s</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Findings</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['findings'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">False Positives</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['false_positives'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Excluded</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['excluded'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Info</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['info_findings'] }}</span>
+                    </div>
+                 </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+</div>
+<div class="row">
+<div class="col-xl-12 mb-6 mb-xl-0">
+  <div class="card bg-gradient-white shadow">
+      <div class="card bg-gradient-white shadow">
+          <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                  <div class="col">
+                      <h2 class="text-gray mb-0">Findings</h2>
+                  </div>
+                  <div class="col-xl-8">
+                    <ul id="chart-control" class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="all" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
+                            <span class="d-none d-md-block">All</span>
+                            <span class="d-md-none">A</span>
+                          </a>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="findings" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
+                            <span class="d-none d-md-block">Findings</span>
+                            <span class="d-md-none">A</span>
+                          </a>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="fp" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
+                            <span class="d-none d-md-block">False-Positives</span>
+                            <span class="d-md-none">FP</span>
+                          </a>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="info" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
+                            <span class="d-none d-md-block">Information</span>
+                            <span class="d-md-none">I</span>
+                          </a>
+                        </li>
+                    </ul>
+                  </div>
+              </div>
+          </div>
+          <div class="card-body" id="preset">
+                <table
+                  id="errors"
+                  data-toggle="table"
+                  data-url=""
+                  data-pagination="true"
+                  data-detail-view="true"
+                  data-detail-view-icon="false"
+                  data-detail-view-by-click="true"
+                  data-detail-formatter="detailFormatter">
+                  <thead>
+                    <tr>
+                      <th data-sortable="true" data-field="Request name">Request name</th>
+                      <th data-sortable="true" data-field="URL">URL</th>
+                      <th data-sortable="true" data-field="Response code">Response Code</th>
+                      <th data-sortable="true" data-field="Error message">Error Message</th>
+                      <th data-sortable="true" data-field="count">Count</th>
+                    </tr>
+                  </thead>
+                </table>
+          </div>
+      </div>
+  </div>
+</div>
+</div>
+{% include 'common/foot.html' %}
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script>
+<script>
+    function detailFormatter(index, row) {
+        var html = []
+        html.push('<p><b>Method:</b> ' + row['Method'] + '</p>')
+        html.push('<p><b>Request Params:</b> ' + row['Request params'] + '</p>')
+        html.push('<p><b>Headers:</b> ' + row['Headers'] + '</p>')
+        html.push('<p><b>Response body:</b></p>')
+        html.push('<textarea disabled style="width: 100%">'+row['Response body']+'</textarea>')
+        return html.join('')
+  }
+</script>
+</body>
+</html>

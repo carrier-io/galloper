@@ -16,6 +16,8 @@ from sqlalchemy import or_
 from flask import Blueprint, request, render_template
 from flask_restful import Api, Resource, reqparse
 from galloper.models.api_reports import APIReport
+from galloper.models.security_results import SecurityResults
+from galloper.models.security_reports import SecurityReport
 from galloper.data_utils.report_utils import render_analytics_control
 from galloper.data_utils.charts_utils import (requests_summary, requests_hits, avg_responses, summary_table,
                                               get_issues, get_data_from_influx, prepare_comparison_responses,
@@ -30,6 +32,11 @@ api = Api(bp)
 @bp.route("/report", methods=["GET"])
 def report():
     return render_template('perftemplate/report.html')
+
+
+@bp.route("/security", methods=["GET"])
+def security():
+    return render_template('security/report.html')
 
 
 @bp.route('/report/backend', methods=["GET", "POST"])
@@ -57,6 +64,17 @@ def compare_reports():
     return render_template('perftemplate/comparison_report.html', samplers=samplers, requests=requests_data)
 
 
+get_report_parser = reqparse.RequestParser()
+get_report_parser.add_argument('offset', type=int, default=0, location="args")
+get_report_parser.add_argument('limit', type=int, default=0, location="args")
+get_report_parser.add_argument('search', type=str, default='', location="args")
+get_report_parser.add_argument('sort', type=str, default='', location="args")
+get_report_parser.add_argument('order', type=str, default='', location="args")
+
+delete_report_parser = reqparse.RequestParser()
+delete_report_parser.add_argument('id[]', type=list, action='append', location="args")
+
+
 class ReportApi(Resource):
     _parser = reqparse.RequestParser()
     _parser.add_argument("build_id", type=str, location="json")
@@ -74,19 +92,10 @@ class ReportApi(Resource):
     put_parser.add_argument("environment", type=str, location="json")
     put_parser.add_argument("type", type=str, location="json")
 
-    get_parser = reqparse.RequestParser()
-    get_parser.add_argument('offset', type=int, default=0, location="args")
-    get_parser.add_argument('limit', type=int, default=0, location="args")
-    get_parser.add_argument('search', type=str, default='', location="args")
-    get_parser.add_argument('sort', type=str, default='', location="args")
-    get_parser.add_argument('order', type=str, default='', location="args")
-
-    delete_parser = reqparse.RequestParser()
-    delete_parser.add_argument('id[]', type=list, action='append', location="args")
 
     def get(self):
         reports = []
-        args = self.get_parser.parse_args(strict=False)
+        args = get_report_parser.parse_args(strict=False)
         if args.get('sort'):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["sort_order"])()
         else:
@@ -141,7 +150,7 @@ class ReportApi(Resource):
         return {"message": "updated"}
 
     def delete(self):
-        args = self.delete_parser.parse_args(strict=False)
+        args = delete_report_parser.parse_args(strict=False)
         for each in APIReport.query.filter(APIReport.id.in_(args["id[]"])).order_by(APIReport.id.asc()).all():
             delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
@@ -201,10 +210,49 @@ class ReportsCompareApi(Resource):
         return self.mapping[target](args)
 
 
+class SecurityReportApi(Resource):
+    def get(self):
+        reports = []
+        args = get_report_parser.parse_args(strict=False)
+        if args.get('sort'):
+            sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["sort_order"])()
+        else:
+            sort_rule = SecurityResults.id.asc()
+        if not args.get('search') and not args.get('sort'):
+            total = SecurityResults.query.order_by(sort_rule).count()
+            res = SecurityResults.query.order_by(sort_rule).limit(args.get('limit')).offset(args.get('offset')).all()
+        else:
+            filter_ = or_(SecurityResults.project_name.like(f'%{args["search"]}%'),
+                          SecurityResults.app_name.like(f'%{args["search"]}%'),
+                          SecurityResults.scan_type.like(f'%{args["search"]}%'),
+                          SecurityResults.environment.like(f'%{args["search"]}%'),
+                          SecurityResults.endpoint.like(f'%{args["search"]}%'))
+            res = SecurityResults.query.filter(filter_).order_by(sort_rule). \
+                limit(args.get('limit')).offset(args.get('offset')).all()
+            total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
+        for each in res:
+            each_json = each.to_json()
+            each_json['scan_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
+            each_json['duration'] = int(each_json['duration'])
+            reports.append(each_json)
+        return {"total": total, "rows": reports}
+
+    def delete(self):
+        args = delete_report_parser.parse_args(strict=False)
+        for each in SecurityReport.query.filter(SecurityReport.report_id.in_(args["id[]"])
+                                                 ).order_by(SecurityReport.id.asc()).all():
+            each.delete()
+        for each in SecurityResults.query.filter(SecurityResults.id.in_(args["id[]"])
+                                                 ).order_by(SecurityResults.id.asc()).all():
+            delete_test_data(each.build_id, each.name, each.lg_type)
+            each.delete()
+        return {"message": "deleted"}
+
+
 api.add_resource(ReportApi, "/api/report")
 api.add_resource(ReportChartsApi, "/api/chart/<source>/<target>")
 api.add_resource(ReportsCompareApi, "/api/compare/<target>")
-
+api.add_resource(SecurityReportApi, "/api/security")
 
 
 

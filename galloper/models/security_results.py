@@ -15,10 +15,21 @@
 from galloper.models import db, BaseModel
 
 
-class Results(BaseModel, db.Model):
+class SecurityResults(BaseModel, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.String(80), unique=False, nullable=False)
-    ts = db.Column(db.Integer, unique=False, nullable=False)
-    results = db.Column(db.String(80), unique=False, nullable=False)
-    log = db.Column(db.String(256), unique=False, nullable=False)
+    scan_time = db.Column(db.String(80), unique=False)
+    scan_duration = db.Column(db.String(80), unique=False)
+    project_name = db.Column(db.String(80), unique=False)
+    app_name = db.Column(db.String(80), unique=False)
+    endpoint = db.Column(db.String(80), unique=False)
+    scan_type = db.Column(db.String(4), unique=False)
+    findings = db.Column(db.Integer, unique=False)
+    false_positives = db.Column(db.Integer, unique=False)
+    excluded = db.Column(db.Integer, unique=False)
+    info_findings = db.Column(db.Integer, unique=False)
+    environment = db.Column(db.String(20), unique=False, nullable=False)
+
+
+
+
 

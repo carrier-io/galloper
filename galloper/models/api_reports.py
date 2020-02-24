@@ -1,8 +1,7 @@
-from json import dumps
-from galloper.models import db
+from galloper.models import db, BaseModel
 
 
-class APIReport(db.Model):
+class APIReport(BaseModel, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=False)
     environment = db.Column(db.String(80), unique=False)
@@ -24,9 +23,6 @@ class APIReport(db.Model):
     fourxx = db.Column(db.Integer, unique=False)
     fivexx = db.Column(db.Integer, unique=False)
     requests = db.Column(db.Text, unique=False)
-
-    def __repr__(self):
-        return dumps(self.to_json(), indent=2)
 
     def to_json(self):
         return {
@@ -52,15 +48,3 @@ class APIReport(db.Model):
             "5xx": self.fivexx,
             "requests": self.requests.split(";")
         }
-
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    @staticmethod
-    def commit():
-        db.session.commit()
