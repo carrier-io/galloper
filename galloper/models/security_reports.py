@@ -10,6 +10,14 @@ class SecurityReport(BaseModel, db.Model):
     severity = db.Column(db.String(10), unique=False)
     details = db.Column(db.Integer, unique=False)
     endpoints = db.Column(db.Text, unique=False)
-    references = db.Column(db.Text, unique=False)
     false_positive = db.Column(db.Integer, unique=False)
     info_finding = db.Column(db.Integer, unique=False)
+    excluded_finding = db.Column(db.Integer, unique=False)
+
+    def to_json(self):
+        return dict(id=self.id, report_id=self.report_id,
+                    issue_hash=self.issue_hash, tool_name=self.tool_name,
+                    description=self.description, severity=self.severity,
+                    details=self.details, endpoints=self.endpoints,
+                    false_positive=self.false_positive, info_finding=self.info_finding,
+                    excluded_finding=self.excluded_finding)

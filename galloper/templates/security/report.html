@@ -58,7 +58,7 @@
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
 function createLinkToReport(value, row, index){
-    return '<a href="/security?report_id='+row['id']+'">'+value+'</a>'
+    return '<a href="/security/finding?id='+row['id']+'">'+value+'</a>'
 }
 
  $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {

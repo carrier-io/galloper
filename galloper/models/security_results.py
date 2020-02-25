@@ -21,7 +21,8 @@ class SecurityResults(BaseModel, db.Model):
     scan_duration = db.Column(db.String(80), unique=False)
     project_name = db.Column(db.String(80), unique=False)
     app_name = db.Column(db.String(80), unique=False)
-    endpoint = db.Column(db.String(80), unique=False)
+    dast_target = db.Column(db.String(80), unique=False)
+    sast_code = db.Column(db.String(80), unique=False)
     scan_type = db.Column(db.String(4), unique=False)
     findings = db.Column(db.Integer, unique=False)
     false_positives = db.Column(db.Integer, unique=False)
@@ -29,7 +30,10 @@ class SecurityResults(BaseModel, db.Model):
     info_findings = db.Column(db.Integer, unique=False)
     environment = db.Column(db.String(20), unique=False, nullable=False)
 
-
-
-
-
+    def to_json(self):
+        return dict(id=self.id, scan_time=self.scan_time, scan_duration=self.scan_duration,
+                    project_name=self.project_name, app_name=self.app_name,
+                    dast_target=self.dast_target, sast_code=self.sast_code,
+                    scan_type=self.scan_type, findings=self.findings,
+                    false_positives=self.false_positives, excluded=self.excluded,
+                    info_findings=self.info_findings, environment=self.environment)

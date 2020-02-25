@@ -22,3 +22,5 @@ class Results(BaseModel, db.Model):
     results = db.Column(db.String(80), unique=False, nullable=False)
     log = db.Column(db.String(256), unique=False, nullable=False)
 
+    def to_json(self):
+        return dict(id=self.id, task_id=self.task_id, ts=self.ts, results=self.results, log=self.log)

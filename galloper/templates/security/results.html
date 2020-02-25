@@ -38,7 +38,13 @@
                  <div class="row">
                     <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Endpoint</h5>
-                        <span class="h4 font-weight-bold mb-0">{{ test_data['endpoint'] }} s</span>
+                        <span class="h4 font-weight-bold mb-0">
+                            {% if test_data['dast_target'] %}
+                                {{ test_data['dast_target'] }}
+                            {% else %}
+                                {{ test_data['sast_code'] }}
+                            {%endif%}
+                        </span>
                     </div>
                      <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Findings</h5>
@@ -57,86 +63,143 @@
                         <span class="h4 font-weight-bold mb-0">{{ test_data['info_findings'] }}</span>
                     </div>
                  </div>
-                 </div>
              </div>
          </div>
      </div>
 </div>
-<div class="row">
-<div class="col-xl-12 mb-6 mb-xl-0">
-  <div class="card bg-gradient-white shadow">
+<div class="row header-body">
+    <div class="col-xl-12 mb-6 mb-xl-0">
       <div class="card bg-gradient-white shadow">
-          <div class="card-header bg-transparent">
-              <div class="row align-items-center">
-                  <div class="col">
-                      <h2 class="text-gray mb-0">Findings</h2>
-                  </div>
-                  <div class="col-xl-8">
-                    <ul id="chart-control" class="nav nav-pills justify-content-end">
-                        <li class="nav-item mr-2 mr-md-0">
-                          <a id="all" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
-                            <span class="d-none d-md-block">All</span>
-                            <span class="d-md-none">A</span>
-                          </a>
-                        </li>
-                        <li class="nav-item mr-2 mr-md-0">
-                          <a id="findings" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
-                            <span class="d-none d-md-block">Findings</span>
-                            <span class="d-md-none">A</span>
-                          </a>
-                        </li>
-                        <li class="nav-item mr-2 mr-md-0">
-                          <a id="fp" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
-                            <span class="d-none d-md-block">False-Positives</span>
-                            <span class="d-md-none">FP</span>
-                          </a>
-                        </li>
-                        <li class="nav-item mr-2 mr-md-0">
-                          <a id="info" onclick="" class="nav-link py-2 px-3" data-toggle="tab">
-                            <span class="d-none d-md-block">Information</span>
-                            <span class="d-md-none">I</span>
-                          </a>
-                        </li>
-                    </ul>
+          <div class="card bg-gradient-white shadow">
+              <div class="card-header bg-transparent">
+                  <div class="row align-items-center">
+                      <div class="col">
+                          <h2 class="text-gray mb-0">Findings</h2>
+                      </div>
+                      <div class="col-xl-8">
+                        <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item mr-2 mr-md-0">
+                              <a id="all" onclick="renderTable('all')" class="nav-link py-2 px-3" data-toggle="tab">
+                                <span class="d-none d-md-block">All</span>
+                                <span class="d-md-none">A</span>
+                              </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                              <a id="findings" onclick="renderTable('findings')" class="nav-link py-2 px-3" data-toggle="tab">
+                                <span class="d-none d-md-block">Findings</span>
+                                <span class="d-md-none">F</span>
+                              </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                              <a id="fp" onclick="renderTable('false_positives')" class="nav-link py-2 px-3" data-toggle="tab">
+                                <span class="d-none d-md-block">False-Positives</span>
+                                <span class="d-md-none">FP</span>
+                              </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                              <a id="excluded" onclick="renderTable('excluded_finding')" class="nav-link py-2 px-3" data-toggle="tab">
+                                <span class="d-none d-md-block">Excluded</span>
+                                <span class="d-md-none">E</span>
+                              </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                              <a id="info" onclick="renderTable('info_findings')" class="nav-link py-2 px-3" data-toggle="tab">
+                                <span class="d-none d-md-block">Information</span>
+                                <span class="d-md-none">I</span>
+                              </a>
+                            </li>
+                        </ul>
+                      </div>
                   </div>
               </div>
-          </div>
-          <div class="card-body" id="preset">
-                <table
-                  id="errors"
-                  data-toggle="table"
-                  data-url=""
-                  data-pagination="true"
-                  data-detail-view="true"
-                  data-detail-view-icon="false"
-                  data-detail-view-by-click="true"
-                  data-detail-formatter="detailFormatter">
-                  <thead>
-                    <tr>
-                      <th data-sortable="true" data-field="Request name">Request name</th>
-                      <th data-sortable="true" data-field="URL">URL</th>
-                      <th data-sortable="true" data-field="Response code">Response Code</th>
-                      <th data-sortable="true" data-field="Error message">Error Message</th>
-                      <th data-sortable="true" data-field="count">Count</th>
-                    </tr>
-                  </thead>
-                </table>
+              <div class="card-body" id="preset">
+                    <table
+                      id="errors"
+                      data-toggle="table"
+                      data-url=""
+                      data-pagination="true"
+                      data-detail-view="true"
+                      data-detail-view-icon="true"
+                      data-detail-formatter="detailFormatter">
+                      <thead>
+                        <tr>
+                          <th data-sortable="true" data-field="tool_name">Tool</th>
+                          <th data-sortable="true" data-field="description">Description</th>
+                          <th data-sortable="true" data-field="severity">Severity</th>
+                          <th data-sortable="true" data-formatter=statusFormatter>Status</th>
+                          <th data-formatter=actionsFormatter>Actions</th>
+                        </tr>
+                      </thead>
+                    </table>
+              </div>
           </div>
       </div>
-  </div>
-</div>
+    </div>
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
-<script>
+    var page_params = new URLSearchParams(window.location.search);
+    $(document).ready(function() {
+        $('#all').trigger( "click" )
+    })
+
+    function renderTable(scope) {
+        var report_id = page_params.get("id");
+        $("#errors").bootstrapTable('refreshOptions', {url: `/api/security/finding?id=${report_id}&type=${scope}`})
+    }
+
+    function statusFormatter(value, row, index) {
+        if (row['false_positive'] == 1) {
+            return '<button type="button" class="btn btn-ok btn-sm" disabled>false positive</button>'
+        } else if (row['info_finding'] == 1) {
+            return '<button type="button" class="btn btn-secondary btn-sm" disabled>info</button>'
+        }  else if (row['excluded_finding'] == 1) {
+            return '<button type="button" class="btn btn-default btn-sm" disabled>Excluded</button>'
+        } else {
+            return '<button type="button" class="btn btn-warning btn-sm" disabled>valid</button>'
+        }
+    }
+
+    function actionsFormatter(value, row, index) {
+        var report_id = page_params.get("id");
+        return  `<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                    <button type="button" class="btn btn-ok" onclick="falsePositive(${report_id}, ${row['id']})">False Positive</button>
+                    <button type="button" class="btn btn-default" onclick="ignoreIssue(${report_id}, ${row['id']})">Ignore finding</button>
+                 </div>`
+
+    }
+
+    function modify_issue(report_id, issue_id, action) {
+        var url = "/api/security/finding"
+        data = {
+            id: report_id,
+            action: action,
+            issue_id: issue_id
+        }
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(result) {
+                $("#errors").bootstrapTable('refresh');
+            }
+        });
+    }
+
+    function falsePositive(report_id, issue_id) {
+        modify_issue(report_id, issue_id, "false_positive")
+    }
+
+    function ignoreIssue(report_id, issue_id) {
+        modify_issue(report_id, issue_id, "excluded_finding")
+    }
+
     function detailFormatter(index, row) {
         var html = []
-        html.push('<p><b>Method:</b> ' + row['Method'] + '</p>')
-        html.push('<p><b>Request Params:</b> ' + row['Request params'] + '</p>')
-        html.push('<p><b>Headers:</b> ' + row['Headers'] + '</p>')
-        html.push('<p><b>Response body:</b></p>')
-        html.push('<textarea disabled style="width: 100%">'+row['Response body']+'</textarea>')
+        html.push('<p><b>Issue Details:</b></p> ' + row['details'] + '<br />')
+        html.push('<p><b>Endpoints:</b></p> ' + row['endpoints'] + '<br />')
         return html.join('')
   }
 </script>

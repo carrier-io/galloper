@@ -12,12 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from sqlalchemy import or_
+import hashlib
+from datetime import datetime
+from sqlalchemy import or_, and_
 from flask import Blueprint, request, render_template
 from flask_restful import Api, Resource, reqparse
 from galloper.models.api_reports import APIReport
 from galloper.models.security_results import SecurityResults
 from galloper.models.security_reports import SecurityReport
+from galloper.models.security_details import SecurityDetails
 from galloper.data_utils.report_utils import render_analytics_control
 from galloper.data_utils.charts_utils import (requests_summary, requests_hits, avg_responses, summary_table,
                                               get_issues, get_data_from_influx, prepare_comparison_responses,
@@ -37,6 +40,13 @@ def report():
 @bp.route("/security", methods=["GET"])
 def security():
     return render_template('security/report.html')
+
+
+@bp.route("/security/finding", methods=["GET"])
+def findings():
+    report_id = request.args.get("id", None)
+    test_data = SecurityResults.query.filter_by(id=report_id).first()
+    return render_template('security/results.html', test_data=test_data)
 
 
 @bp.route('/report/backend', methods=["GET", "POST"])
@@ -211,13 +221,26 @@ class ReportsCompareApi(Resource):
 
 
 class SecurityReportApi(Resource):
+    port_parser = reqparse.RequestParser()
+    port_parser.add_argument('project_name', type=str, location="json")
+    port_parser.add_argument('app_name', type=str, location="json")
+    port_parser.add_argument('scan_time', type=float, location="json")
+    port_parser.add_argument('dast_target', type=str, location="json")
+    port_parser.add_argument('sast_code', type=str, location="json")
+    port_parser.add_argument('scan_type', type=str, location="json")
+    port_parser.add_argument('findings', type=int, location="json")
+    port_parser.add_argument('false_positives', type=int, location="json")
+    port_parser.add_argument('excluded', type=int, location="json")
+    port_parser.add_argument('info_findings', type=int, location="json")
+    port_parser.add_argument('environment', type=str, location="json")
+
     def get(self):
         reports = []
         args = get_report_parser.parse_args(strict=False)
         if args.get('sort'):
             sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["sort_order"])()
         else:
-            sort_rule = SecurityResults.id.asc()
+            sort_rule = SecurityResults.id.desc()
         if not args.get('search') and not args.get('sort'):
             total = SecurityResults.query.order_by(sort_rule).count()
             res = SecurityResults.query.order_by(sort_rule).limit(args.get('limit')).offset(args.get('offset')).all()
@@ -232,8 +255,8 @@ class SecurityReportApi(Resource):
             total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
         for each in res:
             each_json = each.to_json()
-            each_json['scan_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
-            each_json['duration'] = int(each_json['duration'])
+            each_json['scan_time'] = each_json['scan_time'].replace("T", " ").split(".")[0]
+            each_json['scan_duration'] = float(each_json['scan_duration'])
             reports.append(each_json)
         return {"total": total, "rows": reports}
 
@@ -248,11 +271,104 @@ class SecurityReportApi(Resource):
             each.delete()
         return {"message": "deleted"}
 
+    def post(self):
+        args = self.port_parser.parse_args(strict=False)
+        report = SecurityResults(scan_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                                 scan_duration=args['scan_time'], project_name=args['project_name'],
+                                 app_name=args['app_name'], dast_target=args['dast_target'],
+                                 sast_code=args['sast_code'], scan_type=args["scan_type"],
+                                 findings=args["findings"], false_positives=args['false_positives'],
+                                 excluded=args['excluded'], info_findings=args['info_findings'],
+                                 environment=args['environment'])
+        report.insert()
+        return {"id": report.id}
+
+
+class FindingsApi(Resource):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument("id", type=int, location="args")
+    get_parser.add_argument("type", type=str, location="args")
+
+    put_parser = reqparse.RequestParser()
+    put_parser.add_argument("id", type=int, location="json")
+    put_parser.add_argument("action", type=str, location="json")
+    put_parser.add_argument("issue_id", type=int, location="json")
+
+    def get(self):
+        args = self.get_parser.parse_args(strict=False)
+        if args["type"] == 'false_positives':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.false_positive == 1)
+        elif args["type"] == 'findings':
+            filt = and_(SecurityReport.report_id == args["id"],
+                        SecurityReport.info_finding == 0,
+                        SecurityReport.false_positive == 0,
+                        SecurityReport.excluded_finding == 0)
+        elif args["type"] == 'info_findings':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.info_finding == 1)
+        elif args["type"] == 'excluded_finding':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.excluded_finding == 1)
+        else:
+            filt = and_(SecurityReport.report_id == args["id"])
+        issues = SecurityReport.query.filter(filt).all()
+        results = []
+        for issue in issues:
+            _res = issue.to_json()
+            _res['details'] = SecurityDetails.query.filter_by(id=_res['details']).first().details
+            results.append(_res)
+        return results
+
+    def post(self):
+        finding_db = None
+        for finding in request.json:
+            md5 = hashlib.md5(finding['details'].encode('utf-8')).hexdigest()
+            hash_id = SecurityDetails.query.filter(SecurityDetails.detail_hash == md5).first()
+            if not hash_id:
+                hash_id = SecurityDetails(detail_hash=md5, details=finding['details'])
+                hash_id.insert()
+            # Verify issue is false_positive or ignored
+            finding['details'] = hash_id.id
+            entrypoints = ''
+            for each in finding.get("endpoints"):
+                if isinstance(each, list):
+                    entrypoints += "<br />".join(each)
+                else:
+                    entrypoints += f"<br />{each}"
+            finding["endpoints"] = entrypoints
+            if not (finding['false_positive'] == 1 or finding['excluded_finding'] == 1):
+                # TODO: add validation that finding is a part of project, applicaiton. etc.
+                issues = SecurityReport.query.filter(
+                    and_(SecurityReport.issue_hash == finding['issue_hash'],
+                         or_(SecurityReport.false_positive == 1,
+                             SecurityReport.excluded_finding == 1)
+                         )).all()
+                false_positive = sum(issue.false_positive for issue in issues)
+                excluded_finding = sum(issue.excluded_finding for issue in issues)
+                finding['false_positive'] = 1 if false_positive > 0 else 0
+                finding['excluded_finding'] = 1 if excluded_finding > 0 else 0
+            finding_db = SecurityReport(**finding)
+            finding_db.add()
+        if finding_db:
+            finding_db.commit()
+
+    def put(self):
+        args = self.put_parser.parse_args(strict=False)
+        test_data = SecurityResults.query.filter_by(id=args['id']).first()
+        issue_hash = SecurityReport.query.filter_by(id=args['issue_id']).first().issue_hash
+        if args['action'] in ["false_positive", "excluded_finding"]:
+            upd = {args['action']: 1}
+        else:
+            upd = {'false_positive': 0, 'info_finding': 0}
+        #TODO: add validation that finding is a part of project, applicaiton. etc.
+        SecurityReport.query.filter(SecurityReport.issue_hash == issue_hash).update(upd)
+        SecurityReport.commit()
+        return {"message": "accepted"}
+
 
 api.add_resource(ReportApi, "/api/report")
 api.add_resource(ReportChartsApi, "/api/chart/<source>/<target>")
 api.add_resource(ReportsCompareApi, "/api/compare/<target>")
 api.add_resource(SecurityReportApi, "/api/security")
+api.add_resource(FindingsApi, "/api/security/finding")
 
 
 

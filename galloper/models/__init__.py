@@ -11,6 +11,9 @@ class BaseModel(object):
     def to_json(self):
         raise NotImplemented()
 
+    def add(self):
+        db.session.add(self)
+
     def insert(self):
         db.session.add(self)
         db.session.commit()
