@@ -94,13 +94,13 @@ class ReportApi(Resource):
     put_parser = _parser.copy()
     put_parser.add_argument("missed", type=int, location="json")
 
-    port_parser = put_parser.copy()
-    port_parser.add_argument("start_time", type=str, location="json")
-    port_parser.add_argument("duration", type=float, location="json")
-    port_parser.add_argument("vusers", type=int, location="json")
-    port_parser.add_argument("environment", type=str, location="json")
-    port_parser.add_argument("type", type=str, location="json")
-    port_parser.add_argument("release_id", type=int, location="json")
+    post_parser = put_parser.copy()
+    post_parser.add_argument("start_time", type=str, location="json")
+    post_parser.add_argument("duration", type=float, location="json")
+    post_parser.add_argument("vusers", type=int, location="json")
+    post_parser.add_argument("environment", type=str, location="json")
+    post_parser.add_argument("type", type=str, location="json")
+    post_parser.add_argument("release_id", type=int, location="json")
 
 
     def get(self):
@@ -362,7 +362,6 @@ class FindingsApi(Resource):
         SecurityReport.query.filter(SecurityReport.issue_hash == issue_hash).update(upd)
         SecurityReport.commit()
         return {"message": "accepted"}
-
 
 
 class FindingsAnalysisApi(Resource):
