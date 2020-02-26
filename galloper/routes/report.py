@@ -98,7 +98,6 @@ class ReportApi(Resource):
     port_parser.add_argument("start_time", type=str, location="json")
     port_parser.add_argument("duration", type=float, location="json")
     port_parser.add_argument("vusers", type=int, location="json")
-    port_parser.add_argument("name", type=str, location="json")
     port_parser.add_argument("environment", type=str, location="json")
     port_parser.add_argument("type", type=str, location="json")
     port_parser.add_argument("release_id", type=int, location="json")
@@ -131,7 +130,7 @@ class ReportApi(Resource):
 
     def post(self):
         args = self.post_parser.parse_args(strict=False)
-        report = APIReport(name=args['name'], environment=args["environment"], type=args["type"],
+        report = APIReport(name=args['test_name'], environment=args["environment"], type=args["type"],
                            end_time='', start_time=args["start_time"], failures=0,
                            total=0, thresholds_missed=0, throughput=0, vusers=args["vusers"],
                            pct95=0, duration=args["duration"], build_id=args['build_id'],
@@ -365,11 +364,32 @@ class FindingsApi(Resource):
         return {"message": "accepted"}
 
 
+
+class FindingsAnalysisApi(Resource):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('project_name', type=str, location="args")
+    get_parser.add_argument('app_name', type=str, location="args")
+    get_parser.add_argument('scan_type', type=str, location="args")
+    get_parser.add_argument("type", type=str, default="false-positive", location="args")
+
+    def get(self):
+        args = self.get_parser.parse_args(strict=False)
+        projects_filter = and_(SecurityResults.project_name == args["project_name"],
+                               SecurityResults.app_name == args["app_name"],
+                               SecurityResults.scan_type == args["scan_type"])
+        ids = SecurityResults.query.filter(projects_filter).all()
+        ids = [each.id for each in ids]
+        hashs = SecurityReport.query.filter(and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
+                                            ).with_entities(SecurityReport.issue_hash).distinct()
+        return [_.issue_hash for _ in hashs]
+
+
 api.add_resource(ReportApi, "/api/report")
 api.add_resource(ReportChartsApi, "/api/chart/<source>/<target>")
 api.add_resource(ReportsCompareApi, "/api/compare/<target>")
 api.add_resource(SecurityReportApi, "/api/security")
 api.add_resource(FindingsApi, "/api/security/finding")
+api.add_resource(FindingsAnalysisApi, "/api/security/fpa")
 
 
 
