@@ -13,11 +13,16 @@
                   </div>
                   <div class="col">
                       <ul id="chart-control" class="nav nav-pills justify-content-end">
+                          <li class="nav-item mr-2 mr-md-0">
+                          <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
+                            <span class="d-none d-md-block">Delete</span>
+                          </button>
+                        </li>
                         <li class="nav-item mr-2 mr-md-0">
-                          <a id="RT" onclick="runComparison()" class="nav-link py-2 px-3 active" data-toggle="tab">
+                          <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
                             <span class="d-none d-md-block">Compare</span>
                             <span class="d-md-none">C</span>
-                          </a>
+                          </button>
                         </li>
                       </ul>
                   </div>
@@ -28,6 +33,9 @@
                   id="results"
                   data-toggle="table"
                   data-url="/report/all"
+                  data-page-size=10
+                  data-page-list=[10,20,50,100]
+                  data-side-pagination="server"
                   data-pagination="true"
                   data-search="true">
                   <thead>
@@ -53,7 +61,6 @@
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
-</body>
 <script>
 function createLinkToReport(value, row, index){
     return '<a href="/report/backend?report_id='+row['id']+'">'+value+'</a>'
@@ -73,6 +80,16 @@ function lgFormatter(value, row, index){
     }
 }
 
+ $("#results").on("check-some.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {
+    if ($("#results").bootstrapTable('getSelections').length == 0) {
+        $("#RT").prop("disabled", true);
+        $("#RT").prop("disabled", true);
+    } else {
+        $("#DR").removeAttr("disabled");
+        $("#RT").removeAttr("disabled");
+    }
+ })
+
 function runComparison() {
     var reports = "/report/compare?"
     $("#results").bootstrapTable('getSelections').forEach(item => {
@@ -81,5 +98,20 @@ function runComparison() {
     window.location.href = reports.substring(0, reports.length - 1);
 }
 
+function deleteReports() {
+    var reports = "/report/delete?"
+    $("#results").bootstrapTable('getSelections').forEach(item => {
+        reports+= "id[]="+item["id"]+"&"
+    });
+    $.ajax({
+        url: reports.substring(0, reports.length - 1),
+        type: 'DELETE',
+        success: function(result) {
+            $("#results").bootstrapTable('refresh');
+        }
+    });
+}
+
 </script>
+</body>
 </html>

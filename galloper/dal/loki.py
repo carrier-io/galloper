@@ -1,3 +1,17 @@
+#   Copyright 2019 getcarrier.io
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 from requests import get
 from galloper.constants import LOKI_HOST
 
@@ -15,35 +29,16 @@ def get_results(test, int_start_time, int_end_time):
     issues = {}
     for result in results["data"]["result"]:
         for value in result['values']:
-            _values = value[1].split("\t")
+            _values = value[1].strip().split("\t")
             _issue = {"count": 1}
             _issue_key = ''
             for _ in _values:
-                if "Error key: " in _:
-                    _issue_key =  _.replace("Error key: ", "")
-                    if _issue_key in issues:
-                        issues[_issue_key]["count"] += 1
+                if ":" in _:
+                    key, value = _[:_.index(':')], _[_.index(':')+1:].strip()
+                    if key == 'Error key' and value in issues:
+                        issues[value]["count"] += 1
                         continue
-                    else:
-                        issues[_issue_key] = {}
-                elif "Request name: " in _:
-                    _issue['name'] = _.replace("Request name: ", "")
-                elif "Method: " in _:
-                    _issue['method'] = _.replace("Method: ", "")
-                elif "Response code: " in _:
-                    _issue['code'] = _.replace("Response code: ", "")
-                elif "URL: " in _:
-                    _issue['url'] = _.replace("URL: ", "")
-                elif "Error message: " in _:
-                    _issue['error'] = _.replace("Error message: ", "")
-                elif "Request params: " in _:
-                    _issue['params'] = _.replace("Request params: ", "")
-                elif "URL: " in _:
-                    _issue['url'] = _.replace("URL: ", "")
-                elif "Headers: " in _:
-                    _issue['headers'] = _.replace("Headers: ", "")
-                elif "Response body: " in _:
-                    _issue['response'] = _.replace("Response body: ", "")
-            if not issues[_issue_key]:
-                issues[_issue_key] = _issue
+                    _issue[key] = value
+            if 'Error key' in _issue and _issue['Error key'] not in issues.keys():
+                issues[_issue['Error key']] = _issue
     return issues

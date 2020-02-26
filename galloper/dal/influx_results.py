@@ -1,3 +1,17 @@
+#   Copyright 2019 getcarrier.io
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 from influxdb import InfluxDBClient
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp
@@ -5,7 +19,9 @@ from galloper.constants import str_to_timestamp
 influx_client = None
 
 
-def get_client():
+def get_client(db_name=None):
+    if db_name:
+        return InfluxDBClient("carrier-influx", 8086, '', '', db_name)
     global influx_client
     if not influx_client:
         influx_client = InfluxDBClient("carrier-influx", 8086, '', '')
@@ -329,3 +345,51 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler):
     return list(get_client().query(query)['api_comparison'])
 
 
+def delete_test_data(build_id, test_name, lg_type):
+    query_one = f"DELETE from {test_name} where build_id='{build_id}'"
+    query_two = f"DELETE from api_comparison where build_id='{build_id}'"
+    client = get_client(lg_type)
+    client.query(query_one)
+    client.close()
+    client = get_client('comparison')
+    client.query(query_two)
+    client.close()
+    return True
+
+
+def get_threholds(test_name):
+    query = f'select time, scope, target, aggregation, comparison, yellow, red from thresholds..thresholds ' \
+            f'where "simulation"=\'{test_name}\' order by time'
+    return list(get_client().query(query)['thresholds'])
+
+
+def create_thresholds(test, scope, target, aggregation, comparison, yellow, red):
+    json_body = [{
+        "measurement": "thresholds",
+        "tags": {
+            "simulation": test,
+            "scope": scope,
+            "target": target,
+            "aggregation": aggregation,
+            "comparison": comparison
+        },
+        "time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "fields": {
+            "yellow": yellow,
+            "red": red
+        }
+    }]
+    client = get_client('thresholds')
+    client.write_points(json_body)
+    client.close()
+    return True
+
+
+def delete_threshold(test, target, scope, aggregation, comparison):
+    query = f"DELETE from thresholds where simulation='{test}' " \
+            f"and target='{target}' and scope='{scope}' " \
+            f"and aggregation='{aggregation}' and comparison='{comparison}'"
+    client = get_client('thresholds')
+    client.query(query)
+    client.close()
+    return True

@@ -1,0 +1,250 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+<div class="col-xl-12 mb-6 mb-xl-0">
+  <div class="card bg-gradient-white shadow">
+      <div class="card bg-gradient-white shadow">
+          <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                  <div class="col">
+                      <h2 class="text-gray mb-0">Configure Thresholds</h2>
+                  </div>
+                  <div class="col">
+                      <ul id="chart-control" class="nav nav-pills justify-content-end">
+                          <li class="nav-item mr-2 mr-md-0 mt-2">
+                              <span>Test</span>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0">
+                              <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="switchTest()">
+                                  {% for test in tests %}
+                                    <option>{{ test }}</option>
+                                  {% endfor %}
+                              </select>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0 ">
+                              <button id="DR" data-target="#addThresholdsModal" data-toggle="modal" class="btn btn-primary btn-sm mt-1">
+                                  <span class="d-none d-md-block">Add Threshold</span>
+                              </button>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+          </div>
+          <div class="card-body" id="preset">
+              <table
+                  id="thresholds"
+                  data-toggle="table"
+                  data-url=""
+                  data-page-size=10
+                  data-page-list=[10,20,50,100]
+                  data-pagination="true"
+                  data-unique-id="time">
+                  <thead>
+                    <tr>
+                      <th data-checkbox="true"></th>
+                      <th data-visible="false" data-field="time">time</th>
+                      <th data-sortable="true" data-field="scope">Scope</th>
+                      <th data-sortable="true" data-field="target">Target</th>
+                      <th data-sortable="true" data-field="aggregation">Metric</th>
+                      <th data-sortable="true" data-field="comparison">Aggregation Rule</th>
+                      <th data-sortable="true" data-field="yellow">Yellow Threshold</th>
+                      <th data-sortable="true" data-field="red">Red Threshold</th>
+                      <th data-formatter="editAndDelete">Actions</th>
+                    </tr>
+                  </thead>
+                </table>
+          </div>
+      </div>
+  </div>
+</div>
+</div>
+{% include 'common/foot.html' %}
+<!-- Modal -->
+<div class="modal fade" id="addThresholdsModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal_title">Add Threshold</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table cellspacing="0" cellpadding="0" style="border: none; border-collapse:separate;  border-spacing: 0 1em;">
+          <tr>
+            <td>
+              <span> Scope: </span>
+            </td>
+            <td class="pl-3">
+              <select id="scope" class="selectpicker show-tick form-control form-control-sm">
+                  <option value="all">all</option>
+                  <option value="every">every</option>
+                  {% for request in requests %}
+                  <option value="{{request}}">{{request}}</option>
+                  {% endfor %}
+              </select>
+            </td>
+            <td class="pl-5">Request(s) you want thresholds to be applied to, where all is aggregated value for all requests and every is threshold applicable to every request</td>
+          </tr>
+          <tr>
+            <td>
+              <span>Target:</span>
+            </td>
+            <td class="pl-3">
+              <select id="target" class="selectpicker show-tick form-control form-control-sm">
+                <option value="throughput">throughput</option>
+                <option value="error_rate">error_rate</option>
+                <option value="response_time">response_time</option>
+              </select>
+            </td>
+            <td class="pl-5">Metric you want to be mesured against <br /><p style="font-size: 10px; margin-top: 5px; margin-bottom: 5px;">throughput in RPS</p><p style="font-size: 10px; margin-bottom: 5px;">error_rate in %</p><p style="font-size: 10px; margin-bottom: 0px;">response time in ms</p></td>
+          </tr>
+          <tr>
+            <td>
+              <span>Aggregation:</span>
+            </td>
+            <td class="pl-3">
+              <select id="aggregation" class="selectpicker show-tick form-control form-control-sm">
+                <option value="max">Maximum</option>
+                <option value="min">Minimum</option>
+                <option value="avg">Average</option>
+                <option value="pct95">Percentile 95</option>
+                <option value="pct50">Percentile 50</option>
+              </select>
+            </td>
+            <td class="pl-5">Math aggregarion of the metrics to be applied for thresholds calculation</td>
+          </tr>
+          <tr>
+            <td>
+              <span>Comparison:</span>
+            </td>
+            <td class="pl-3">
+              <select id="comparison" class="selectpicker show-tick form-control form-control-sm">
+                <option value="gte">Greater or Equal</option>
+                <option value="lte">Lower or Equal</option>
+                <option value="lt">Lower</option>
+                <option value="gt">Greater</option>
+                <option value="eq">Equal</option>
+              </select>
+            </td>
+            <td class="pl-5">Rule to be used for gating, e.g. if Greater is selected, whatever is GREATER then RED value would be marked as red threshold violation</td>
+          </tr>
+          <tr>
+            <td>
+              <span> Thresholds: </span>
+            </td>
+            <td class="pl-3">
+                <input id="yellow" placeholder="Yellow" class="form-control form-control-sm form-yellow ">
+            </td>
+            <td class="pl-5">
+                <input id="red" placeholder="Red" class="form-control form-control-sm  form-red ">
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="addThreshold('none')">Close</button>
+        <button type="button" class="btn btn-primary" id="submit" onclick="insertThreshold()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+</body>
+</html>
+
+<script>
+    function renderTable() {
+        $("#thresholds").attr("data-url", "/api/thresholds?name="+$("#testName").val())
+        $("#thresholds").bootstrapTable('refresh');
+    }
+    renderTable();
+
+    function editAndDelete(value, row, index) {
+        var id = row['time']
+        return `<a href="#" onclick="showEditThreshold('`+id+`')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
+    }
+
+    $("#addThresholdsModal").on("show.bs.modal", function() {
+        $.get("/api/requests",
+          { name: $("#testName").val() },
+          function(data) {
+            var scope = $("#scope").val()
+            var title = $("#modal_title").html()
+            $("#modal_title").html("Add Threshold");
+            $("#scope option").each(function() {$(this).remove();})
+            $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
+			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);})
+			if (title != "Add Threshold") {
+			    $("#scope").selectpicker('val', scope);
+			    $("#modal_title").html(title);
+			}
+			$("#scope").selectpicker('refresh')
+		  })
+    });
+
+    $("#addThresholdsModal").on("hide.bs.modal", function() {
+        $("#modal_title").html("Add Threshold");
+    });
+
+    function showEditThreshold(index){
+        var data = $("#thresholds").bootstrapTable('getRowByUniqueId', index);
+        console.log(data);
+        $("#addThresholdsModal").modal('toggle');
+        $("#modal_title").html("Edit Threshold");
+        $("#scope").selectpicker('val', data['scope']);
+        $("#target").selectpicker('val', data['target']);
+        $("#aggregation").selectpicker('val', data['aggregation']);
+        $("#comparison").selectpicker('val', data['comparison']);
+        $("#yellow").val(data['yellow']);
+        $("#red").val(data['red']);
+        $("#submit").attr('onclick', `editThreshold("${index}")`)
+    }
+
+    function insertThreshold(){
+        $.ajax({
+            url: "/api/thresholds",
+            type: "POST",
+            data: JSON.stringify({
+                test: $("#testName").val(),
+                scope: $("#scope").val(),
+                target: $("#target").val(),
+                aggregation: $("#aggregation").val(),
+                comparison: $("#comparison").val(),
+                yellow: parseInt($("#yellow").val()),
+                red: parseInt($("#red").val())
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(){
+                $("#thresholds").bootstrapTable('refresh');
+                $("#addThresholdsModal").modal('hide');
+            }
+        });
+    }
+
+    function deleteThreshold(id) {
+        var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
+        var request_params = $.param({
+            test: $("#testName").val(),
+            scope: data['scope'],
+            target: data['target'],
+            aggregation: data['aggregation'],
+            comparison: data['comparison']
+        })
+        $.ajax({
+            url: "/api/thresholds?"+request_params,
+            type: "DELETE",
+            success: function(){
+                $("#thresholds").bootstrapTable('refresh');
+            }
+        })
+    }
+
+    function editThreshold(id) {
+        deleteThreshold(id);
+        insertThreshold();
+    }
+
+</script>
