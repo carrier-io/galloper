@@ -23,6 +23,7 @@ class APIReport(BaseModel, db.Model):
     fourxx = db.Column(db.Integer, unique=False)
     fivexx = db.Column(db.Integer, unique=False)
     requests = db.Column(db.Text, unique=False)
+    release_id = db.Column(db.Integer, nullable=True)
 
     def to_json(self):
         return {
@@ -46,5 +47,6 @@ class APIReport(BaseModel, db.Model):
             "3xx": self.threexx,
             "4xx": self.fourxx,
             "5xx": self.fivexx,
-            "requests": self.requests.split(";")
+            "requests": self.requests.split(";"),
+            "release_id": self.release_id
         }

@@ -95,12 +95,13 @@ class ReportApi(Resource):
     put_parser.add_argument("missed", type=int, location="json")
 
     port_parser = put_parser.copy()
-    put_parser.add_argument("start_time", type=str, location="json")
-    put_parser.add_argument("duration", type=float, location="json")
-    put_parser.add_argument("vusers", type=int, location="json")
-    put_parser.add_argument("name", type=str, location="json")
-    put_parser.add_argument("environment", type=str, location="json")
-    put_parser.add_argument("type", type=str, location="json")
+    port_parser.add_argument("start_time", type=str, location="json")
+    port_parser.add_argument("duration", type=float, location="json")
+    port_parser.add_argument("vusers", type=int, location="json")
+    port_parser.add_argument("name", type=str, location="json")
+    port_parser.add_argument("environment", type=str, location="json")
+    port_parser.add_argument("type", type=str, location="json")
+    port_parser.add_argument("release_id", type=int, location="json")
 
 
     def get(self):
@@ -135,7 +136,7 @@ class ReportApi(Resource):
                            total=0, thresholds_missed=0, throughput=0, vusers=args["vusers"],
                            pct95=0, duration=args["duration"], build_id=args['build_id'],
                            lg_type=args['lg_type'], onexx=0, twoxx=0, threexx=0,
-                           fourxx=0, fivexx=0, requests="")
+                           fourxx=0, fivexx=0, requests="", release_id=args.get('release_id'))
         report.insert()
         return {"message": "created"}
 
@@ -352,7 +353,7 @@ class FindingsApi(Resource):
 
     def put(self):
         args = self.put_parser.parse_args(strict=False)
-        test_data = SecurityResults.query.filter_by(id=args['id']).first()
+        # test_data = SecurityResults.query.filter_by(id=args['id']).first()
         issue_hash = SecurityReport.query.filter_by(id=args['issue_id']).first().issue_hash
         if args['action'] in ["false_positive", "excluded_finding"]:
             upd = {args['action']: 1}

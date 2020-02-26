@@ -181,13 +181,13 @@ def create_benchmark_dataset(args):
                 data[_.environment][str(_.vusers)] = _.throughput
             else:
                 data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
-                                                                             _.lg_type, "REQUEST", req)
+                                                                             _.lg_type, "", req)
         elif calculation != ['throughput']:
             y_axis = 'Response time, ms'
             if calculation == 'errors':
                 y_axis = 'Errors'
             data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
-                                                                            _.lg_type, "REQUEST", req, calculation)
+                                                                            _.lg_type, "", req, calculation)
         else:
             data[_.environment][str(_.vusers)] = None
     labels = [""] + sorted(list(labels)) + [""]

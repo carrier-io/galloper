@@ -14,12 +14,22 @@
                   <div class="col">
                       <ul id="chart-control" class="nav nav-pills justify-content-end">
                           <li class="nav-item mr-2 mr-md-0">
-                          <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
-                            <span class="d-none d-md-block">Delete</span>
-                          </button>
-                        </li>
+                              <button id="CR" data-target="#addRelease" data-toggle="modal" class="btn btn-primary btn-sm">
+                                  <span class="d-none d-md-block">Create Release</span>
+                              </button>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0">
+                              <button id="AR" data-target="#assignToRelease" data-toggle="modal" class="btn btn-primary btn-sm" disabled>
+                                  <span class="d-none d-md-block">Assign to Release</span>
+                              </button>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0">
+                              <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
+                                  <span class="d-none d-md-block">Delete</span>
+                              </button>
+                          </li>
                         <li class="nav-item mr-2 mr-md-0">
-                          <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" data-toggle="tab" disabled>
+                          <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
                             <span class="d-none d-md-block">Compare</span>
                             <span class="d-md-none">C</span>
                           </button>
@@ -50,6 +60,7 @@
                       <th data-sortable="true" data-field="type">Test Type</th>
                       <th data-field="throughput">TPS</th>
                       <th data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
+                      <th data-field="release_id">Release ID</th>
                       <th data-field="lg_type" data-formatter=lgFormatter>Runner</th>
                     </tr>
                   </thead>
@@ -60,6 +71,57 @@
 </div>
 </div>
 {% include 'common/foot.html' %}
+<!-- Modal -->
+<div class="modal fade" id="addRelease" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="modal_title">Add New Release</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <table cellspacing="0" cellpadding="0" style="border: none; border-collapse:separate;  border-spacing: 0 1em;">
+              <tr>
+                <td>
+                  <span> Release Name: </span>
+                </td>
+                <td class="pl-3">
+                    <input id="release_name" placeholder="Release Name" class="form-control form-control-sm">
+                </td>
+              </tr>
+          </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" id="submit" onclick="createRelease()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="assignToRelease" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Choose Release</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <select id="releases" class="selectpicker show-tick form-control form-control-sm"></select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="assignToRelease()">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
 function createLinkToReport(value, row, index){
@@ -68,6 +130,51 @@ function createLinkToReport(value, row, index){
 
 function percentFormatter(value, row, index){
     return value+'&nbsp;%'
+}
+
+$("#assignToRelease").on("show.bs.modal", function() {
+    $.get("/api/releases/api",
+      function(data) {
+        $("#releases option").each(function() {$(this).remove();})
+        data.forEach(item => { $("#releases").append(`<option value="${item['id']}">${item['id']} : ${item['release_name']}</option>`);})
+        $("#releases").selectpicker('refresh')
+      })
+});
+
+function createRelease() {
+    data = {
+        release_name: $("#release_name").val()
+    }
+    $.ajax({
+        url: "/api/releases/api",
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(result) {
+            $("#addRelease").modal('hide');
+        }
+    });
+}
+
+function assignToRelease() {
+    var reports = []
+    $("#results").bootstrapTable('getSelections').forEach(item => {
+        reports.push(item["id"])
+    });
+    var data = {
+        release_id: $("#releases").val(),
+        reports: reports
+    }
+    $.ajax({
+        url: "/api/releases/api",
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(result) {
+            $("#assignToRelease").modal('hide');
+            $("#results").bootstrapTable('refresh');
+        }
+    });
 }
 
 function lgFormatter(value, row, index){
@@ -85,9 +192,11 @@ function lgFormatter(value, row, index){
     if ($("#results").bootstrapTable('getSelections').length == 0) {
         $("#DR").prop("disabled", true);
         $("#RT").prop("disabled", true);
+        $("#AR").prop("disabled", true);
     } else {
         $("#DR").removeAttr("disabled");
         $("#RT").removeAttr("disabled");
+        $("#AR").removeAttr("disabled");
     }
  })
 
