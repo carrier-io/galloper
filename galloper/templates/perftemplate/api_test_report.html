@@ -20,10 +20,7 @@
               </div>
             </div>
           </div>
-<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
-<!--            <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>-->
-<!--            <span class="text-nowrap">Since last month</span>-->
-<!--          </p>-->
+
         </div>
       </div>
     </div>
@@ -41,10 +38,6 @@
               </div>
             </div>
           </div>
-<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
-<!--            <span class="text-danger mr-2"><i class="fas fa-arrow-down"></i> 3.48%</span>-->
-<!--            <span class="text-nowrap">Since last week</span>-->
-<!--          </p>-->
         </div>
       </div>
     </div>
@@ -62,10 +55,6 @@
               </div>
             </div>
           </div>
-<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
-<!--            <span class="text-warning mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>-->
-<!--            <span class="text-nowrap">Since yesterday</span>-->
-<!--          </p>-->
         </div>
       </div>
     </div>
@@ -83,10 +72,6 @@
               </div>
             </div>
           </div>
-<!--          <p class="mt-3 mb-0 text-muted text-sm">-->
-<!--            <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>-->
-<!--            <span class="text-nowrap">Since last month</span>-->
-<!--          </p>-->
         </div>
       </div>
     </div>
@@ -212,19 +197,19 @@
                     </select>
                 </li>
                 <li class="nav-item mr-2 mr-md-0">
-                  <a id="RT" onclick="loadRequestData('/report/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="RT" onclick="loadRequestData('/api/chart/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Responses</span>
                     <span class="d-md-none">M</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a id="AR" onclick="loadRequestData('/report/requests/average', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="AR" onclick="loadRequestData('/api/chart/requests/average', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Average Reponse</span>
                     <span class="d-md-none">A</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a id="HT" onclick="loadRequestData('/report/requests/hits', 'Hits/Requests per second')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="HT" onclick="loadRequestData('/api/chart/requests/hits', 'Hits/Requests per second')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Hits/TPS</span>
                     <span class="d-md-none">H</span>
                   </a>
@@ -339,38 +324,38 @@
 </div>
 </div>
 <div class="row header-body">
-<div class="col-xl-12 col-lg-12">
-    <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-header bg-transparent">
-          <div class="row align-items-center">
-            <div class="col">
-              <h2 class="text-gray mb-0">Errors</h2>
+    <div class="col-xl-12 col-lg-12">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h2 class="text-gray mb-0">Errors</h2>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="card-body">
-            <table
-              id="errors"
-              data-toggle="table"
-              data-url=""
-              data-pagination="true"
-              data-detail-view="true"
-              data-detail-view-icon="false"
-              data-detail-view-by-click="true"
-              data-detail-formatter="detailFormatter">
-              <thead>
-                <tr>
-                  <th data-sortable="true" data-field="Request name">Request name</th>
-                  <th data-sortable="true" data-field="URL">URL</th>
-                  <th data-sortable="true" data-field="Response code">Response Code</th>
-                  <th data-sortable="true" data-field="Error message">Error Message</th>
-                  <th data-sortable="true" data-field="count">Count</th>
-                </tr>
-              </thead>
-            </table>
+            <div class="card-body">
+                <table
+                  id="errors"
+                  data-toggle="table"
+                  data-url=""
+                  data-pagination="true"
+                  data-detail-view="true"
+                  data-detail-view-icon="false"
+                  data-detail-view-by-click="true"
+                  data-detail-formatter="detailFormatter">
+                  <thead>
+                    <tr>
+                      <th data-sortable="true" data-field="Request name">Request name</th>
+                      <th data-sortable="true" data-field="URL">URL</th>
+                      <th data-sortable="true" data-field="Response code">Response Code</th>
+                      <th data-sortable="true" data-field="Error message">Error Message</th>
+                      <th data-sortable="true" data-field="count">Count</th>
+                    </tr>
+                  </thead>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>

@@ -38,12 +38,13 @@ def create_app():
         except:
             return "Not Executed"
 
-    from galloper.routes import tasks, observer, artifacts, report, thresholds
+    from galloper.routes import tasks, observer, artifacts, report, thresholds, api_release
     app.register_blueprint(tasks.bp)
     app.register_blueprint(observer.bp)
     app.register_blueprint(artifacts.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(thresholds.bp)
+    app.register_blueprint(api_release.bp)
 
     with app.app_context():
         db.create_all(app=app)
