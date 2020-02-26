@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, request, render_template
+from flask import Blueprint
 from flask_restful import Api, Resource, reqparse
 from galloper.models.api_reports import APIReport
 from galloper.models.api_release import APIRelease
