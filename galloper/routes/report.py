@@ -102,12 +102,11 @@ class ReportApi(Resource):
     post_parser.add_argument("type", type=str, location="json")
     post_parser.add_argument("release_id", type=int, location="json")
 
-
     def get(self):
         reports = []
         args = get_report_parser.parse_args(strict=False)
         if args.get('sort'):
-            sort_rule = getattr(getattr(APIReport, args["sort"]), args["sort_order"])()
+            sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
             sort_rule = APIReport.id.asc()
         if not args.get('search') and not args.get('sort'):
@@ -124,7 +123,10 @@ class ReportApi(Resource):
             each_json = each.to_json()
             each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
             each_json['duration'] = int(each_json['duration'])
-            each_json['failure_rate'] = round((each_json['failures'] / each_json['total']) * 100, 2)
+            try:
+                each_json['failure_rate'] = round((each_json['failures'] / each_json['total']) * 100, 2)
+            except ZeroDivisionError:
+                each_json['failure_rate'] = 0
             reports.append(each_json)
         return {"total": total, "rows": reports}
 
@@ -239,7 +241,7 @@ class SecurityReportApi(Resource):
         reports = []
         args = get_report_parser.parse_args(strict=False)
         if args.get('sort'):
-            sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["sort_order"])()
+            sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["order"])()
         else:
             sort_rule = SecurityResults.id.desc()
         if not args.get('search') and not args.get('sort'):

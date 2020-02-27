@@ -12,7 +12,7 @@ def _timeframe(args, time_as_ts=False):
     end_time = args['end_time']
     high_value = args.get('high_value', 100)
     if not end_time:
-        end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:$SZ")
+        end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         high_value = 100
     return calculate_proper_timeframe(args.get('low_value', 0), high_value,
                                       args['start_time'], end_time, args.get('aggregator', 'auto'),

@@ -17,7 +17,6 @@ from datetime import datetime
 
 from galloper.models import db
 
-
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/db/test.db'
@@ -37,6 +36,13 @@ def create_app():
             return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
         except:
             return "Not Executed"
+
+    @app.template_filter('is_zero')
+    def return_zero(val):
+        try:
+            return round(val[0]/val[1], 2)
+        except:
+            return 0
 
     from galloper.routes import tasks, observer, artifacts, report, thresholds, api_release
     app.register_blueprint(tasks.bp)

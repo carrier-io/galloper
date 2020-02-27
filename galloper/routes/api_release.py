@@ -38,4 +38,23 @@ class ReleaseApi(Resource):
         return {"message": updated_reports}
 
 
+class ReleaseApiReports(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("release_name", type=str, location="args")
+    parser.add_argument("release_id", type=int, location="args")
+
+    def get(self):
+        args = self.parser.parse_args(strict=False)
+        try:
+            if args.get("release_name"):
+                release_id = APIRelease.query.filter_by(release_name=args.get("release_name")).first().id
+            else:
+                release_id = args.get("release_id")
+            api_reports = [each.id for each in APIReport.query.filter_by(release_id=release_id).all()]
+            return api_reports
+        except AttributeError:
+            return []
+
+
 api.add_resource(ReleaseApi, "/api/releases/api")
+api.add_resource(ReleaseApiReports, "/api/releases/api/reports")
