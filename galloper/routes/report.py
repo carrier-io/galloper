@@ -208,6 +208,7 @@ class ReportsCompareApi(Resource):
     get_parser.add_argument('id[]', action='append', location="args")
     get_parser.add_argument("request", type=str, default='', location="args")
     get_parser.add_argument("calculation", type=str, default='', location="args")
+    get_parser.add_argument("aggregator", type=str, default='1s', location="args")
 
     mapping = {
         "data": prepare_comparison_responses,
