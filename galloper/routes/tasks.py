@@ -55,7 +55,8 @@ def add_task():
                                         kwargs={'task_id': filename, 'file_path': current_app.config['UPLOAD_FOLDER']})
             celery_task.apply_async()
             task = Task(task_id=filename, zippath=filename, task_name=request.form['funcname'],
-                        task_handler=request.form['invoke_func'], runtime=request.form['runtime'], env_vars=request.form['env_vars'])
+                        task_handler=request.form['invoke_func'], runtime=request.form['runtime'],
+                        env_vars=request.form['env_vars'])
             task.insert()
             return f"{filename}"
 

@@ -11,3 +11,4 @@ ssim==0.3.0
 python-dateutil==2.8.0
 boto3==1.10.17
 influxdb==5.2.3
+

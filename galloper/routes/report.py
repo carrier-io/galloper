@@ -12,216 +12,41 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from sqlalchemy import or_
-from datetime import datetime, timezone
-from json import dumps
-from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
-from galloper.constants import str_to_timestamp
+import hashlib
+from datetime import datetime
+from sqlalchemy import or_, and_
+from flask import Blueprint, request, render_template
+from flask_restful import Api, Resource, reqparse
 from galloper.models.api_reports import APIReport
-from galloper.dal.influx_results import (get_test_details, get_backend_requests, get_backend_users, get_errors,
-                                         get_hits_tps, average_responses, get_build_data, get_tps, get_hits,
-                                         get_response_codes, get_sampler_types, get_response_time_per_test,
-                                         get_throughput_per_test, delete_test_data)
-from galloper.dal.loki import get_results
+from galloper.models.security_results import SecurityResults
+from galloper.models.security_reports import SecurityReport
+from galloper.models.security_details import SecurityDetails
+from galloper.data_utils.report_utils import render_analytics_control
+from galloper.data_utils.charts_utils import (requests_summary, requests_hits, avg_responses, summary_table,
+                                              get_issues, get_data_from_influx, prepare_comparison_responses,
+                                              compare_tests, create_benchmark_dataset)
+
+from galloper.dal.influx_results import (get_test_details, get_sampler_types, delete_test_data)
 
 bp = Blueprint('reports', __name__)
-
-import random
-
-MAX_DOTS_ON_CHART = 100
-
-def colors(n):
-    try:
-        ret = []
-        r = int(random.random() * 256)
-        g = int(random.random() * 256)
-        b = int(random.random() * 256)
-        step = 256 / n
-        for i in range(n):
-            r += step
-            g += step
-            b += step
-            r = int(r) % 256
-            g = int(g) % 256
-            b = int(b) % 256
-            ret.append((r, g, b))
-        return ret
-    except ZeroDivisionError:
-        return [(0, 0, 0)]
+api = Api(bp)
 
 
-def create_dataset(timeline, data, label, axe):
-    labels = []
-    for _ in timeline:
-        labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    color = colors(1)[0]
-    chart_data = {
-        "labels": labels,
-        "datasets": [
-            {
-                "label": label,
-                "fill": False,
-                "data": list(data.values()),
-                "yAxisID": axe,
-                "borderWidth": 2,
-                "lineTension": 0,
-                "spanGaps": True,
-                "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-                "borderColor": f"rgb({color[0]}, {color[1]}, {color[2]})"
-            }
-        ]
-    }
-    return dumps(chart_data)
+@bp.route("/report", methods=["GET"])
+def report():
+    return render_template('perftemplate/report.html')
 
 
-def comparison_data(timeline, data):
-    labels = []
-    for _ in timeline:
-        labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    chart_data = {
-        "labels": labels,
-        "datasets": [
-        ]
-    }
-    col = colors(len(data.keys()))
-    for record in data:
-        color = col.pop()
-        dataset = {
-            "label": record,
-            "fill": False,
-            "data": list(data[record][0].values()),
-            "yAxisID": data[record][1],
-            "borderWidth": 2,
-            "lineTension": 0,
-            "spanGaps": True,
-            "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-            "borderColor": f"rgb({color[0]}, {color[1]}, {color[2]})"
-        }
-        chart_data["datasets"].append(dataset)
-    return dumps(chart_data)
+@bp.route("/security", methods=["GET"])
+def security():
+    return render_template('security/report.html')
 
 
-def chart_data(timeline, users, other, yAxis="response_time", dump=True):
-    labels = []
-    try:
-        for _ in timeline:
-            labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    except:
-        labels = timeline
-    _data = {
-        "labels": labels,
-        "datasets": []
-    }
-    if users:
-        _data['datasets'].append({
-            "label": "Active Users",
-            "fill": False,
-            "data": list(users['users'].values()),
-            "yAxisID": "active_users",
-            "borderWidth": 2,
-            "lineTension": 0,
-            "spanGaps": True
-        })
-    colors_array = colors(len(other.keys()))
-    for each in other:
-        color = colors_array.pop()
-        dataset = {
-            "label": each,
-            "fill": False,
-            "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-            "yAxisID": yAxis,
-            "borderWidth": 1,
-            "lineTension": 0.2,
-            "pointRadius": 1,
-            "spanGaps": True,
-            "borderColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-            "data": []
-        }
-        for _ in timeline:
-            if str(_) in other[each]:
-                dataset['data'].append(other[each][str(_)])
-            else:
-                dataset['data'].append(None)
-        _data['datasets'].append(dataset)
-    if dump:
-        return dumps(_data)
-    else:
-        return _data
-
-
-def render_analytics_control(requests):
-    item = {
-        "Users": "getData('Users', '{}')",
-        "Hits": "getData('Hits', '{}')",
-        "Throughput": "getData('Throughput', '{}')",
-        "Errors": "getData('Errors', '{}')",
-        "Min": "getData('Min', '{}')",
-        "Median": "getData('Median', '{}')",
-        "Max": "getData('Max', '{}')",
-        "pct90": "getData('pct90', '{}')",
-        "pct95": "getData('pct95', '{}')",
-        "pct99": "getData('pct99', '{}')",
-        "1xx": "getData('1xx', '{}')",
-        "2xx": "getData('2xx', '{}')",
-        "3xx": "getData('3xx', '{}')",
-        "4xx": "getData('4xx', '{}')",
-        "5xx": "getData('5xx', '{}')"
-    }
-    control = {}
-    for each in ["All"] + requests:
-        control[each] = {}
-        for every in item:
-            control[each][every] = item[every].format(each)
-    return control
-
-
-def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggregation, time_as_ts=False):
-    start_time = str_to_timestamp(start_time)
-    end_time = str_to_timestamp(end_time)
-    interval = end_time-start_time
-    start_shift = interval*(float(low_value)/100.0)
-    end_shift = interval*(float(high_value)/100.0)
-    end_time = start_time + end_shift
-    start_time += start_shift
-    real_interval = end_time - start_time
-    seconds = real_interval/MAX_DOTS_ON_CHART
-    if seconds > 1:
-        seconds = int(seconds)
-    else:
-        seconds = 1
-    if aggregation == 'auto':
-        aggregation = f'{seconds}s'
-    if time_as_ts:
-        return int(start_time), int(end_time), aggregation
-    return datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), \
-           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), aggregation
-
-
-@bp.route("/report/create", methods=["GET", "POST"])
-def add_report():
-    test_data = get_test_details(build_id=request.args['build_id'], test_name=request.args['test_name'],
-                                 lg_type=request.args['lg_type'])
-
-    report = APIReport(name=test_data['name'], environment=test_data["environment"], type=test_data["type"],
-                       end_time=test_data["end_time"], start_time=test_data["start_time"],
-                       failures=test_data["failures"], total=test_data["total"],
-                       thresholds_missed=request.args.get("missed", 0), throughput=test_data["throughput"],
-                       vusers=test_data["vusers"], pct95=test_data["pct95"], duration=test_data["duration"],
-                       build_id=request.args['build_id'], lg_type=request.args['lg_type'],
-                       onexx=test_data["1xx"], twoxx=test_data["2xx"], threexx=test_data["3xx"],
-                       fourxx=test_data["4xx"], fivexx=test_data["5xx"],
-                       requests=";".join(test_data["requests"]))
-    report.insert()
-    return "OK", 201
-
-
-@bp.route("/report/delete", methods=["DELETE"])
-def delete_report():
-    build_ids = request.args.getlist('id[]')
-    for each in APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.id.asc()).all():
-        delete_test_data(each.build_id, each.name, each.lg_type)
-        each.delete()
-    return "OK", 201
+@bp.route("/security/finding", methods=["GET"])
+def findings():
+    report_id = request.args.get("id", None)
+    test_data = SecurityResults.query.filter_by(id=report_id).first()
+    return render_template('security/results.html', test_data=test_data)
 
 
 @bp.route('/report/backend', methods=["GET", "POST"])
@@ -238,140 +63,6 @@ def view_report():
                                analytics_control=analytics_control, samplers=samplers)
 
 
-@bp.route('/report/requests/summary', methods=["GET"])
-def requests_summary():
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   request.args['start_time'],
-                                                                   request.args['end_time'],
-                                                                   request.args.get('aggregator', 'auto'))
-
-    timeline, results, users = get_backend_requests(request.args['build_id'], request.args['test_name'],
-                                                    request.args['lg_type'], start_time, end_time, aggregation,
-                                                    request.args['sampler'])
-    return chart_data(timeline, users, results)
-
-
-@bp.route('/report/requests/hits', methods=["GET"])
-def requests_hits():
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   request.args['start_time'],
-                                                                   request.args['end_time'],
-                                                                   request.args.get('aggregator', 'auto'))
-    timeline, results, users = get_hits_tps(request.args['build_id'], request.args['test_name'],
-                                            request.args['lg_type'], start_time, end_time, aggregation,
-                                            request.args['sampler'])
-    return chart_data(timeline, users, results)
-
-
-@bp.route('/report/requests/average', methods=["GET"])
-def avg_responses():
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   request.args['start_time'],
-                                                                   request.args['end_time'],
-                                                                   request.args.get('aggregator', 'auto'))
-    timeline, results, users = average_responses(request.args['build_id'], request.args['test_name'],
-                                                 request.args['lg_type'], start_time, end_time, aggregation,
-                                                 request.args['sampler'])
-    return chart_data(timeline, users, results)
-
-
-@bp.route("/report/request/table", methods=["GET"])
-def summary_table():
-    start_time, end_time, _ = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                         request.args.get('high_value', 100),
-                                                         request.args['start_time'],
-                                                         request.args['end_time'],
-                                                         request.args.get('aggregator', 'auto'))
-    return dumps(get_build_data(request.args['build_id'], request.args['test_name'],
-                                request.args['lg_type'], start_time, end_time,
-                                request.args['sampler']))
-
-
-def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                scope, metric):
-    data = None
-    axe = 'count'
-    if metric == "Throughput":
-        timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                      scope=scope)
-        data = data['responses']
-    elif metric == "Hits":
-        timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                       scope=scope)
-        data = data['hits']
-    elif metric == "Errors":
-        timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                         scope=scope)
-        data = data['errors']
-    elif metric in ["Min", "Median", "Max", "pct90", "pct95", "pct99"]:
-        timestamps, data, _ = get_backend_requests(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                   sampler, scope=scope, aggr=metric)
-        data = data['response']
-        axe = 'time'
-
-    elif "xx" in metric:
-        timestamps, data, _ = get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                 sampler, scope=scope, aggr=metric)
-        data = data['rcodes']
-    return data, axe
-
-
-@bp.route("/report/request/data", methods=["GET"])
-def get_data_from_influx():
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   request.args['start_time'],
-                                                                   request.args['end_time'],
-                                                                   request.args.get('aggregator', 'auto'))
-    metric = request.args.get('metric', '')
-    scope = request.args.get('scope', '')
-    timestamps, users = get_backend_users(request.args['build_id'], request.args['lg_type'],
-                                          start_time, end_time, aggregation)
-    axe = 'count'
-    if metric == "Users":
-        return create_dataset(timestamps, users['users'], f"{scope}_{metric}", axe)
-    data, axe = calculate_analytics_dataset(request.args['build_id'], request.args['test_name'],
-                                            request.args['lg_type'], start_time, end_time,
-                                            aggregation, request.args['sampler'], scope, metric)
-    if data:
-        return create_dataset(timestamps, data, f"{scope}_{metric}", axe)
-    else:
-        return {}
-
-
-@bp.route("/report/all", methods=["GET"])
-def get_reports():
-    reports = []
-    offset = request.args.get("offset", 0)
-    limit = request.args.get("limit", 0)
-    search_param = request.args.get("search", None)
-    sort = request.args.get("sort", None)
-    sort_order = request.args.get("order", None)
-    if sort:
-        sort_rule = getattr(getattr(APIReport, sort), sort_order)()
-    else:
-        sort_rule = APIReport.id.asc()
-    if not search_param and not sort:
-        total = APIReport.query.order_by(sort_rule).count()
-        res = APIReport.query.order_by(sort_rule).limit(limit).offset(offset).all()
-    else:
-        filter_ = or_(APIReport.name.like(f'%{search_param}%'),
-                      APIReport.environment.like(f'%{search_param}%'),
-                      APIReport.type.like(f'%{search_param}%'))
-        res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit).offset(offset).all()
-        total = APIReport.query.order_by(sort_rule).filter(filter_).count()
-    for each in res:
-        each_json = each.to_json()
-        each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
-        each_json['duration'] = int(each_json['duration'])
-        each_json['failure_rate'] = round((each_json['failures'] / each_json['total']) * 100, 2)
-        reports.append(each_json)
-    return dumps({"total": total, "rows": reports})
-
-
 @bp.route("/report/compare", methods=["GET"])
 def compare_reports():
     samplers = set()
@@ -383,125 +74,321 @@ def compare_reports():
     return render_template('perftemplate/comparison_report.html', samplers=samplers, requests=requests_data)
 
 
-@bp.route("/report/compare/data", methods=["GET"])
-def prepare_comparison_responses():
-    tests = request.args.getlist('id[]')
-    tests_meta = []
-    longest_test = 0
-    longest_time = 0
-    sampler = request.args.get('sampler', "REQUEST")
-    for i in range(len(tests)):
-        data = APIReport.query.filter_by(id=tests[i]).first().to_json()
-        if data['duration'] > longest_time:
-            longest_time = data['duration']
-            longest_test = i
-        tests_meta.append(data)
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   tests_meta[longest_test]['start_time'],
-                                                                   tests_meta[longest_test]['end_time'],
-                                                                   request.args.get('aggregator', 'auto'))
-    if request.args.get('aggregator', 'auto') != "auto":
-        aggregation = request.args.get('aggregator')
-    metric = request.args.get('metric', '')
-    scope = request.args.get('scope', '')
-    timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
-                                          start_time, end_time, aggregation)
-    test_start_time = "{}_{}".format(tests_meta[longest_test]['start_time'].replace("T", " ").split(".")[0], metric)
-    data = {test_start_time: calculate_analytics_dataset(tests_meta[longest_test]['build_id'],
-                                                         tests_meta[longest_test]['name'],
-                                                         tests_meta[longest_test]['lg_type'],
-                                                         start_time, end_time, aggregation,
-                                                         sampler, scope, metric)}
-    for i in range(len(tests_meta)):
-        if i != longest_test:
-            test_start_time = "{}_{}".format(tests_meta[i]['start_time'].replace("T", " ").split(".")[0], metric)
-            data[test_start_time] = calculate_analytics_dataset(tests_meta[i]['build_id'], tests_meta[i]['name'],
-                                                                tests_meta[i]['lg_type'],
-                                                                tests_meta[i]['start_time'],
-                                                                tests_meta[i]['end_time'],
-                                                                aggregation, sampler, scope, metric)
-    return comparison_data(timeline=timestamps, data=data)
+get_report_parser = reqparse.RequestParser()
+get_report_parser.add_argument('offset', type=int, default=0, location="args")
+get_report_parser.add_argument('limit', type=int, default=0, location="args")
+get_report_parser.add_argument('search', type=str, default='', location="args")
+get_report_parser.add_argument('sort', type=str, default='', location="args")
+get_report_parser.add_argument('order', type=str, default='', location="args")
+
+delete_report_parser = reqparse.RequestParser()
+delete_report_parser.add_argument('id[]', type=list, action='append', location="args")
 
 
-def get_tests_metadata(tests):
-    tests_meta = APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all()
-    users_data = {}
-    responses_data = {}
-    errors_data = {}
-    rps_data = {}
-    labels = []
+class ReportApi(Resource):
+    _parser = reqparse.RequestParser()
+    _parser.add_argument("build_id", type=str, location="json")
+    _parser.add_argument("test_name", type=str, location="json")
+    _parser.add_argument("lg_type", type=str, location="json")
 
-    for each in tests_meta:
-        ts = datetime.fromtimestamp(str_to_timestamp(each.start_time),
-                                    tz=timezone.utc).strftime("%m-%d %H:%M:%S")
-        labels.append(ts)
-        users_data[ts] = each.vusers
-        responses_data[ts] = each.pct95
-        errors_data[ts] = each.failures
-        rps_data[ts] = each.throughput
-    return labels, rps_data, errors_data, users_data, responses_data
+    put_parser = _parser.copy()
+    put_parser.add_argument("missed", type=int, location="json")
 
-
-@bp.route("/report/compare/tests", methods=["GET"])
-def compare_tests():
-    labels, rps_data, errors_data, users_data, responses_data = get_tests_metadata(request.args.getlist('id[]'))
-    return dumps({
-        "response": chart_data(labels, {"users": users_data}, {"pct95": responses_data}, "time", False),
-        "errors": chart_data(labels, {"users": users_data}, {"errors": errors_data}, "count", False),
-        "rps": chart_data(labels, {"users": users_data}, {"RPS": rps_data}, "count", False)
-    })
+    post_parser = put_parser.copy()
+    post_parser.add_argument("start_time", type=str, location="json")
+    post_parser.add_argument("duration", type=float, location="json")
+    post_parser.add_argument("vusers", type=int, location="json")
+    post_parser.add_argument("environment", type=str, location="json")
+    post_parser.add_argument("type", type=str, location="json")
+    post_parser.add_argument("release_id", type=int, location="json")
 
 
-@bp.route("/report", methods=["GET"])
-def report():
-    return render_template('perftemplate/report.html')
-
-
-@bp.route("/report/request/issues")
-def get_issues():
-    start_time, end_time, aggregation = calculate_proper_timeframe(request.args.get('low_value', 0),
-                                                                   request.args.get('high_value', 100),
-                                                                   request.args['start_time'],
-                                                                   request.args['end_time'],
-                                                                   request.args.get('aggregator', 'auto'),
-                                                                   time_as_ts=True)
-    test_name = request.args['test_name']
-    return dumps(list(get_results(test_name, start_time, end_time).values()))
-
-
-@bp.route("/report/benchmark/data", methods=["GET"])
-def create_benchmark_dataset():
-    build_ids = request.args.getlist('id[]')
-    aggregator = request.args.get('aggregator')
-    req = request.args.get('request')
-    calculation = request.args.get('calculation')
-    tests_meta = APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.vusers.asc()).all()
-    labels = set()
-    data = {}
-    y_axis = ''
-    for _ in tests_meta:
-        labels.add(_.vusers)
-        if _.environment not in data:
-            data[_.environment] = {}
-        if calculation == 'throughput':
-            y_axis = 'Requests per second'
-            if req == 'All':
-                data[_.environment][str(_.vusers)] = _.throughput
-            else:
-                data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
-                                                                             _.lg_type, "REQUEST", req)
-        elif calculation != ['throughput']:
-            y_axis = 'Response time, ms'
-            if calculation == 'errors':
-                y_axis = 'Errors'
-            data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
-                                                                            _.lg_type, "REQUEST", req, calculation)
+    def get(self):
+        reports = []
+        args = get_report_parser.parse_args(strict=False)
+        if args.get('sort'):
+            sort_rule = getattr(getattr(APIReport, args["sort"]), args["sort_order"])()
         else:
-            data[_.environment][str(_.vusers)] = None
-    labels = [""] + sorted(list(labels)) + [""]
-    return dumps({"data": chart_data(labels, [], data, "data", False), "label": y_axis})
+            sort_rule = APIReport.id.asc()
+        if not args.get('search') and not args.get('sort'):
+            total = APIReport.query.order_by(sort_rule).count()
+            res = APIReport.query.order_by(sort_rule).limit(args.get('limit')).offset(args.get('offset')).all()
+        else:
+            filter_ = or_(APIReport.name.like(f'%{args["search"]}%'),
+                          APIReport.environment.like(f'%{args["search"]}%'),
+                          APIReport.type.like(f'%{args["search"]}%'))
+            res = APIReport.query.filter(filter_).order_by(sort_rule).\
+                limit(args.get('limit')).offset(args.get('offset')).all()
+            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+        for each in res:
+            each_json = each.to_json()
+            each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
+            each_json['duration'] = int(each_json['duration'])
+            each_json['failure_rate'] = round((each_json['failures'] / each_json['total']) * 100, 2)
+            reports.append(each_json)
+        return {"total": total, "rows": reports}
 
+    def post(self):
+        args = self.post_parser.parse_args(strict=False)
+        report = APIReport(name=args['test_name'], environment=args["environment"], type=args["type"],
+                           end_time='', start_time=args["start_time"], failures=0,
+                           total=0, thresholds_missed=0, throughput=0, vusers=args["vusers"],
+                           pct95=0, duration=args["duration"], build_id=args['build_id'],
+                           lg_type=args['lg_type'], onexx=0, twoxx=0, threexx=0,
+                           fourxx=0, fivexx=0, requests="", release_id=args.get('release_id'))
+        report.insert()
+        return {"message": "created"}
+
+    def put(self):
+        args = self.put_parser.parse_args(strict=False)
+        test_data = get_test_details(build_id=args['build_id'], test_name=args['test_name'], lg_type=args['lg_type'])
+        report = APIReport.query.filter_by(build_id=request.args['build_id']).first()
+        report.end_time = test_data["end_time"]
+        report.start_time = test_data["start_time"]
+        report.failures = test_data["failures"]
+        report.total = test_data["total"]
+        report.thresholds_missed = args.get("missed", 0)
+        report.throughput = test_data["throughput"]
+        report.pct95 = test_data["pct95"]
+        report.onexx = test_data["onexx"]
+        report.twoxx = test_data["twoxx"]
+        report.threexx = test_data["threexx"]
+        report.fourxx = test_data["fourxx"]
+        report.fivexx = test_data["fivexx"]
+        report.requests = ";".join(test_data["requests"])
+        report.commit()
+        return {"message": "updated"}
+
+    def delete(self):
+        args = delete_report_parser.parse_args(strict=False)
+        for each in APIReport.query.filter(APIReport.id.in_(args["id[]"])).order_by(APIReport.id.asc()).all():
+            delete_test_data(each.build_id, each.name, each.lg_type)
+            each.delete()
+        return {"message": "deleted"}
+
+
+reports_parser = reqparse.RequestParser()
+reports_parser.add_argument("low_value", type=float, default=0, location="args")
+reports_parser.add_argument("high_value", type=float, default=100, location="args")
+reports_parser.add_argument("start_time", type=str, default='', location="args")
+reports_parser.add_argument("end_time", type=str, default='', location="args")
+reports_parser.add_argument("aggregator", type=str, default="auto", location="args")
+reports_parser.add_argument("sampler", type=str, default='REQUEST', location="args")
+reports_parser.add_argument("metric", type=str, default='', location="args")
+reports_parser.add_argument("scope", type=str, default='', location="args")
+
+
+class ReportChartsApi(Resource):
+    get_parser = reports_parser.copy()
+    get_parser.add_argument("build_id", type=str, location="args")
+    get_parser.add_argument("test_name", type=str, location="args")
+    get_parser.add_argument("lg_type", type=str, location="args")
+
+    mapping = {
+        "requests": {
+            "summary": requests_summary,
+            "hits": requests_hits,
+            "average": avg_responses,
+            "table": summary_table,
+            "data": get_data_from_influx
+        },
+        "errors": {
+            "table": get_issues
+        }
+
+    }
+
+    def get(self, source, target):
+        args = self.get_parser.parse_args(strict=False)
+        return self.mapping[source][target](args)
+
+
+class ReportsCompareApi(Resource):
+    get_parser = reports_parser.copy()
+    get_parser.add_argument('id[]', action='append', location="args")
+    get_parser.add_argument("request", type=str, default='', location="args")
+    get_parser.add_argument("calculation", type=str, default='', location="args")
+
+    mapping = {
+        "data": prepare_comparison_responses,
+        "tests": compare_tests,
+        "benchmark": create_benchmark_dataset
+    }
+
+    def get(self, target):
+        args = self.get_parser.parse_args(strict=False)
+        return self.mapping[target](args)
+
+
+class SecurityReportApi(Resource):
+    port_parser = reqparse.RequestParser()
+    port_parser.add_argument('project_name', type=str, location="json")
+    port_parser.add_argument('app_name', type=str, location="json")
+    port_parser.add_argument('scan_time', type=float, location="json")
+    port_parser.add_argument('dast_target', type=str, location="json")
+    port_parser.add_argument('sast_code', type=str, location="json")
+    port_parser.add_argument('scan_type', type=str, location="json")
+    port_parser.add_argument('findings', type=int, location="json")
+    port_parser.add_argument('false_positives', type=int, location="json")
+    port_parser.add_argument('excluded', type=int, location="json")
+    port_parser.add_argument('info_findings', type=int, location="json")
+    port_parser.add_argument('environment', type=str, location="json")
+
+    def get(self):
+        reports = []
+        args = get_report_parser.parse_args(strict=False)
+        if args.get('sort'):
+            sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["sort_order"])()
+        else:
+            sort_rule = SecurityResults.id.desc()
+        if not args.get('search') and not args.get('sort'):
+            total = SecurityResults.query.order_by(sort_rule).count()
+            res = SecurityResults.query.order_by(sort_rule).limit(args.get('limit')).offset(args.get('offset')).all()
+        else:
+            filter_ = or_(SecurityResults.project_name.like(f'%{args["search"]}%'),
+                          SecurityResults.app_name.like(f'%{args["search"]}%'),
+                          SecurityResults.scan_type.like(f'%{args["search"]}%'),
+                          SecurityResults.environment.like(f'%{args["search"]}%'),
+                          SecurityResults.endpoint.like(f'%{args["search"]}%'))
+            res = SecurityResults.query.filter(filter_).order_by(sort_rule). \
+                limit(args.get('limit')).offset(args.get('offset')).all()
+            total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
+        for each in res:
+            each_json = each.to_json()
+            each_json['scan_time'] = each_json['scan_time'].replace("T", " ").split(".")[0]
+            each_json['scan_duration'] = float(each_json['scan_duration'])
+            reports.append(each_json)
+        return {"total": total, "rows": reports}
+
+    def delete(self):
+        args = delete_report_parser.parse_args(strict=False)
+        for each in SecurityReport.query.filter(SecurityReport.report_id.in_(args["id[]"])
+                                                 ).order_by(SecurityReport.id.asc()).all():
+            each.delete()
+        for each in SecurityResults.query.filter(SecurityResults.id.in_(args["id[]"])
+                                                 ).order_by(SecurityResults.id.asc()).all():
+            delete_test_data(each.build_id, each.name, each.lg_type)
+            each.delete()
+        return {"message": "deleted"}
+
+    def post(self):
+        args = self.port_parser.parse_args(strict=False)
+        report = SecurityResults(scan_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                                 scan_duration=args['scan_time'], project_name=args['project_name'],
+                                 app_name=args['app_name'], dast_target=args['dast_target'],
+                                 sast_code=args['sast_code'], scan_type=args["scan_type"],
+                                 findings=args["findings"], false_positives=args['false_positives'],
+                                 excluded=args['excluded'], info_findings=args['info_findings'],
+                                 environment=args['environment'])
+        report.insert()
+        return {"id": report.id}
+
+
+class FindingsApi(Resource):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument("id", type=int, location="args")
+    get_parser.add_argument("type", type=str, location="args")
+
+    put_parser = reqparse.RequestParser()
+    put_parser.add_argument("id", type=int, location="json")
+    put_parser.add_argument("action", type=str, location="json")
+    put_parser.add_argument("issue_id", type=int, location="json")
+
+    def get(self):
+        args = self.get_parser.parse_args(strict=False)
+        if args["type"] == 'false_positives':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.false_positive == 1)
+        elif args["type"] == 'findings':
+            filt = and_(SecurityReport.report_id == args["id"],
+                        SecurityReport.info_finding == 0,
+                        SecurityReport.false_positive == 0,
+                        SecurityReport.excluded_finding == 0)
+        elif args["type"] == 'info_findings':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.info_finding == 1)
+        elif args["type"] == 'excluded_finding':
+            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.excluded_finding == 1)
+        else:
+            filt = and_(SecurityReport.report_id == args["id"])
+        issues = SecurityReport.query.filter(filt).all()
+        results = []
+        for issue in issues:
+            _res = issue.to_json()
+            _res['details'] = SecurityDetails.query.filter_by(id=_res['details']).first().details
+            results.append(_res)
+        return results
+
+    def post(self):
+        finding_db = None
+        for finding in request.json:
+            md5 = hashlib.md5(finding['details'].encode('utf-8')).hexdigest()
+            hash_id = SecurityDetails.query.filter(SecurityDetails.detail_hash == md5).first()
+            if not hash_id:
+                hash_id = SecurityDetails(detail_hash=md5, details=finding['details'])
+                hash_id.insert()
+            # Verify issue is false_positive or ignored
+            finding['details'] = hash_id.id
+            entrypoints = ''
+            for each in finding.get("endpoints"):
+                if isinstance(each, list):
+                    entrypoints += "<br />".join(each)
+                else:
+                    entrypoints += f"<br />{each}"
+            finding["endpoints"] = entrypoints
+            if not (finding['false_positive'] == 1 or finding['excluded_finding'] == 1):
+                # TODO: add validation that finding is a part of project, applicaiton. etc.
+                issues = SecurityReport.query.filter(
+                    and_(SecurityReport.issue_hash == finding['issue_hash'],
+                         or_(SecurityReport.false_positive == 1,
+                             SecurityReport.excluded_finding == 1)
+                         )).all()
+                false_positive = sum(issue.false_positive for issue in issues)
+                excluded_finding = sum(issue.excluded_finding for issue in issues)
+                finding['false_positive'] = 1 if false_positive > 0 else 0
+                finding['excluded_finding'] = 1 if excluded_finding > 0 else 0
+            finding_db = SecurityReport(**finding)
+            finding_db.add()
+        if finding_db:
+            finding_db.commit()
+
+    def put(self):
+        args = self.put_parser.parse_args(strict=False)
+        # test_data = SecurityResults.query.filter_by(id=args['id']).first()
+        issue_hash = SecurityReport.query.filter_by(id=args['issue_id']).first().issue_hash
+        if args['action'] in ["false_positive", "excluded_finding"]:
+            upd = {args['action']: 1}
+        else:
+            upd = {'false_positive': 0, 'info_finding': 0}
+        #TODO: add validation that finding is a part of project, applicaiton. etc.
+        SecurityReport.query.filter(SecurityReport.issue_hash == issue_hash).update(upd)
+        SecurityReport.commit()
+        return {"message": "accepted"}
+
+
+class FindingsAnalysisApi(Resource):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('project_name', type=str, location="args")
+    get_parser.add_argument('app_name', type=str, location="args")
+    get_parser.add_argument('scan_type', type=str, location="args")
+    get_parser.add_argument("type", type=str, default="false-positive", location="args")
+
+    def get(self):
+        args = self.get_parser.parse_args(strict=False)
+        projects_filter = and_(SecurityResults.project_name == args["project_name"],
+                               SecurityResults.app_name == args["app_name"],
+                               SecurityResults.scan_type == args["scan_type"])
+        ids = SecurityResults.query.filter(projects_filter).all()
+        ids = [each.id for each in ids]
+        hashs = SecurityReport.query.filter(and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
+                                            ).with_entities(SecurityReport.issue_hash).distinct()
+        return [_.issue_hash for _ in hashs]
+
+
+api.add_resource(ReportApi, "/api/report")
+api.add_resource(ReportChartsApi, "/api/chart/<source>/<target>")
+api.add_resource(ReportsCompareApi, "/api/compare/<target>")
+api.add_resource(SecurityReportApi, "/api/security")
+api.add_resource(FindingsApi, "/api/security/finding")
+api.add_resource(FindingsAnalysisApi, "/api/security/fpa")
 
 
 

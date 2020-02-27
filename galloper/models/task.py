@@ -13,11 +13,10 @@
 #   limitations under the License.
 
 from uuid import uuid4
-from json import dumps
-from galloper.models import db
+from galloper.models import db, BaseModel
 
 
-class Task(db.Model):
+class Task(BaseModel, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.String(80), unique=True, nullable=False)
     zippath = db.Column(db.String(80), unique=True, nullable=False)
@@ -33,9 +32,6 @@ class Task(db.Model):
     func_args = db.Column(db.Text, unique=False, nullable=True)
     env_vars = db.Column(db.Text, unique=False, nullable=True)
     callback = db.Column(db.String(80), unique=False, nullable=True)
-
-    def __repr__(self):
-        return dumps(self.to_json(), indent=2)
 
     def to_json(self):
         if self.schedule and self.schedule in ['None', 'none', '']:
@@ -76,12 +72,3 @@ class Task(db.Model):
     def set_last_run(self, ts):
         self.last_run = ts
         db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    @staticmethod
-    def commit():
-        db.session.commit()
-

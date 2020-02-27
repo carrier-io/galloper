@@ -54,7 +54,7 @@ function loadRequestData(url, y_label) {
         low_value: $("#input-slider-range-value-low").html(),
         high_value: $("#input-slider-range-value-high").html()
       }, function( data ) {
-        lineChartData = $.parseJSON(data);
+        lineChartData = data;
         if(window.presetLine!=null){
             window.presetLine.destroy();
         }
@@ -65,7 +65,7 @@ function loadRequestData(url, y_label) {
 
 function fillTable(){
     $.get(
-    '/report/request/table',
+    '/api/chart/requests/table',
     {
         build_id: build_id,
         test_name: test_name,
@@ -79,7 +79,7 @@ function fillTable(){
     function( data ) {
         var tbody = $("#summary_table > tbody")
         tbody.empty();
-        $.parseJSON(data).forEach( item => {
+        data.forEach( item => {
             tbody.append(`<tr><td>${item["request_name"]}</td><td>${item["total"]}</td><td>${item["throughput"]}</td><td>${item["ko"]}</td><td>${item["min"]}</td><td>${item["pct50"]}</td><td>${item["pct95"]}</td><td>${item["max"]}</td></tr>`)
         });
     });
@@ -97,7 +97,7 @@ function findAndRemoveDataSet(dataset_name){
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
-  '/report/request/data',
+  '/api/chart/requests/data',
   {
     scope: request_name,
     metric: metric,
@@ -112,7 +112,6 @@ $.get(
     high_value: $("#input-slider-range-value-high").html()
   },
   function( data ) {
-    data = $.parseJSON(data);
     if (analyticsLine.data.labels.length == 0 || analyticsLine.data.labels.length != data.labels.length)
     {
         analyticsData = data;
@@ -136,7 +135,7 @@ function getData(scope, request_name) {
 
 $(document).ready(function() {
     setParams();
-    loadRequestData('/report/requests/summary', "Response time, ms");
+    loadRequestData('/api/chart/requests/summary', "Response time, ms");
     analyticsCanvas();
     fillTable();
     fillErrorTable();
@@ -304,5 +303,5 @@ function fillErrorTable() {
     var end_time = $("#end_time").html()
     var low_value = $("#input-slider-range-value-low").html()
     var high_value = $("#input-slider-range-value-high").html()
-    $("#errors").bootstrapTable('refreshOptions', {url: `/report/request/issues?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
+    $("#errors").bootstrapTable('refreshOptions', {url: `/api/chart/errors/table?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
 }

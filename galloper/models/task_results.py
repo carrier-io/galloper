@@ -12,29 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from json import dumps
-from galloper.models import db
+from galloper.models import db, BaseModel
 
 
-class Results(db.Model):
+class Results(BaseModel, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.String(80), unique=False, nullable=False)
     ts = db.Column(db.Integer, unique=False, nullable=False)
     results = db.Column(db.String(80), unique=False, nullable=False)
     log = db.Column(db.String(256), unique=False, nullable=False)
 
-    def __repr__(self):
-        return dumps(dict(task_id=self.task_id, ts=self.ts, results=self.results),indent=2)
-
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    @staticmethod
-    def commit():
-        db.session.commit()
-
+    def to_json(self):
+        return dict(id=self.id, task_id=self.task_id, ts=self.ts, results=self.results, log=self.log)
