@@ -142,7 +142,7 @@ class ReportApi(Resource):
     def put(self):
         args = self.put_parser.parse_args(strict=False)
         test_data = get_test_details(build_id=args['build_id'], test_name=args['test_name'], lg_type=args['lg_type'])
-        report = APIReport.query.filter_by(build_id=request.args['build_id']).first()
+        report = APIReport.query.filter_by(build_id=args['build_id']).first()
         report.end_time = test_data["end_time"]
         report.start_time = test_data["start_time"]
         report.failures = test_data["failures"]
@@ -150,11 +150,11 @@ class ReportApi(Resource):
         report.thresholds_missed = args.get("missed", 0)
         report.throughput = test_data["throughput"]
         report.pct95 = test_data["pct95"]
-        report.onexx = test_data["onexx"]
-        report.twoxx = test_data["twoxx"]
-        report.threexx = test_data["threexx"]
-        report.fourxx = test_data["fourxx"]
-        report.fivexx = test_data["fivexx"]
+        report.onexx = test_data["1xx"]
+        report.twoxx = test_data["2xx"]
+        report.threexx = test_data["3xx"]
+        report.fourxx = test_data["4xx"]
+        report.fivexx = test_data["5xx"]
         report.requests = ";".join(test_data["requests"])
         report.commit()
         return {"message": "updated"}
