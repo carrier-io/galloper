@@ -174,7 +174,7 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
     elif scope != 'All':
-        group_by = "group by request_name"
+        group_by += "group by request_name"
     if aggr in ["min", "max", "mean"]:
         aggr_func = f"{aggr.lower()}(response_time)"
     elif 'pct' in aggr:
@@ -191,7 +191,7 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
     return round(list(get_client().query(query)[test_name])[0]["rt"], 2)
 
 
-def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope):
+def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope, aggregator):
     scope_addon = ""
     group_by_addon = ""
     sampler_piece = ""
@@ -201,10 +201,13 @@ def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope):
         group_by_addon = "request_name"
     if sampler:
         sampler_piece = f"sampler_type='{sampler}' and"
-    group_by = f"group by {group_by_addon} time(1s)"
-    query = f"select mean(rt) as throughput from (select count(response_time) as rt from {lg_type}..{test_name} " \
-            f"where {sampler_piece} build_id='{build_id}' {scope_addon} {group_by} )"
+    group_by = f"group by {group_by_addon} time({aggregator})"
+    query = f"select mean(rt) as throughput from (" \
+            f"select count(response_time) as rt from {lg_type}..{test_name} " \
+            f"where {sampler_piece} build_id='{build_id}' {scope_addon} {group_by} " \
+            f")"
     return round(list(get_client().query(query)[test_name])[0]["throughput"], 2)
+
 
 def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
             timestamps=None, users=None, scope=None):

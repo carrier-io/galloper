@@ -167,6 +167,9 @@ def create_benchmark_dataset(args):
     build_ids = args['id[]']
     req = args.get('request')
     calculation = args.get('calculation')
+    aggregator = args.get('aggregator')
+    if not aggregator or aggregator == 'auto':
+        aggregator = '1s'
     tests_meta = APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.vusers.asc()).all()
     labels = set()
     data = {}
@@ -177,17 +180,16 @@ def create_benchmark_dataset(args):
             data[_.environment] = {}
         if calculation == 'throughput':
             y_axis = 'Requests per second'
-            if req == 'All':
-                data[_.environment][str(_.vusers)] = _.throughput
-            else:
-                data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
-                                                                             _.lg_type, "", req)
+            data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
+                                                                         _.lg_type, "", req,
+                                                                         aggregator)
         elif calculation != ['throughput']:
             y_axis = 'Response time, ms'
             if calculation == 'errors':
                 y_axis = 'Errors'
             data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
-                                                                            _.lg_type, "", req, calculation)
+                                                                            _.lg_type, "", req,
+                                                                            calculation)
         else:
             data[_.environment][str(_.vusers)] = None
     labels = [""] + sorted(list(labels)) + [""]
