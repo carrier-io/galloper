@@ -19,17 +19,17 @@ from galloper.config import Config
 from galloper.models import db
 
 
-def create_app(config_class=Config()):
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    app.config.from_object(config_class())
     with app.app_context():
         db.init_app(app)
 
     @app.teardown_appcontext
     def teardown_db(event):
-        db = g.pop('db', None)
-        if db:
-            db.close()
+        _db = g.pop("db", None)
+        if _db:
+            _db.close()
 
     @app.template_filter('ctime')
     def convert_time(ts):

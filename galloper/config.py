@@ -17,6 +17,7 @@ class Config:
         database = os.environ.get("POSTGRES_DB")
         username = os.environ.get("POSTGRES_USER")
         password = os.environ.get("POSTGRES_PASSWORD")
+        schema = os.environ.get("POSTGRES_SCHEMA")
 
         if all((host, database, username, password)):
             self.SQLALCHEMY_DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
@@ -26,3 +27,4 @@ class Config:
                 port=port,
                 database=database
             )
+            self.POSTGRES_SCHEMA = schema
