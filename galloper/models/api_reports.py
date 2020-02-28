@@ -1,7 +1,7 @@
-from galloper.models import db, BaseModel
+from galloper.models import db, AbstractBaseModel
 
 
-class APIReport(BaseModel, db.Model):
+class APIReport(AbstractBaseModel):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=False)
     environment = db.Column(db.String(80), unique=False)
@@ -25,28 +25,7 @@ class APIReport(BaseModel, db.Model):
     requests = db.Column(db.Text, unique=False)
     release_id = db.Column(db.Integer, nullable=True)
 
-    def to_json(self):
-        return {
-            "id": self.id,
-            "start_time": self.start_time,
-            "name": self.name,
-            "environment": self.environment,
-            "type": self.type,
-            "end_time": self.end_time,
-            "failures": self.failures,
-            "total": self.total,
-            "thresholds_missed": self.thresholds_missed,
-            "throughput": self.throughput,
-            "vusers": self.vusers,
-            "pct95": self.pct95,
-            "duration": self.duration,
-            "lg_type": self.lg_type,
-            "build_id": self.build_id,
-            "1xx": self.onexx,
-            "2xx": self.twoxx,
-            "3xx": self.threexx,
-            "4xx": self.fourxx,
-            "5xx": self.fivexx,
-            "requests": self.requests.split(";"),
-            "release_id": self.release_id
-        }
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        json_dict = super().to_json(exclude_fields=("requests",))
+        json_dict["requests"] = self.requests.split(";")
+        return json_dict

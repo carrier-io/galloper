@@ -12,10 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from galloper.models import db, BaseModel
+from galloper.models import db, AbstractBaseModel
 
 
-class SecurityResults(BaseModel, db.Model):
+class SecurityResults(AbstractBaseModel):
     id = db.Column(db.Integer, primary_key=True)
     scan_time = db.Column(db.String(80), unique=False)
     scan_duration = db.Column(db.String(80), unique=False)
@@ -29,11 +29,3 @@ class SecurityResults(BaseModel, db.Model):
     excluded = db.Column(db.Integer, unique=False)
     info_findings = db.Column(db.Integer, unique=False)
     environment = db.Column(db.String(20), unique=False, nullable=False)
-
-    def to_json(self):
-        return dict(id=self.id, scan_time=self.scan_time, scan_duration=self.scan_duration,
-                    project_name=self.project_name, app_name=self.app_name,
-                    dast_target=self.dast_target, sast_code=self.sast_code,
-                    scan_type=self.scan_type, findings=self.findings,
-                    false_positives=self.false_positives, excluded=self.excluded,
-                    info_findings=self.info_findings, environment=self.environment)

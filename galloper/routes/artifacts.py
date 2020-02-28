@@ -14,12 +14,6 @@
 
 from flask import Blueprint, request, render_template, redirect, url_for, send_file
 from galloper.processors import minio
-from galloper.constants import check_ui_performance
-import tempfile
-from time import sleep
-from json import loads
-from os.path import join
-from shutil import rmtree
 from io import BytesIO
 
 bp = Blueprint('artifacts', __name__)
@@ -36,12 +30,14 @@ def index():
                            buckets=buckets_list,
                            bucket=bucket_name)
 
+
 @bp.route('/artifacts/<bucket>/upload', methods=["POST"])
 def upload(bucket):
     if 'file' in request.files:
         f = request.files['file']
         minio.upload_file(bucket, f.read(), f.filename)
     return redirect(url_for('artifacts.index', q=bucket), code=302)
+
 
 @bp.route('/artifacts/<bucket>/<fname>/delete', methods=["GET"])
 def delete(bucket, fname):
@@ -54,6 +50,7 @@ def download(bucket, fname):
     fobj = minio.download_file(bucket, fname)
     return send_file(BytesIO(fobj), attachment_filename=fname)
 
+
 @bp.route('/artifacts/bucket', methods=["POST"])
 def create_bucket():
     bucket = request.form['bucket']
@@ -61,6 +58,7 @@ def create_bucket():
     if not res:
         return redirect(url_for('artifacts.index'), code=302)
     return redirect(url_for('artifacts.index', q=bucket), code=302)
+
 
 @bp.route('/artifacts/<bucket>/delete', methods=["GET"])
 def delete_bucket(bucket):

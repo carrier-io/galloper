@@ -13,10 +13,10 @@
 #   limitations under the License.
 
 from uuid import uuid4
-from galloper.models import db, BaseModel
+from galloper.models import db, AbstractBaseModel
 
 
-class Task(BaseModel, db.Model):
+class Task(AbstractBaseModel):
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.String(80), unique=True, nullable=False)
     zippath = db.Column(db.String(80), unique=True, nullable=False)
@@ -33,20 +33,16 @@ class Task(BaseModel, db.Model):
     env_vars = db.Column(db.Text, unique=False, nullable=True)
     callback = db.Column(db.String(80), unique=False, nullable=True)
 
-    def to_json(self):
-        if self.schedule and self.schedule in ['None', 'none', '']:
-            self.schedule = None
-        if self.callback and self.callback in ['None', 'none', '']:
-            self.callback = None
-        return dict(task_id=self.task_id, task_name=self.task_name, task_handler=self.task_handler,
-                    runtime=self.runtime, schedule=self.schedule, webhook=self.webhook,
-                    zippath=self.zippath, last_run=self.last_run, status=self.status, token=self.token,
-                    func_args=self.func_args, callback=self.callback, env_vars=self.env_vars)
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        json_dict = super().to_json(exclude_fields=("schedule", "callback"))
+        json_dict["schedule"] = self.schedule if self.schedule not in ("None", "none", "") else None
+        json_dict["callback"] = self.callback if self.callback not in ("None", "none", "") else None
+        return json_dict
 
     def insert(self):
-        if self.schedule and self.schedule in ['None', 'none']:
+        if self.schedule and self.schedule in ("None", "none", ""):
             self.schedule = None
-        if self.callback and self.callback in ['None', 'none']:
+        if self.callback and self.callback in ("None", "none", ""):
             self.callback = None
         if not self.webhook:
             self.webhook = f'/task/{self.task_id}'

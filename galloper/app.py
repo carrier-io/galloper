@@ -15,12 +15,13 @@
 from flask import Flask, g
 from datetime import datetime
 
+from galloper.config import Config
 from galloper.models import db
 
-def create_app():
+
+def create_app(config_class=Config()):
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/db/test.db'
-    app.config['UPLOAD_FOLDER'] = '/tmp/tasks'
+    app.config.from_object(config_class)
     with app.app_context():
         db.init_app(app)
 
