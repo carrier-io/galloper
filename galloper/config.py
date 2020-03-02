@@ -13,6 +13,7 @@
 #     limitations under the License.
 
 import os
+from typing import Optional
 
 from galloper.utils.patterns import SingletonABC
 
@@ -22,24 +23,30 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(metaclass=SingletonABC):
     APP_HOST: str = os.environ.get("APP_HOST") or "0.0.0.0"
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
+    DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "sqlite")
     DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
     UPLOAD_FOLDER: str = "/tmp/tasks"
     DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
-    def __init__(self):
-        host = os.environ.get("POSTGRES_HOST")
-        port = os.environ.get("POSTGRES_PORT", 5432)
-        database = os.environ.get("POSTGRES_DB")
-        username = os.environ.get("POSTGRES_USER")
-        password = os.environ.get("POSTGRES_PASSWORD")
-        schema = os.environ.get("POSTGRES_SCHEMA")
+    DATABASE_SCHEMA: Optional[str] = None
+
+    def __init__(self) -> None:
 
         self.db_engine_config = {
             "isolation_level": "READ COMMITTED",
             "echo": False
         }
 
-        if all((host, database, username, password)):
+        if self.DATABASE_VENDOR == "postgresql":
+
+            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "galloper_schema")
+
+            host = os.environ.get("POSTGRES_HOST", "127.0.0.1")
+            port = os.environ.get("POSTGRES_PORT", 5432)
+            database = os.environ.get("POSTGRES_DB", "galloper_database")
+            username = os.environ.get("POSTGRES_USER", "galloper_username")
+            password = os.environ.get("POSTGRES_PASSWORD", "galloper_password")
+
             self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,
                 password=password,
@@ -47,6 +54,6 @@ class Config(metaclass=SingletonABC):
                 port=port,
                 database=database
             )
-            self.POSTGRES_SCHEMA = schema
+
             self.db_engine_config["pool_size"] = 2
             self.db_engine_config["max_overflow"] = 0

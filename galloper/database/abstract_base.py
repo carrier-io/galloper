@@ -22,7 +22,7 @@ config = Config()
 
 class AbstractBaseMixin:
     __table__ = None
-    __table_args__ = {"schema": config.POSTGRES_SCHEMA} if hasattr(config, "POSTGRES_SCHEMA") else None
+    __table_args__ = {"schema": config.DATABASE_SCHEMA} if config.DATABASE_SCHEMA else None
 
     def __repr__(self) -> str:
         return json.dumps(self.to_json(), indent=2)

@@ -55,9 +55,8 @@ def create_app(config_class=Config):
 
 def main():
     _app = create_app()
-    host = "0.0.0.0"
-    port = 5000
-    _app.run(host=host, port=port, debug=True)
+    config = Config()
+    _app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
 
 
 if __name__ == "__main__":
