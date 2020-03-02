@@ -1,26 +1,22 @@
-#   Copyright 2019 getcarrier.io
+#     Copyright 2020 getcarrier.io
 #
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
+
+from io import BytesIO
 
 from flask import Blueprint, request, render_template, redirect, url_for, send_file
+
 from galloper.processors import minio
-from galloper.constants import check_ui_performance
-import tempfile
-from time import sleep
-from json import loads
-from os.path import join
-from shutil import rmtree
-from io import BytesIO
 
 bp = Blueprint('artifacts', __name__)
 
@@ -44,6 +40,7 @@ def upload(bucket):
         minio.upload_file(bucket, f.read(), f.filename)
     return redirect(url_for('artifacts.index', q=bucket), code=302)
 
+
 @bp.route('/artifacts/<bucket>/<fname>/delete', methods=["GET"])
 def delete(bucket, fname):
     minio.remove_file(bucket, fname)
@@ -55,6 +52,7 @@ def download(bucket, fname):
     fobj = minio.download_file(bucket, fname)
     return send_file(BytesIO(fobj), attachment_filename=fname)
 
+
 @bp.route('/artifacts/bucket', methods=["POST"])
 def create_bucket():
     bucket = request.form['bucket']
@@ -62,6 +60,7 @@ def create_bucket():
     if not res:
         return redirect(url_for('artifacts.index'), code=302)
     return redirect(url_for('artifacts.index', q=bucket), code=302)
+
 
 @bp.route('/artifacts/<bucket>/delete', methods=["GET"])
 def delete_bucket(bucket):

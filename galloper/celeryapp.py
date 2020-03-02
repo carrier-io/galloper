@@ -1,34 +1,35 @@
-#   Copyright 2019 getcarrier.io
+#     Copyright 2020 getcarrier.io
 #
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
+
+import re
+from datetime import datetime
+from json import dumps, loads
+from os import mkdir, path, rename
+from subprocess import Popen, PIPE
+from time import mktime
 
 import docker
-import re
-from docker.types import Mount
-from croniter import croniter
-from datetime import datetime
-from requests import post
-from time import time, mktime
-from os import mkdir, path, rename
-from json import dumps, loads
 from celery import Celery
 from celery.contrib.abortable import AbortableTask
-from subprocess import Popen, PIPE
+from croniter import croniter
+from docker.types import Mount
+from requests import post
 
-from galloper.dal import get_connection
-from galloper.dal.task import Task
 from galloper.constants import (REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT, REDIS_USER,
                                 UNZIP_DOCKERFILE, UNZIP_DOCKER_COMPOSE, APP_HOST, NAME_CONTAINER_MAPPING)
+from galloper.database.db_manager import db_session
+from galloper.database.models.task import Task
 
 app = Celery('Galloper',
              broker=f'redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
@@ -61,7 +62,7 @@ def run_lambda(task, event):
                                      command=[f"{task['task_handler']}", dumps(event)],
                                      mounts=[mount], stderr=True, remove=True,
                                      environment=env_vars)
-    # TODO: magic of 2 enters is very flaky, Need to think on how to workound, probably with specific logging
+    # TODO: magic of 2 enters is very flaky, Need to think on how to workaround, probably with specific logging
 
     log = response.decode("utf-8", errors='ignore')
     if container_name == "lambda:python3.7":
@@ -100,12 +101,11 @@ def zip_to_volume(self, task_id, file_path, *args, **kwargs):
 
 @app.task(name="tasks.execute", bind=True, acks_late=True, base=AbortableTask)
 def execute_lambda(self, task, event, *args, **kwargs):
-    conn = get_connection()
-    task = conn.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
+    task = db_session.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
     res = run_lambda(task, event)
     if task['callback']:
         event['result'] = res
-        task = conn.query(Task).filter(Task.task_id == task['callback'])[0].to_json()
+        task = db_session.query(Task).filter(Task.task_id == task['callback'])[0].to_json()
         execute_lambda.apply_async(kwargs=dict(task=task, event=event))
     return res
 
@@ -118,13 +118,12 @@ def calculate_next_run(task):
 
 @app.task(name="tasks.scheduled", bind=True, acks_late=True)
 def scan_tasks(self, *args, **kwargs):
-    conn = get_connection()
     next_run = 0
-    for task in conn.query(Task).filter(Task.schedule != None):
+    for task in db_session.query(Task).filter(Task.schedule != None):
         if task.last_run is None or task.next_run is None or task.next_run < int(mktime(datetime.utcnow().timetuple())):
             next_run = calculate_next_run(task)
             task.next_run = next_run
-            conn.commit()
+            db_session.commit()
             execute_lambda.apply_async(kwargs=dict(task=task.to_json(), event=loads(task.func_args)))
     return "Schedules all what is required", int(mktime(datetime.utcnow().timetuple())), next_run
 
@@ -135,5 +134,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

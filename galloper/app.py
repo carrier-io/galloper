@@ -1,34 +1,32 @@
-#   Copyright 2019 getcarrier.io
+#     Copyright 2020 getcarrier.io
 #
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
 
 from flask import Flask, g
 from datetime import datetime
 
-from galloper.models import db
+from galloper.config import Config
+from galloper.database.db_manager import init_db, db_session
 
-def create_app():
+
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/db/test.db'
-    app.config['UPLOAD_FOLDER'] = '/tmp/tasks'
-    with app.app_context():
-        db.init_app(app)
+    app.config.from_object(config_class())
+    init_db()
 
     @app.teardown_appcontext
-    def teardown_db(event):
-        db = g.pop('db', None)
-        if db:
-            db.close()
+    def shutdown_session(exception=None):
+        db_session.remove()
 
     @app.template_filter('ctime')
     def convert_time(ts):
@@ -52,17 +50,13 @@ def create_app():
     app.register_blueprint(thresholds.bp)
     app.register_blueprint(api_release.bp)
 
-    with app.app_context():
-        db.create_all(app=app)
-
     return app
 
 
 def main():
     _app = create_app()
-    host = "0.0.0.0"
-    port = 5000
-    _app.run(host=host, port=port, debug=True)
+    config = Config()
+    _app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
 
 
 if __name__ == "__main__":

@@ -1,26 +1,28 @@
-#   Copyright 2019 getcarrier.io
+#     Copyright 2020 getcarrier.io
 #
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
 
-from flask import Blueprint, request, render_template, current_app, redirect, url_for
-from galloper.processors.perfui import prepareReport
-from galloper.constants import check_ui_performance, APP_HOST
-from galloper.processors.minio import upload_file
 import tempfile
-from time import sleep
 from json import loads
 from os.path import join
 from shutil import rmtree
+from time import sleep
+
+from flask import Blueprint, request, render_template, current_app, redirect, url_for
+
+from galloper.constants import check_ui_performance
+from galloper.processors.minio import upload_file
+from galloper.processors.perfui import prepareReport
 
 bp = Blueprint('observer', __name__)
 
