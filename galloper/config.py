@@ -41,7 +41,7 @@ class Config(metaclass=SingletonABC):
 
             self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "galloper_schema")
 
-            host = os.environ.get("POSTGRES_HOST", "postgres")
+            host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
             database = os.environ.get("POSTGRES_DB", "galloper_database")
             username = os.environ.get("POSTGRES_USER", "galloper_username")
