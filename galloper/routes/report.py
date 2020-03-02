@@ -82,7 +82,7 @@ get_report_parser.add_argument('sort', type=str, default='', location="args")
 get_report_parser.add_argument('order', type=str, default='', location="args")
 
 delete_report_parser = reqparse.RequestParser()
-delete_report_parser.add_argument('id[]', type=list, action='append', location="args")
+delete_report_parser.add_argument('id[]', type=int, action='append', location="args")
 
 
 class ReportApi(Resource):
@@ -163,7 +163,7 @@ class ReportApi(Resource):
 
     def delete(self):
         args = delete_report_parser.parse_args(strict=False)
-        for each in APIReport.query.filter(APIReport.id.in_(args["id[]"])).order_by(APIReport.id.asc()).all():
+        for each in APIReport.query.filter(APIReport.id.in_(args["id[]"])).all():
             delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
@@ -266,7 +266,7 @@ class SecurityReportApi(Resource):
     def delete(self):
         args = delete_report_parser.parse_args(strict=False)
         for each in SecurityReport.query.filter(SecurityReport.report_id.in_(args["id[]"])
-                                                 ).order_by(SecurityReport.id.asc()).all():
+                                                ).order_by(SecurityReport.id.asc()).all():
             each.delete()
         for each in SecurityResults.query.filter(SecurityResults.id.in_(args["id[]"])
                                                  ).order_by(SecurityResults.id.asc()).all():

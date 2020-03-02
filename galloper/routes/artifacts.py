@@ -36,6 +36,7 @@ def index():
                            buckets=buckets_list,
                            bucket=bucket_name)
 
+
 @bp.route('/artifacts/<bucket>/upload', methods=["POST"])
 def upload(bucket):
     if 'file' in request.files:
