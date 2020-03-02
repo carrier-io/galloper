@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from galloper.models.api_reports import APIReport
+from galloper.database.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_backend_requests, get_hits_tps, average_responses, get_build_data, get_tps,
                                          get_hits, get_errors, get_response_codes, get_backend_users,
                                          get_throughput_per_test, get_response_time_per_test)

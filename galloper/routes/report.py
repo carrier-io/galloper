@@ -1,26 +1,26 @@
-#   Copyright 2019 getcarrier.io
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+#     Copyright 2020 getcarrier.io
+# 
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
+# 
+#         http://www.apache.org/licenses/LICENSE-2.0
+# 
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
 
 import hashlib
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import Blueprint, request, render_template
 from flask_restful import Api, Resource, reqparse
-from galloper.models.api_reports import APIReport
-from galloper.models.security_results import SecurityResults
-from galloper.models.security_reports import SecurityReport
-from galloper.models.security_details import SecurityDetails
+from galloper.database.models.api_reports import APIReport
+from galloper.database.models.security_results import SecurityResults
+from galloper.database.models.security_reports import SecurityReport
+from galloper.database.models.security_details import SecurityDetails
 from galloper.data_utils.report_utils import render_analytics_control
 from galloper.data_utils.charts_utils import (requests_summary, requests_hits, avg_responses, summary_table,
                                               get_issues, get_data_from_influx, prepare_comparison_responses,
@@ -392,8 +392,3 @@ api.add_resource(ReportsCompareApi, "/api/compare/<target>")
 api.add_resource(SecurityReportApi, "/api/security")
 api.add_resource(FindingsApi, "/api/security/finding")
 api.add_resource(FindingsAnalysisApi, "/api/security/fpa")
-
-
-
-
-

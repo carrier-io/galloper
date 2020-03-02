@@ -6,6 +6,8 @@ ARG PREFIX=/opt/ffmpeg
 ARG LD_LIBRARY_PATH=/opt/ffmpeg/lib
 ARG MAKEFLAGS="-j4"
 
+RUN apk add postgresql-dev --no-cache
+
 # FFmpeg build dependencies.
 RUN apk add --update --no-cache \
   build-base \

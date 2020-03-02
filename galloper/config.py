@@ -1,13 +1,28 @@
+#     Copyright 2020 getcarrier.io
+#
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
+
 import os
+
+from galloper.utils.patterns import SingletonABC
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
-class Config:
+class Config(metaclass=SingletonABC):
     APP_HOST: str = os.environ.get("APP_HOST") or "0.0.0.0"
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
-    SQLALCHEMY_DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
-    SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
+    DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
     UPLOAD_FOLDER: str = "/tmp/tasks"
     DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
@@ -19,8 +34,13 @@ class Config:
         password = os.environ.get("POSTGRES_PASSWORD")
         schema = os.environ.get("POSTGRES_SCHEMA")
 
+        self.db_engine_config = {
+            "isolation_level": "READ COMMITTED",
+            "echo": False
+        }
+
         if all((host, database, username, password)):
-            self.SQLALCHEMY_DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
+            self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,
                 password=password,
                 host=host,
@@ -28,3 +48,5 @@ class Config:
                 database=database
             )
             self.POSTGRES_SCHEMA = schema
+            self.db_engine_config["pool_size"] = 2
+            self.db_engine_config["max_overflow"] = 0
