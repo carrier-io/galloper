@@ -22,5 +22,5 @@ class SecurityDetails(AbstractBaseMixin, Base):
     __tablename__ = "security_details"
 
     id = Column(Integer, primary_key=True)
-    detail_hash = Column(String(80), unique=False)
+    detail_hash = Column(String(128), unique=False)
     details = Column(Text, unique=False)
