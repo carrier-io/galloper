@@ -22,5 +22,5 @@ class APIRelease(AbstractBaseMixin, Base):
     __tablename__ = "api_release"
 
     id = Column(Integer, primary_key=True)
-    release_date = Column(String(80), unique=False)
-    release_name = Column(String(80), unique=False)
+    release_date = Column(String(128), unique=False)
+    release_name = Column(String(128), unique=False)
