@@ -15,24 +15,33 @@
 from datetime import datetime
 
 from flask import Blueprint
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource
 from sqlalchemy import and_
 
 from galloper.database.models.api_release import APIRelease
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
+from galloper.utils.api_utils import build_req_parser
 
 bp = Blueprint("releases_api", __name__)
 api = Api(bp)
 
 
 class ReleaseApi(Resource):
-    _port_parser = reqparse.RequestParser()
-    _port_parser.add_argument("release_name", type=str, location="json")
+    post_rules = (
+        dict(name="release_name", type=str, location="json")
+    )
+    put_rules = (
+        dict(name="release_id", type=int, location="json"),
+        dict(name="reports", type=list, location="json")
+    )
 
-    _put_parser = reqparse.RequestParser()
-    _put_parser.add_argument("release_id", type=int, location="json")
-    _put_parser.add_argument("reports", type=list, location="json")
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_put = build_req_parser(rules=self.put_rules)
+        self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: int):
         project = Project.get_object_or_404(pk=project_id)
@@ -41,7 +50,7 @@ class ReleaseApi(Resource):
         ]
 
     def post(self, project_id: int):
-        args = self._port_parser.parse_args(strict=False)
+        args = self._parser_post.parse_args(strict=False)
         project = Project.get_object_or_404(pk=project_id)
         release = APIRelease(
             project_id=project.id,
@@ -52,7 +61,7 @@ class ReleaseApi(Resource):
         return release.to_json()
 
     def put(self, project_id: int):
-        args = self._put_parser.parse_args(strict=False)
+        args = self._parser_put.parse_args(strict=False)
         project = Project.get_object_or_404(pk=project_id)
         updated_reports = []
 
@@ -66,12 +75,20 @@ class ReleaseApi(Resource):
 
 
 class ReleaseApiReports(Resource):
-    _parser = reqparse.RequestParser()
-    _parser.add_argument("release_name", type=str, location="args")
-    _parser.add_argument("release_id", type=int, location="args")
+
+    get_rules = (
+        dict(name="release_name", type=str, location="args"),
+        dict(name="release_id", type=int, location="args")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
 
     def get(self, project_id: int):
-        args = self._parser.parse_args(strict=False)
+        args = self._parser_get.parse_args(strict=False)
         project = Project.get_object_or_404(pk=project_id)
         try:
             if args.get("release_name"):

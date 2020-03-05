@@ -13,12 +13,13 @@
 #     limitations under the License.
 
 from flask import Blueprint, render_template
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource
 from sqlalchemy import and_
 
 from galloper.dal.influx_results import get_threholds, create_thresholds, delete_threshold
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
+from galloper.utils.api_utils import build_req_parser
 
 bp = Blueprint("thresholds", __name__)
 api = Api(bp)
@@ -32,26 +33,36 @@ def report(project_id: int):
 
 
 class ApiThresholds(Resource):
-    _get_parser = reqparse.RequestParser()
-    _get_parser.add_argument("name", type=str, location="args")
+    get_rules = (
+        dict(name="name", type=str, location="args")
+    )
+    delete_rules = (
+        dict(name="name", type=str, location="args"),
+        dict(name="test", type=str, location=("args", "json")),
+        dict(name="scope", type=str, location=("args", "json")),
+        dict(name="target", type=str, location=("args", "json")),
+        dict(name="aggregation", type=str, location=("args", "json")),
+        dict(name="comparison", type=str, location=("args", "json"))
+    )
+    post_rules = delete_rules + (
+        dict(name="yellow", type=float, location="json"),
+        dict(name="red", type=float, location="json")
+    )
 
-    _delete_parser = reqparse.RequestParser()
-    _delete_parser.add_argument("test", type=str, location=["args", "json"])
-    _delete_parser.add_argument("scope", type=str, location=["args", "json"])
-    _delete_parser.add_argument("target", type=str, location=["args", "json"])
-    _delete_parser.add_argument("aggregation", type=str, location=["args", "json"])
-    _delete_parser.add_argument("comparison", type=str, location=["args", "json"])
+    def __init__(self):
+        self.__init_req_parsers()
 
-    _post_parser = _delete_parser.copy()
-    _post_parser.add_argument("yellow", type=float, location="json")
-    _post_parser.add_argument("red", type=float, location="json")
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+        self._parser_post = build_req_parser(rules=self.post_rules)
+        self._parser_delete = build_req_parser(rules=self.delete_rules)
 
     def get(self):
-        args = self.get_parser.parse_args(strict=False)
+        args = self._parser_get.parse_args(strict=False)
         return get_threholds(test_name=args.get("name"))
 
     def post(self):
-        args = self._post_parser.parse_args(strict=False)
+        args = self._parser_post.parse_args(strict=False)
         create_thresholds(
             test=args["test"],
             scope=args["scope"],
@@ -64,7 +75,7 @@ class ApiThresholds(Resource):
         return {"message": "OK"}
 
     def delete(self):
-        args = self._delete_parser.parse_args(strict=False)
+        args = self._parser_delete.parse_args(strict=False)
         delete_threshold(
             test=args["test"],
             target=args["target"],
@@ -76,11 +87,18 @@ class ApiThresholds(Resource):
 
 
 class ApiRequests(Resource):
-    _get_parser = reqparse.RequestParser()
-    _get_parser.add_argument("name", type=str, location="args")
+    get_rules = (
+        dict(name="name", type=str, location="args")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
 
     def get(self, project_id: int):
-        args = self._get_parser.parse_args(strict=False)
+        args = self._parser_get.parse_args(strict=False)
         project = Project.get_object_or_404(pk=project_id)
 
         requests_data = set()
@@ -95,4 +113,3 @@ class ApiRequests(Resource):
 
 api.add_resource(ApiThresholds, "/api/thresholds")
 api.add_resource(ApiRequests, "/api/<int:project_id>/requests")
-

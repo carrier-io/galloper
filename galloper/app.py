@@ -12,14 +12,24 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Flask, g
+from flask import Flask
 from datetime import datetime
 
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
 
 
-def create_app(config_class=Config):
+def register_blueprints(app: Flask) -> None:
+    from galloper.routes import tasks, observer, artifacts, report, thresholds, api_release
+    app.register_blueprint(tasks.bp)
+    app.register_blueprint(observer.bp)
+    app.register_blueprint(artifacts.bp)
+    app.register_blueprint(report.bp)
+    app.register_blueprint(thresholds.bp)
+    app.register_blueprint(api_release.bp)
+
+
+def create_app(config_class: type = Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class())
     init_db()
@@ -42,18 +52,12 @@ def create_app(config_class=Config):
         except:
             return 0
 
-    from galloper.routes import tasks, observer, artifacts, report, thresholds, api_release
-    app.register_blueprint(tasks.bp)
-    app.register_blueprint(observer.bp)
-    app.register_blueprint(artifacts.bp)
-    app.register_blueprint(report.bp)
-    app.register_blueprint(thresholds.bp)
-    app.register_blueprint(api_release.bp)
+    register_blueprints(app)
 
     return app
 
 
-def main():
+def main() -> None:
     _app = create_app()
     config = Config()
     _app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
