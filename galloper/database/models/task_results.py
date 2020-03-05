@@ -12,7 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from sqlalchemy import String, Column, Integer
+from sqlalchemy import String, Column, Integer, Text
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
@@ -22,7 +22,7 @@ class Results(AbstractBaseMixin, Base):
     __tablename__ = "results"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(String(80), unique=False, nullable=False)
+    task_id = Column(String(128), unique=False, nullable=False)
     ts = Column(Integer, unique=False, nullable=False)
-    results = Column(String(80), unique=False, nullable=False)
-    log = Column(String(256), unique=False, nullable=False)
+    results = Column(String(512), unique=False, nullable=False)
+    log = Column(Text, unique=False, nullable=False)
