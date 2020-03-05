@@ -22,6 +22,7 @@ class SecurityReport(AbstractBaseMixin, Base):
     __tablename__ = "security_report"
 
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
     report_id = Column(Integer, nullable=False)
     issue_hash = Column(String(128), unique=False)
     tool_name = Column(String(128), unique=False)

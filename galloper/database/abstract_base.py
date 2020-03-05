@@ -13,6 +13,9 @@
 #     limitations under the License.
 
 import json
+from typing import Any, Optional
+
+from werkzeug.exceptions import NotFound
 
 from galloper.config import Config
 from galloper.database.db_manager import db_session
@@ -47,3 +50,15 @@ class AbstractBaseMixin:
     def delete(self) -> None:
         db_session.delete(self)
         self.commit()
+
+    @classmethod
+    def get_object_or_404(
+        cls, pk: int, pk_field_name: str = "id", custom_params: Optional[Any] = None
+    ) -> object:
+        if custom_params:
+            instance = cls.query.filter_by(**{pk_field_name: pk}).first()
+        else:
+            instance = cls.query.filter(custom_params).first()
+        if not instance:
+            raise NotFound(description=f"{cls.__name__} object not found")
+        return instance

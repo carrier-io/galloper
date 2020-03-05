@@ -22,6 +22,7 @@ class APIReport(AbstractBaseMixin, Base):
     __tablename__ = "api_report"
 
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
     name = Column(String(128), unique=False)
     environment = Column(String(128), unique=False)
     type = Column(String(128), unique=False)

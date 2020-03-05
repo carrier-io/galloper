@@ -22,6 +22,7 @@ class SecurityResults(AbstractBaseMixin, Base):
     __tablename__ = "security_results"
 
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
     scan_time = Column(String(128), unique=False)
     scan_duration = Column(String(128), unique=False)
     project_name = Column(String(128), unique=False)
