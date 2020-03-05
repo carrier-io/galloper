@@ -16,26 +16,29 @@ import os
 from uuid import uuid4
 
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
+from sqlalchemy import and_
 from werkzeug.utils import secure_filename
 
 from galloper.constants import allowed_file, NAME_CONTAINER_MAPPING
 from control_tower import run
 
+from galloper.database.models.project import Project
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
 
 bp = Blueprint("tasks", __name__)
 
 
-@bp.route("/tasks", methods=["GET", "POST"])
-def tasks():
+@bp.route("/<int:project_id>/tasks", methods=["GET"])
+def tasks(project_id: int):
     if request.method == "GET":
-        tasks = Task.query.order_by(Task.id).all()
+        project = Project.get_object_or_404(pk=project_id)
+        tasks = Task.query.filter(Task.project_id == project.id).order_by(Task.id).all()
         return render_template("lambdas/tasks.html", tasks=tasks)
 
 
-@bp.route("/task", methods=["GET", "POST"])
-def add_task():
+@bp.route("/<int:project_id>/task", methods=["GET", "POST"])
+def add_task(project_id: int):
     if request.method == "GET":
         return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
     if request.method == "POST":
@@ -47,29 +50,46 @@ def add_task():
             flash("No selected file")
             return ""
         if file and allowed_file(file.filename):
+            project = Project.get_object_or_404(pk=project_id)
             filename = str(uuid4())
             filename = secure_filename(filename)
             file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
             app = run.connect_to_celery(1)
-            celery_task = app.signature("tasks.volume",
-                                        kwargs={"task_id": filename, "file_path": current_app.config["UPLOAD_FOLDER"]})
+            celery_task = app.signature(
+                "tasks.volume",
+                kwargs={"task_id": filename, "file_path": current_app.config["UPLOAD_FOLDER"]}
+            )
             celery_task.apply_async()
-            task = Task(task_id=filename, zippath=filename, task_name=request.form["funcname"],
-                        task_handler=request.form["invoke_func"], runtime=request.form["runtime"],
-                        env_vars=request.form["env_vars"])
+            task = Task(
+                task_id=filename,
+                project_id=project.id,
+                zippath=filename,
+                task_name=request.form["funcname"],
+                task_handler=request.form["invoke_func"],
+                runtime=request.form["runtime"],
+                env_vars=request.form["env_vars"]
+            )
             task.insert()
             return f"{filename}"
 
 
-@bp.route("/task/<task_name>", methods=["GET", "POST"])
-def call_lambda(task_name):
+@bp.route("/<int:project_id>/task/<str:task_id>", methods=["GET", "POST"])
+def call_lambda(project_id: int, task_id: str):
+    project = Project.get_object_or_404(pk=project_id)
     if request.method == "GET":
-        return render_template("lambdas/task.html",
-                               task=Task.query.filter_by(task_id=task_name).first(),
-                               runtimes=NAME_CONTAINER_MAPPING.keys())
+        task = Task.query.filter(
+            and_(Task.task_id == task_id, Task.project_id == project.id)
+        ).first()
+        return render_template(
+            "lambdas/task.html",
+            task=task,
+            runtimes=NAME_CONTAINER_MAPPING.keys()
+        )
     else:
         if request.content_type == "application/json":
-            task = Task.query.filter_by(task_id=task_name).first().to_json()
+            task = Task.query.filter(
+                and_(Task.task_id == task_id, Task.project_id == project.id)
+            ).first().to_json()
             event = request.get_json()
             app = run.connect_to_celery(1)
             celery_task = app.signature("tasks.execute",
@@ -77,17 +97,22 @@ def call_lambda(task_name):
             celery_task.apply_async()
             return "Accepted", 201
         elif request.content_type == "application/x-www-form-urlencoded":
-            return f"Calling {task_name} with {request.form}"
+            return f"Calling {task_id} with {request.form}"
 
 
-@bp.route("/task/<task_name>/<action>", methods=["GET", "POST"])
-def suspend_task(task_name, action):
+@bp.route("/<int:project_id>/task/<str:task_id>/<str:action>", methods=["GET", "POST"])
+def suspend_task(project_id: int, task_id: str, action: str):
+    project = Project.get_object_or_404(pk=project_id)
     if action in ["suspend", "delete", "activate"]:
-        task = Task.query.filter_by(task_id=task_name).first()
+        task = Task.query.filter(
+                and_(Task.task_id == task_id, Task.project_id == project.id)
+            ).first()
         getattr(task, action)()
     elif action == "edit":
         if request.method == "POST":
-            task = Task.query.filter_by(task_id=task_name).first()
+            task = Task.query.filter(
+                and_(Task.task_id == task_id, Task.project_id == project.id)
+            ).first()
             for key, value in request.form.items():
                 if key in ["id", "task_id", "zippath", "last_run"]:
                     continue
@@ -102,16 +127,23 @@ def suspend_task(task_name, action):
     elif action == "results":
         if request.method == "POST":
             data = request.get_json()
-            task = Task.query.filter_by(task_id=task_name).first()
+            task = Task.query.filter(
+                and_(Task.task_id == task_id, Task.project_id == project.id)
+            ).first()
             task.set_last_run(data["ts"])
-            result = Results(task_id=task_name, ts=data["ts"],
+            result = Results(task_id=task_id,
+                             ts=data["ts"],
                              results=data["results"],
                              log=data["stderr"])
             result.insert()
             return "OK", 201
         if request.method == "GET":
-            result = Results.query.filter_by(task_id=task_name).order_by(Results.ts.desc()).all()
-            task = Task.query.filter_by(task_id=task_name).first()
+            result = Results.query.filter(
+                and_(Results.task_id == task_id, Task.project_id == project.id)
+            ).order_by(Results.ts.desc()).all()
+            task = Task.query.filter(
+                and_(Task.task_id == task_id, Task.project_id == project.id)
+            ).first()
             return render_template("lambdas/task_results.html", results=result, task=task)
     return redirect(url_for("tasks.tasks"))
 
