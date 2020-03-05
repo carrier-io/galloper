@@ -18,51 +18,51 @@ from flask import Blueprint, request, render_template, redirect, url_for, send_f
 
 from galloper.processors import minio
 
-bp = Blueprint('artifacts', __name__)
+bp = Blueprint("artifacts", __name__)
 
 
-@bp.route('/artifacts', methods=["GET", "POST"])
+@bp.route("/artifacts", methods=["GET", "POST"])
 def index():
     bucket_name = request.args.get("q", None)
     buckets_list = minio.list_bucket()
     if not bucket_name or bucket_name not in buckets_list:
-        return redirect(url_for('artifacts.index', q=buckets_list[0]))
-    return render_template('artifacts/files.html', 
-                           files=minio.list_files(bucket_name), 
+        return redirect(url_for("artifacts.index", q=buckets_list[0]))
+    return render_template("artifacts/files.html",
+                           files=minio.list_files(bucket_name),
                            buckets=buckets_list,
                            bucket=bucket_name)
 
 
-@bp.route('/artifacts/<bucket>/upload', methods=["POST"])
+@bp.route("/artifacts/<bucket>/upload", methods=["POST"])
 def upload(bucket):
-    if 'file' in request.files:
-        f = request.files['file']
+    if "file" in request.files:
+        f = request.files["file"]
         minio.upload_file(bucket, f.read(), f.filename)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
-@bp.route('/artifacts/<bucket>/<fname>/delete', methods=["GET"])
+@bp.route("/artifacts/<bucket>/<fname>/delete", methods=["GET"])
 def delete(bucket, fname):
     minio.remove_file(bucket, fname)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
-    
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
-@bp.route('/artifacts/<bucket>/<fname>', methods=["GET"])
+
+@bp.route("/artifacts/<bucket>/<fname>", methods=["GET"])
 def download(bucket, fname):
     fobj = minio.download_file(bucket, fname)
     return send_file(BytesIO(fobj), attachment_filename=fname)
 
 
-@bp.route('/artifacts/bucket', methods=["POST"])
+@bp.route("/artifacts/bucket", methods=["POST"])
 def create_bucket():
-    bucket = request.form['bucket']
+    bucket = request.form["bucket"]
     res = minio.create_bucket(bucket)
     if not res:
-        return redirect(url_for('artifacts.index'), code=302)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
+        return redirect(url_for("artifacts.index"), code=302)
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
-@bp.route('/artifacts/<bucket>/delete', methods=["GET"])
+@bp.route("/artifacts/<bucket>/delete", methods=["GET"])
 def delete_bucket(bucket):
     minio.remove_bucket(bucket)
-    return redirect(url_for('artifacts.index'), code=302)
+    return redirect(url_for("artifacts.index"), code=302)
