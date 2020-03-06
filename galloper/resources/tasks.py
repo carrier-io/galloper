@@ -73,7 +73,7 @@ def add_task(project_id: int):
             return f"{filename}"
 
 
-@bp.route("/<int:project_id>/task/<str:task_id>", methods=["GET", "POST"])
+@bp.route("/<int:project_id>/task/<string:task_id>", methods=["GET", "POST"])
 def call_lambda(project_id: int, task_id: str):
     project = Project.get_object_or_404(pk=project_id)
     if request.method == "GET":
@@ -100,7 +100,7 @@ def call_lambda(project_id: int, task_id: str):
             return f"Calling {task_id} with {request.form}"
 
 
-@bp.route("/<int:project_id>/task/<str:task_id>/<str:action>", methods=["GET", "POST"])
+@bp.route("/<int:project_id>/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
 def suspend_task(project_id: int, task_id: str, action: str):
     project = Project.get_object_or_404(pk=project_id)
     if action in ["suspend", "delete", "activate"]:
@@ -146,9 +146,3 @@ def suspend_task(project_id: int, task_id: str, action: str):
             ).first()
             return render_template("lambdas/task_results.html", results=result, task=task)
     return redirect(url_for("tasks.tasks"))
-
-
-@bp.route("/", methods=["GET"])
-def index():
-    if request.method == "GET":
-        return redirect(url_for("tasks.tasks"))

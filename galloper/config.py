@@ -39,13 +39,13 @@ class Config(metaclass=SingletonABC):
 
         if self.DATABASE_VENDOR == "postgresql":
 
-            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "galloper_schema")
+            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "carrier")
 
             host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
-            database = os.environ.get("POSTGRES_DB", "galloper_database")
-            username = os.environ.get("POSTGRES_USER", "galloper_username")
-            password = os.environ.get("POSTGRES_PASSWORD", "galloper_password")
+            database = os.environ.get("POSTGRES_DB", "carrier_pg_db")
+            username = os.environ.get("POSTGRES_USER", "carrier_pg_user")
+            password = os.environ.get("POSTGRES_PASSWORD", "carrier_pg_password")
 
             self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,

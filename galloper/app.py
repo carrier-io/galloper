@@ -23,7 +23,8 @@ from galloper.resources.api.routes import initialize_api_routes
 
 
 def register_blueprints(app: Flask) -> None:
-    from galloper.resources import tasks, observer, artifacts, report, thresholds
+    from galloper.resources import tasks, observer, artifacts, report, thresholds, projects
+    app.register_blueprint(projects.bp)
     app.register_blueprint(tasks.bp)
     app.register_blueprint(observer.bp)
     app.register_blueprint(artifacts.bp)

@@ -1,0 +1,48 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+    <div class="col">
+        <div class="card shadow">
+            <div class="card-header bg-white border-0">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h3 class="mb-0">Add New Project</h3>
+                    </div>
+                    <div class="col-4 text-right">
+                        <a href="/projects" class="btn btn-sm btn-primary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="/project/add" id="crtask" method="post">
+                    <div class="pl-lg-4">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label class="form-control-label" for="name">Project Name</label>
+                                    <p><small>Enter Project Name</small></p>
+                                    <input type="text" id="name" name="name" class="form-control form-control-alternative"
+                                           placeholder="Project Name (e.g. my_project)">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <small>
+
+                                </small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <button type="submit" class="btn btn-primary">Create Project</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'common/foot.html' %}
+</body>
+</html>
