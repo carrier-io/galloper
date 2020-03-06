@@ -14,8 +14,7 @@
 
 from datetime import datetime
 
-from flask import Blueprint
-from flask_restful import Api, Resource
+from flask_restful import Resource
 from sqlalchemy import and_
 
 from galloper.database.models.api_release import APIRelease
@@ -23,11 +22,8 @@ from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
 
-bp = Blueprint("releases_api", __name__)
-api = Api(bp)
 
-
-class ReleaseApi(Resource):
+class ReleaseAPI(Resource):
     post_rules = (
         dict(name="release_name", type=str, location="json")
     )
@@ -74,7 +70,7 @@ class ReleaseApi(Resource):
         return {"message": updated_reports}
 
 
-class ReleaseApiReports(Resource):
+class ApiReportsAPI(Resource):
 
     get_rules = (
         dict(name="release_name", type=str, location="args"),
@@ -104,7 +100,3 @@ class ReleaseApiReports(Resource):
             return api_report_ids
         except AttributeError:
             return []
-
-
-api.add_resource(ReleaseApi, "/api/<int:project_id>/releases/api")
-api.add_resource(ReleaseApiReports, "/api/<int:project_id>/releases/api/reports")

@@ -12,8 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Blueprint, render_template
-from flask_restful import Api, Resource
+from flask_restful import Resource
 from sqlalchemy import and_
 
 from galloper.dal.influx_results import get_threholds, create_thresholds, delete_threshold
@@ -21,18 +20,8 @@ from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
 
-bp = Blueprint("thresholds", __name__)
-api = Api(bp)
 
-
-@bp.route("/<int:project_id>/thresholds/api", methods=["GET"])
-def report(project_id: int):
-    project = Project.get_object_or_404(pk=project_id)
-    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).all()
-    return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])
-
-
-class ApiThresholds(Resource):
+class ThresholdsAPI(Resource):
     get_rules = (
         dict(name="name", type=str, location="args")
     )
@@ -86,7 +75,7 @@ class ApiThresholds(Resource):
         return {"message": "OK"}
 
 
-class ApiRequests(Resource):
+class RequestsAPI(Resource):
     get_rules = (
         dict(name="name", type=str, location="args")
     )
@@ -109,7 +98,3 @@ class ApiRequests(Resource):
         for each in query_result:
             requests_data.update(set(each.requests.split(";")))
         return list(requests_data)
-
-
-api.add_resource(ApiThresholds, "/api/thresholds")
-api.add_resource(ApiRequests, "/api/<int:project_id>/requests")

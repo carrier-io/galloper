@@ -15,18 +15,25 @@
 from flask import Flask
 from datetime import datetime
 
+from flask_restful import Api
+
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
+from galloper.resources.api.routes import initialize_api_routes
 
 
 def register_blueprints(app: Flask) -> None:
-    from galloper.routes import tasks, observer, artifacts, report, thresholds, api_release
+    from galloper.resources import tasks, observer, artifacts, report, thresholds
     app.register_blueprint(tasks.bp)
     app.register_blueprint(observer.bp)
     app.register_blueprint(artifacts.bp)
     app.register_blueprint(report.bp)
     app.register_blueprint(thresholds.bp)
-    app.register_blueprint(api_release.bp)
+
+
+def register_api(app: Flask) -> None:
+    api = Api(app, prefix='/v1', catch_all_404s=True)
+    initialize_api_routes(api=api)
 
 
 def create_app(config_class: type = Config) -> Flask:
@@ -52,7 +59,8 @@ def create_app(config_class: type = Config) -> Flask:
         except:
             return 0
 
-    register_blueprints(app)
+    register_blueprints(app=app)
+    register_api(app=app)
 
     return app
 
