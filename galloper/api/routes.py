@@ -14,10 +14,9 @@
 
 from flask_restful import Api
 
-from galloper.resources.api.api_release import ReleaseAPI, ApiReportsAPI
-from galloper.resources.api.report import (ReportAPI, ReportChartsAPI, ReportsCompareAPI,
-                                           SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI)
-from galloper.resources.api.thresholds import ThresholdsAPI, RequestsAPI
+from .api_release import ReleaseAPI, ApiReportsAPI
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
+from .thresholds import ThresholdsAPI, RequestsAPI
 from galloper.utils.api_utils import add_resource_to_api
 
 

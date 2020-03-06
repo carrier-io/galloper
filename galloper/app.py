@@ -19,11 +19,11 @@ from flask_restful import Api
 
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
-from galloper.resources.api.routes import initialize_api_routes
+from galloper.api.routes import initialize_api_routes
 
 
 def register_blueprints(app: Flask) -> None:
-    from galloper.resources import tasks, observer, artifacts, report, thresholds, projects
+    from galloper.routes import tasks, observer, artifacts, report, thresholds, projects
     app.register_blueprint(projects.bp)
     app.register_blueprint(tasks.bp)
     app.register_blueprint(observer.bp)
