@@ -23,7 +23,7 @@ from galloper.utils.api_utils import build_req_parser
 
 class ThresholdsAPI(Resource):
     get_rules = (
-        dict(name="name", type=str, location="args")
+        dict(name="name", type=str, location="args"),
     )
     delete_rules = (
         dict(name="name", type=str, location="args"),
@@ -77,7 +77,7 @@ class ThresholdsAPI(Resource):
 
 class RequestsAPI(Resource):
     get_rules = (
-        dict(name="name", type=str, location="args")
+        dict(name="name", type=str, location="args"),
     )
 
     def __init__(self):

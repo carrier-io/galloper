@@ -6,26 +6,17 @@
             <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="/tasks">
                 <img src="{{ url_for('static', filename='img/brand/white.svg') }}" class="navbar-brand-img" alt="...">
             </a>
-            {% if 1 %}
-                <ul class="navbar-nav align-items-center  ml-auto ml-md-0 ">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
-                           aria-expanded="false">
-                            <span class="nav-link-inner--text">Projects</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a href="#!" class="dropdown-item">
-                                <span>222</span>
-                            </a>
-                            {% for project in all_projects %}
-                                <a href="#!" class="dropdown-item">
-                                    <span>{{ project.name }}</span>
-                                </a>
-                            {% endfor %}
-                        </div>
-                    </li>
-                </ul>
-            {% endif %}
+            <ul class="navbar-nav align-items-center  ml-auto ml-md-0 ">
+                <li class="nav-item dropdown">
+                    <a id="projects-dropdown" class="nav-link pr-0" href="#" role="button" data-toggle="dropdown"
+                       aria-haspopup="true"
+                       aria-expanded="false">
+                        <span class="nav-link-inner--text">Projects</span>
+                    </a>
+                    <div id="projects-dropdown-items" class="dropdown-menu dropdown-menu-right">
+                    </div>
+                </li>
+            </ul>
         </div>
     </nav>
     <!-- Header -->

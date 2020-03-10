@@ -12,12 +12,10 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from typing import Tuple
-
 from flask_restful import Api, Resource, reqparse
 
 
-def build_req_parser(rules: Tuple[dict, list, tuple], location=("json", "values")) -> reqparse.RequestParser:
+def build_req_parser(rules: tuple, location=("json", "values")) -> reqparse.RequestParser:
     request_parser = reqparse.RequestParser()
     for rule in rules:
         if isinstance(rule, dict):

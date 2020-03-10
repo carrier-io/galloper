@@ -40,7 +40,7 @@ class ReportAPI(Resource):
         dict(name="name", type=str, location="args")
     )
     delete_rules = (
-        dict(name="id[]", type=int, action="append", location="args")
+        dict(name="id[]", type=int, action="append", location="args"),
     )
     put_rules = (
         dict(name="build_id", type=str, location="json"),
@@ -244,7 +244,7 @@ class SecurityReportAPI(Resource):
         dict(name="order", type=str, default="", location="args"),
     )
     delete_rules = (
-        dict(name="id[]", type=int, action="append", location="args")
+        dict(name="id[]", type=int, action="append", location="args"),
     )
     post_rules = (
         dict(name="project_name", type=str, location="json"),

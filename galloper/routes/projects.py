@@ -28,7 +28,7 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.utils.auth import set_project_to_session
+from galloper.utils.auth import SessionProject
 
 bp = Blueprint("projects", __name__)
 
@@ -44,7 +44,7 @@ def add_project():
     if request.method == "POST":
         project = Project(name=request.form["name"])
         project.insert()
-        set_project_to_session(project_id=project.id)
+        SessionProject.set(project.id)
         return redirect(url_for("projects.projects"))
 
     return render_template("projects/add_project.html")

@@ -25,7 +25,7 @@ from galloper.utils.api_utils import build_req_parser
 
 class ReleaseAPI(Resource):
     post_rules = (
-        dict(name="release_name", type=str, location="json")
+        dict(name="release_name", type=str, location="json"),
     )
     put_rules = (
         dict(name="release_id", type=int, location="json"),

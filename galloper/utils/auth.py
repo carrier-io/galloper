@@ -19,7 +19,20 @@ from flask import session, redirect, url_for
 from galloper.config import Config
 
 
-PROJECT_CACHE_KEY = Config().PROJECT_CACHE_KEY
+class SessionProject:
+    PROJECT_CACHE_KEY = Config().PROJECT_CACHE_KEY
+
+    @staticmethod
+    def set(project_id: int) -> None:
+        session[SessionProject.PROJECT_CACHE_KEY] = project_id
+
+    @staticmethod
+    def pop() -> int:
+        return session.pop(SessionProject.PROJECT_CACHE_KEY)
+
+    @staticmethod
+    def get() -> int:
+        return session.get(SessionProject.PROJECT_CACHE_KEY)
 
 
 def project_required(func):
@@ -27,15 +40,13 @@ def project_required(func):
 
     @wraps(func)
     def decorated_function(*args, **kwargs):
+        project_id = SessionProject.get()
 
-        if PROJECT_CACHE_KEY not in session:
+        if project_id is None:
             return redirect(url_for("projects.add_project"))
 
-        project_id = session[PROJECT_CACHE_KEY]
         project = Project.get_object_or_404(pk=project_id)
+
         return func(project, *args, **kwargs)
+
     return decorated_function
-
-
-def set_project_to_session(project_id: int):
-    session[PROJECT_CACHE_KEY] = project_id

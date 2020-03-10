@@ -16,9 +16,23 @@ from typing import Optional
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
+from galloper.utils.api_utils import build_req_parser
+from galloper.utils.auth import SessionProject
 
 
 class ProjectAPI(Resource):
+    SELECT_ACTION = "select"
+    UNSELECT_ACTION = "unselect"
+
+    post_rules = (
+        dict(name="action", type=str, location="json"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: Optional[int] = None):
         if project_id:
@@ -26,3 +40,13 @@ class ProjectAPI(Resource):
             return project.to_json()
 
         return [each.to_json() for each in Project.query.all()]
+
+    def post(self, project_id: Optional[int] = None):
+        args = self._parser_post.parse_args()
+        action = args["action"]
+        if action == self.SELECT_ACTION:
+            SessionProject.set(project_id)
+        elif action == self.UNSELECT_ACTION:
+            SessionProject.pop()
+
+        return {"message": "Successful"}
