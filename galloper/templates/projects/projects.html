@@ -24,9 +24,12 @@
                     </thead>
                     <tbody>
                     {% for project in projects %}
-                        <td>
-                            {{ project.name }}
-                        </td>
+                        <tr>
+                            <td>
+                                {{ project.name }}
+                            </td>
+                            <td></td>
+                        </tr>
                     {% endfor %}
                     </tbody>
                 </table>

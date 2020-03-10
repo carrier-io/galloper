@@ -71,7 +71,6 @@ class ReleaseAPI(Resource):
 
 
 class ApiReportsAPI(Resource):
-
     get_rules = (
         dict(name="release_name", type=str, location="args"),
         dict(name="release_id", type=int, location="args")
@@ -93,10 +92,10 @@ class ApiReportsAPI(Resource):
                 ).first().id
             else:
                 release_id = args.get("release_id")
-            api_results = APIReport.query.filter(
+            api_reports = APIReport.query.filter(
                 and_(APIReport.release_id == release_id, APIReport.project_id == project.id)
             ).all()
-            api_report_ids = [each.id for each in api_results]
+            api_report_ids = [each.id for each in api_reports]
             return api_report_ids
         except AttributeError:
             return []

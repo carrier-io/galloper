@@ -41,12 +41,12 @@ def projects():
 
 @bp.route("/project/add", methods=["GET", "POST"])
 def add_project():
-    if request.method == "GET":
-        return render_template("projects/add_project.html")
     if request.method == "POST":
         project = Project(name=request.form["name"])
         project.insert()
         return redirect(url_for("projects.projects"))
+
+    return render_template("projects/add_project.html")
 
 
 @bp.route("/", methods=["GET"])

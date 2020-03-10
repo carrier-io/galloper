@@ -16,7 +16,7 @@ import hashlib
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import request
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.database.models.security_results import SecurityResults
