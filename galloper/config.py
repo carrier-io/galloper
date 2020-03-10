@@ -30,6 +30,9 @@ class Config(metaclass=SingletonABC):
 
     DATABASE_SCHEMA: Optional[str] = None
 
+    SECRET_KEY = os.environ.get("SECRET_KEY", ":iMHK_F`4hyrE;Wfr;+Ui8l&R3wYiB")
+    PROJECT_CACHE_KEY = "project_cache_key"
+
     def __init__(self) -> None:
 
         self.db_engine_config = {

@@ -28,15 +28,15 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
+from galloper.utils.auth import set_project_to_session
 
 bp = Blueprint("projects", __name__)
 
 
 @bp.route("/projects", methods=["GET"])
 def projects():
-    if request.method == "GET":
-        projects_ = Project.query.order_by(Project.id).all()
-        return render_template("projects/projects.html", projects=projects_)
+    projects_ = Project.query.order_by(Project.id).all()
+    return render_template("projects/projects.html", projects=projects_)
 
 
 @bp.route("/project/add", methods=["GET", "POST"])
@@ -44,6 +44,7 @@ def add_project():
     if request.method == "POST":
         project = Project(name=request.form["name"])
         project.insert()
+        set_project_to_session(project_id=project.id)
         return redirect(url_for("projects.projects"))
 
     return render_template("projects/add_project.html")
@@ -51,5 +52,4 @@ def add_project():
 
 @bp.route("/", methods=["GET"])
 def index():
-    if request.method == "GET":
-        return redirect(url_for("projects.projects"))
+    return redirect(url_for("projects.projects"))

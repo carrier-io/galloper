@@ -43,5 +43,6 @@ def build_req_parser(rules: Tuple[dict, list, tuple], location=("json", "values"
     return request_parser
 
 
-def add_resource_to_api(api: Api, resource: Resource, url: str) -> None:
-    api.add_resource(resource, url, f"{url}/")
+def add_resource_to_api(api: Api, resource: Resource, *urls, **kwargs) -> None:
+    urls = (*urls, *(f"{url}/" for url in urls))
+    api.add_resource(resource, *urls, **kwargs)

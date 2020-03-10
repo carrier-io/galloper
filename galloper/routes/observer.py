@@ -41,18 +41,17 @@ def analyze_async():
     pass
 
 
-@bp.route("/observer/analyze", methods=["GET", "POST"])
+@bp.route("/observer/analyze", methods=["POST"])
 def analyze_sync():
-    if request.method == "POST":
-        videofolder = tempfile.mkdtemp()
-        video_path = join(videofolder, "Video.mp4")
-        if "video" in request.files:
-            request.files["video"].save(video_path)
-        else:
-            return "No Video = No Report"
-        report = prepareReport(video_path, loads(request.form.get("data")), videofolder, True)
-        rmtree(videofolder)
-        return report.get_report()
+    videofolder = tempfile.mkdtemp()
+    video_path = join(videofolder, "Video.mp4")
+    if "video" in request.files:
+        request.files["video"].save(video_path)
+    else:
+        return "No Video = No Report"
+    report = prepareReport(video_path, loads(request.form.get("data")), videofolder, True)
+    rmtree(videofolder)
+    return report.get_report()
 
 
 @bp.route("/observer/test", methods=["POST"])

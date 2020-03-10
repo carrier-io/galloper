@@ -39,19 +39,18 @@ def findings():
     return render_template("security/results.html", test_data=test_data)
 
 
-@bp.route("/report/backend", methods=["GET", "POST"])
+@bp.route("/report/backend", methods=["GET"])
 def view_report():
-    if request.method == "GET":
-        if request.args.get("report_id", None):
-            test_data = APIReport.query.filter_by(id=request.args.get("report_id")).first().to_json()
-        else:
-            test_data = get_test_details(build_id=request.args["build_id"],
-                                         test_name=request.args["test_name"],
-                                         lg_type=request.args["lg_type"])
-        analytics_control = render_analytics_control(test_data["requests"])
-        samplers = get_sampler_types(test_data["build_id"], test_data["name"], test_data["lg_type"])
-        return render_template("perftemplate/api_test_report.html", test_data=test_data,
-                               analytics_control=analytics_control, samplers=samplers)
+    if request.args.get("report_id", None):
+        test_data = APIReport.query.filter_by(id=request.args.get("report_id")).first().to_json()
+    else:
+        test_data = get_test_details(build_id=request.args["build_id"],
+                                     test_name=request.args["test_name"],
+                                     lg_type=request.args["lg_type"])
+    analytics_control = render_analytics_control(test_data["requests"])
+    samplers = get_sampler_types(test_data["build_id"], test_data["name"], test_data["lg_type"])
+    return render_template("perftemplate/api_test_report.html", test_data=test_data,
+                           analytics_control=analytics_control, samplers=samplers)
 
 
 @bp.route("/report/compare", methods=["GET"])

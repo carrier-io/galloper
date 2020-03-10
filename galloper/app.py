@@ -33,7 +33,7 @@ def register_blueprints(app: Flask) -> None:
 
 
 def register_api(app: Flask) -> None:
-    api = Api(app, prefix='/v1', catch_all_404s=True)
+    api = Api(app, prefix="/api/v1", catch_all_404s=True)
     initialize_api_routes(api=api)
 
 
@@ -46,14 +46,14 @@ def create_app(config_class: type = Config) -> Flask:
     def shutdown_session(exception=None):
         db_session.remove()
 
-    @app.template_filter('ctime')
+    @app.template_filter("ctime")
     def convert_time(ts):
         try:
-            return datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+            return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
         except:
             return "Not Executed"
 
-    @app.template_filter('is_zero')
+    @app.template_filter("is_zero")
     def return_zero(val):
         try:
             return round(val[0]/val[1], 2)

@@ -25,22 +25,21 @@ from control_tower import run
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
+from galloper.utils.auth import project_required
 
 bp = Blueprint("tasks", __name__)
 
 
-@bp.route("/<int:project_id>/tasks", methods=["GET"])
-def tasks(project_id: int):
-    if request.method == "GET":
-        project = Project.get_object_or_404(pk=project_id)
-        tasks = Task.query.filter(Task.project_id == project.id).order_by(Task.id).all()
-        return render_template("lambdas/tasks.html", tasks=tasks)
+@bp.route("/tasks", methods=["GET"])
+@project_required
+def tasks(project: Project):
+    tasks_ = Task.query.filter(Task.project_id == project.id).order_by(Task.id).all()
+    return render_template("lambdas/tasks.html", tasks=tasks_, project_id=project.id)
 
 
-@bp.route("/<int:project_id>/task", methods=["GET", "POST"])
-def add_task(project_id: int):
-    if request.method == "GET":
-        return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
+@bp.route("/task", methods=["GET", "POST"])
+@project_required
+def add_task(project: Project):
     if request.method == "POST":
         if "file" not in request.files:
             flash("No file part")
@@ -50,7 +49,6 @@ def add_task(project_id: int):
             flash("No selected file")
             return ""
         if file and allowed_file(file.filename):
-            project = Project.get_object_or_404(pk=project_id)
             filename = str(uuid4())
             filename = secure_filename(filename)
             file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
@@ -72,20 +70,14 @@ def add_task(project_id: int):
             task.insert()
             return f"{filename}"
 
+    return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
 
-@bp.route("/<int:project_id>/task/<string:task_id>", methods=["GET", "POST"])
-def call_lambda(project_id: int, task_id: str):
-    project = Project.get_object_or_404(pk=project_id)
-    if request.method == "GET":
-        task = Task.query.filter(
-            and_(Task.task_id == task_id, Task.project_id == project.id)
-        ).first()
-        return render_template(
-            "lambdas/task.html",
-            task=task,
-            runtimes=NAME_CONTAINER_MAPPING.keys()
-        )
-    else:
+
+@bp.route("/task/<string:task_id>", methods=["GET", "POST"])
+@project_required
+def call_lambda(project: Project, task_id: str):
+
+    if request.method == "POST":
         if request.content_type == "application/json":
             task = Task.query.filter(
                 and_(Task.task_id == task_id, Task.project_id == project.id)
@@ -99,11 +91,20 @@ def call_lambda(project_id: int, task_id: str):
         elif request.content_type == "application/x-www-form-urlencoded":
             return f"Calling {task_id} with {request.form}"
 
+    task = Task.query.filter(
+        and_(Task.task_id == task_id, Task.project_id == project.id)
+    ).first()
+    return render_template(
+        "lambdas/task.html",
+        task=task,
+        runtimes=NAME_CONTAINER_MAPPING.keys()
+    )
 
-@bp.route("/<int:project_id>/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
-def suspend_task(project_id: int, task_id: str, action: str):
-    project = Project.get_object_or_404(pk=project_id)
-    if action in ["suspend", "delete", "activate"]:
+
+@bp.route("/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
+@project_required
+def suspend_task(project: Project, task_id: str, action: str):
+    if action in ("suspend", "delete", "activate"):
         task = Task.query.filter(
                 and_(Task.task_id == task_id, Task.project_id == project.id)
             ).first()
@@ -123,7 +124,9 @@ def suspend_task(project_id: int, task_id: str, action: str):
                     setattr(task, key, value)
                 task.commit()
             return "OK", 201
+
         return "Data is miss-formatted", 200
+
     elif action == "results":
         if request.method == "POST":
             data = request.get_json()
@@ -137,12 +140,13 @@ def suspend_task(project_id: int, task_id: str, action: str):
                              log=data["stderr"])
             result.insert()
             return "OK", 201
-        if request.method == "GET":
-            result = Results.query.filter(
-                and_(Results.task_id == task_id, Task.project_id == project.id)
-            ).order_by(Results.ts.desc()).all()
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
-            return render_template("lambdas/task_results.html", results=result, task=task)
+
+        result = Results.query.filter(
+            and_(Results.task_id == task_id, Task.project_id == project.id)
+        ).order_by(Results.ts.desc()).all()
+        task = Task.query.filter(
+            and_(Task.task_id == task_id, Task.project_id == project.id)
+        ).first()
+        return render_template("lambdas/task_results.html", results=result, task=task)
+
     return redirect(url_for("tasks.tasks"))

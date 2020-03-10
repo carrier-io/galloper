@@ -55,7 +55,7 @@ class AbstractBaseMixin:
     def get_object_or_404(
         cls, pk: int, pk_field_name: str = "id", custom_params: Optional[Any] = None
     ) -> object:
-        if custom_params:
+        if not custom_params:
             instance = cls.query.filter_by(**{pk_field_name: pk}).first()
         else:
             instance = cls.query.filter(custom_params).first()

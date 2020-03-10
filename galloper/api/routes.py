@@ -15,6 +15,7 @@
 from flask_restful import Api
 
 from .api_release import ReleaseAPI, ApiReportsAPI
+from .project import ProjectAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .thresholds import ThresholdsAPI, RequestsAPI
 from galloper.utils.api_utils import add_resource_to_api
@@ -33,3 +34,5 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, SecurityReportAPI, "/security/<int:project_id>/api")
     add_resource_to_api(api, FindingsAPI, "/security/finding/api")
     add_resource_to_api(api, FindingsAnalysisAPI, "/security/fpa/api")
+
+    add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
