@@ -16,6 +16,7 @@ from sqlalchemy import String, Column, Integer
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
+from galloper.utils.auth import SessionProject
 
 
 class Project(AbstractBaseMixin, Base):
@@ -23,3 +24,10 @@ class Project(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=False)
+
+    def to_json(self, exclude_fields: tuple = (), used_in_session: bool = False) -> dict:
+        json_data = super().to_json(exclude_fields=exclude_fields)
+        if used_in_session:
+            selected_id = SessionProject.get()
+            json_data["used_in_session"] = selected_id == json_data["id"]
+        return json_data

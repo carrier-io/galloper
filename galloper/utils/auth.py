@@ -13,6 +13,7 @@
 #     limitations under the License.
 
 from functools import wraps
+from typing import Optional
 
 from flask import session, redirect, url_for
 
@@ -27,11 +28,11 @@ class SessionProject:
         session[SessionProject.PROJECT_CACHE_KEY] = project_id
 
     @staticmethod
-    def pop() -> int:
-        return session.pop(SessionProject.PROJECT_CACHE_KEY)
+    def pop() -> Optional[int]:
+        return session.pop(SessionProject.PROJECT_CACHE_KEY, default=None)
 
     @staticmethod
-    def get() -> int:
+    def get() -> Optional[int]:
         return session.get(SessionProject.PROJECT_CACHE_KEY)
 
 

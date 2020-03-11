@@ -9,8 +9,8 @@
                 {
                     method: "POST",
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({action: "select"})
                 }
@@ -23,18 +23,22 @@
         }
     }
 
-
     async function fillDropdown() {
 
         while (projectsDropdownItems.firstChild) {
             projectsDropdownItems.removeChild(projectsDropdownItems.firstChild);
         }
 
-        let response = await fetch("/api/v1/project", {method: "GET"});
+        let response = await fetch(
+            "/api/v1/project/?" + new URLSearchParams({"used_in_session": true}),
+            {method: "GET"}
+        );
         let projectsData = await response.json();
         for (let projectData of projectsData) {
             let aElement = document.createElement("a");
             aElement.setAttribute("class", "dropdown-item");
+            // TODO Pass Project is used in session flag to dropdown
+            // let usedInSession = projectData.used_in_session;
             let spanElement = document.createElement("span");
             let projectNameText = document.createTextNode(projectData.name);
             spanElement.appendChild(projectNameText);
