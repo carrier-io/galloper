@@ -16,7 +16,7 @@
                               <span>Test</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
-                              <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="switchTest()">
+                              <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="renderTable()">
                                   {% for test in tests %}
                                     <option>{{ test }}</option>
                                   {% endfor %}
@@ -156,8 +156,7 @@
 
 <script>
     function renderTable() {
-        $("#thresholds").attr("data-url", "/api/thresholds?name="+$("#testName").val())
-        $("#thresholds").bootstrapTable('refresh');
+        $("#thresholds").bootstrapTable('refreshOptions', {url: "/api/thresholds?name="+$("#testName").val()})
     }
     renderTable();
 

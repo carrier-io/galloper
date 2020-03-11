@@ -23,7 +23,7 @@ api = Api(bp)
 
 @bp.route("/thresholds/api", methods=["GET"])
 def report():
-    tests = APIReport.query.with_entities(APIReport.name).all()
+    tests = APIReport.query.with_entities(APIReport.name).distinct()
     return render_template('quality_gates/thresholds.html', tests=[each[0] for each in tests])
 
 
