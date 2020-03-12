@@ -188,7 +188,6 @@ class ReportChartsAPI(Resource):
         "errors": {
             "table": get_issues
         }
-
     }
 
     def __init__(self):
@@ -197,7 +196,7 @@ class ReportChartsAPI(Resource):
     def __init_req_parsers(self):
         self._parser_get = build_req_parser(rules=self.get_rules)
 
-    def get(self, source, target):
+    def get(self, source: str, target: str):
         args = self._parser_get.parse_args(strict=False)
         return self.mapping[source][target](args)
 
@@ -217,7 +216,6 @@ class ReportsCompareAPI(Resource):
         dict(name="calculation", type=str, default="", location="args"),
         dict(name="aggregator", type=str, default="1s", location="args")
     )
-
     mapping = {
         "data": prepare_comparison_responses,
         "tests": compare_tests,
@@ -230,7 +228,7 @@ class ReportsCompareAPI(Resource):
     def __init_req_parsers(self):
         self._parser_get = build_req_parser(rules=self.get_rules)
 
-    def get(self, target):
+    def get(self, target: str):
         args = self._parser_get.parse_args(strict=False)
         return self.mapping[target](args)
 
@@ -268,7 +266,7 @@ class SecurityReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
-    def get(self, project_id: int):
+    def get(self):
         reports = []
         args = self._parser_get.parse_args(strict=False)
         search_ = args.get("search")
@@ -408,7 +406,7 @@ class FindingsAPI(Resource):
         args = self._parser_put.parse_args(strict=False)
         # test_data = SecurityResults.query.filter_by(id=args["id"]).first()
         issue_hash = SecurityReport.query.filter_by(id=args["issue_id"]).first().issue_hash
-        if args["action"] in ["false_positive", "excluded_finding"]:
+        if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
         else:
             upd = {"false_positive": 0, "info_finding": 0}
@@ -439,6 +437,7 @@ class FindingsAnalysisAPI(Resource):
                                SecurityResults.scan_type == args["scan_type"])
         ids = SecurityResults.query.filter(projects_filter).all()
         ids = [each.id for each in ids]
-        hashs = SecurityReport.query.filter(and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
-                                            ).with_entities(SecurityReport.issue_hash).distinct()
+        hashs = SecurityReport.query.filter(
+            and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
+            ).with_entities(SecurityReport.issue_hash).distinct()
         return [_.issue_hash for _ in hashs]

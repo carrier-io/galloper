@@ -26,7 +26,7 @@ class ProjectAPI(Resource):
     UNSELECT_ACTION = "unselect"
 
     get_rules = (
-        dict(name="used_in_session", type=bool, default=False, location="args"),
+        dict(name="get_selected", type=bool, default=False, location="args"),
     )
     post_rules = (
         dict(name="action", type=str, location="json"),
@@ -41,15 +41,16 @@ class ProjectAPI(Resource):
 
     def get(self, project_id: Optional[int] = None) -> Union[list, dict]:
         args = self._parser_get.parse_args()
-        used_in_session = args["used_in_session"]
+        get_selected = args["get_selected"]
 
-        if project_id:
+        if get_selected or project_id:
+            if get_selected:
+                project_id = SessionProject.get()
             project = Project.get_object_or_404(pk=project_id)
-            return project.to_json(used_in_session=used_in_session)
+            return project.to_json()
 
         return [
-            project.to_json(used_in_session=used_in_session)
-            for project in Project.query.all()
+            project.to_json() for project in Project.query.all()
         ]
 
     def post(self, project_id: Optional[int] = None) -> dict:
@@ -63,3 +64,13 @@ class ProjectAPI(Resource):
         return {
             "message": f"Successfully {action}ed" if action else "No action"
         }
+
+    def delete(self, project_id: int):
+        project = Project.get_object_or_404(pk=project_id)
+        project.delete()
+        selected_project_id = SessionProject.get()
+
+        if project_id == selected_project_id:
+            SessionProject.pop()
+
+        return {"message": f"Successfully deleted"}

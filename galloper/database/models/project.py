@@ -25,9 +25,11 @@ class Project(AbstractBaseMixin, Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=False)
 
-    def to_json(self, exclude_fields: tuple = (), used_in_session: bool = False) -> dict:
+    def used_in_session(self):
+        selected_id = SessionProject.get()
+        return self.id == selected_id
+
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
         json_data = super().to_json(exclude_fields=exclude_fields)
-        if used_in_session:
-            selected_id = SessionProject.get()
-            json_data["used_in_session"] = selected_id == json_data["id"]
+        json_data["used_in_session"] = self.used_in_session()
         return json_data

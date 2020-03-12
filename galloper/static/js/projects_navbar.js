@@ -1,11 +1,26 @@
-(function () {
+(async function () {
     let projectsDropdown = document.getElementById("projects-dropdown");
     let projectsDropdownItems = document.getElementById("projects-dropdown-items");
+    let selectedProjectTitle = document.getElementById("selected-project");
+    let selectedProjectId = document.getElementById("selected-project-id");
 
-    async function selectProject(projectId) {
+    async function initProjectDropdown(projectData) {
+        if (projectData === undefined) {
+            let response = await fetch(
+                "/api/v1/project/?" + new URLSearchParams({"get_selected": true}),
+                {method: "GET"}
+            );
+            projectData = await response.json();
+        }
+
+        selectedProjectId.textContent = projectData.id;
+        selectedProjectTitle.textContent = projectData.name
+    }
+
+    async function selectProject(projectData) {
         try {
             let response = await fetch(
-                `/api/v1/project/${projectId}`,
+                `/api/v1/project/${projectData.id}`,
                 {
                     method: "POST",
                     headers: {
@@ -16,7 +31,8 @@
                 }
             );
             let responseJson = await response.json();
-            console.error(responseJson);
+            console.log(responseJson);
+            await initProjectDropdown(projectData);
         } catch (err) {
             console.error(err);
             // Handle errors here
@@ -30,8 +46,7 @@
         }
 
         let response = await fetch(
-            "/api/v1/project/?" + new URLSearchParams({"used_in_session": true}),
-            {method: "GET"}
+            "/api/v1/project/", {method: "GET"}
         );
         let projectsData = await response.json();
         for (let projectData of projectsData) {
@@ -43,11 +58,19 @@
             let projectNameText = document.createTextNode(projectData.name);
             spanElement.appendChild(projectNameText);
             aElement.appendChild(spanElement);
-            aElement.addEventListener("click", () => selectProject(projectData.id), false);
+            aElement.addEventListener(
+                "click",
+                () => selectProject(projectData), false
+            );
             projectsDropdownItems.appendChild(aElement);
         }
     }
 
+    await initProjectDropdown();
+
     projectsDropdown.addEventListener("click", fillDropdown, false);
 
+    window.getSelectedProjectId = function () {
+        return selectedProjectId.textContent
+    };
 })();

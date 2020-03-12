@@ -232,7 +232,7 @@
             target: data['target'],
             aggregation: data['aggregation'],
             comparison: data['comparison']
-        })
+        });
         $.ajax({
             url: "/api/thresholds?"+request_params,
             type: "DELETE",

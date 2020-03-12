@@ -29,9 +29,9 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>/api")
 
     add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>/api")
-    add_resource_to_api(api, ReportChartsAPI, "/chart/<source>/<target>/api")
-    add_resource_to_api(api, ReportsCompareAPI, "/compare/<target>/api")
-    add_resource_to_api(api, SecurityReportAPI, "/security/<int:project_id>/api")
+    add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>/api")
+    add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>/api")
+    add_resource_to_api(api, SecurityReportAPI, "/security/api", "/security/<int:project_id>/api")
     add_resource_to_api(api, FindingsAPI, "/security/finding/api")
     add_resource_to_api(api, FindingsAnalysisAPI, "/security/fpa/api")
 
