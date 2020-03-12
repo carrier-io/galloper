@@ -144,21 +144,18 @@
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="addThreshold('none')">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="submit" onclick="insertThreshold()">Submit</button>
       </div>
     </div>
   </div>
 </div>
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
-</body>
-</html>
-
 <script>
+
     function renderTable() {
         $("#thresholds").bootstrapTable('refreshOptions', {url: "/api/thresholds?name="+$("#testName").val()})
     }
-    renderTable();
 
     function editAndDelete(value, row, index) {
         var id = row['time']
@@ -246,4 +243,12 @@
         insertThreshold();
     }
 
+    $(document).ready(function() {
+        renderTable();
+    });
+
 </script>
+</body>
+</html>
+
+
