@@ -17,7 +17,7 @@
         selectedProjectTitle.textContent = projectData.name
     }
 
-    async function selectProject(projectData) {
+    async function selectSessionProject(projectData) {
         try {
             let response = await fetch(
                 `/api/v1/project/${projectData.id}`,
@@ -52,15 +52,13 @@
         for (let projectData of projectsData) {
             let aElement = document.createElement("a");
             aElement.setAttribute("class", "dropdown-item");
-            // TODO Pass Project is used in session flag to dropdown
-            // let usedInSession = projectData.used_in_session;
             let spanElement = document.createElement("span");
             let projectNameText = document.createTextNode(projectData.name);
             spanElement.appendChild(projectNameText);
             aElement.appendChild(spanElement);
             aElement.addEventListener(
                 "click",
-                () => selectProject(projectData), false
+                () => selectSessionProject(projectData), false
             );
             projectsDropdownItems.appendChild(aElement);
         }
@@ -73,4 +71,5 @@
     window.getSelectedProjectId = function () {
         return selectedProjectId.textContent
     };
+    window.selectSessionProject = selectSessionProject;
 })();

@@ -26,6 +26,9 @@ class ProjectAPI(Resource):
     UNSELECT_ACTION = "unselect"
 
     get_rules = (
+        dict(name="offset", type=int, default=0, location="args"),
+        dict(name="limit", type=int, default=0, location="args"),
+        dict(name="search", type=str, default="", location="args"),
         dict(name="get_selected", type=bool, default=False, location="args"),
     )
     post_rules = (
@@ -41,16 +44,23 @@ class ProjectAPI(Resource):
 
     def get(self, project_id: Optional[int] = None) -> Union[list, dict]:
         args = self._parser_get.parse_args()
-        get_selected = args["get_selected"]
+        get_selected_ = args["get_selected"]
+        offset_ = args["offset"]
+        limit_ = args["limit"]
+        search_ = args["search"]
 
-        if get_selected or project_id:
-            if get_selected:
+        if get_selected_ or project_id:
+            if get_selected_:
                 project_id = SessionProject.get()
             project = Project.get_object_or_404(pk=project_id)
             return project.to_json()
+        elif search_:
+            projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
+        else:
+            projects = Project.query.limit(limit_).offset(offset_).all()
 
         return [
-            project.to_json() for project in Project.query.all()
+            project.to_json() for project in projects
         ]
 
     def post(self, project_id: Optional[int] = None) -> dict:

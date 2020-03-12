@@ -138,7 +138,7 @@ function percentFormatter(value, row, index){
 }
 
 $("#assignToRelease").on("show.bs.modal", function() {
-    $.get("/api/releases/api",
+    $.get("/api/v1/releases/api",
       function(data) {
         $("#releases option").each(function() {$(this).remove();})
         data.forEach(item => { $("#releases").append(`<option value="${item['id']}">${item['id']} : ${item['release_name']}</option>`);})
@@ -149,7 +149,7 @@ $("#assignToRelease").on("show.bs.modal", function() {
 function createRelease() {
     data = {
         release_name: $("#release_name").val()
-    }
+    };
     $.ajax({
         url: "/api/releases/api",
         type: 'POST',
@@ -162,14 +162,14 @@ function createRelease() {
 }
 
 function assignToRelease() {
-    var reports = []
+    var reports = [];
     $("#results").bootstrapTable('getSelections').forEach(item => {
         reports.push(item["id"])
     });
     var data = {
         release_id: $("#releases").val(),
         reports: reports
-    }
+    };
     $.ajax({
         url: "/api/releases/api",
         type: 'PUT',
