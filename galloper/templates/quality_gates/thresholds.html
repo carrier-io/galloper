@@ -182,11 +182,17 @@
 
     $("#addThresholdsModal").on("hide.bs.modal", function() {
         $("#modal_title").html("Add Threshold");
+        $("#scope").selectpicker('val', 'all');
+        $("#target").selectpicker('val', 'throughput');
+        $("#aggregation").selectpicker('val', 'max');
+        $("#comparison").selectpicker('val', 'gte');
+        $("#yellow").val('');
+        $("#red").val('');
+        $("#submit").attr('onclick', 'insertThreshold()');
     });
 
     function showEditThreshold(index){
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', index);
-        console.log(data);
         $("#addThresholdsModal").modal('toggle');
         $("#modal_title").html("Edit Threshold");
         $("#scope").selectpicker('val', data['scope']);
@@ -220,7 +226,7 @@
         });
     }
 
-    function deleteThreshold(id) {
+    function deleteThreshold(id, callback) {
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
@@ -234,13 +240,16 @@
             type: "DELETE",
             success: function(){
                 $("#thresholds").bootstrapTable('refresh');
+                if (callback !== undefined) {
+                    callback()
+                }
             }
         })
     }
 
+
     function editThreshold(id) {
-        deleteThreshold(id);
-        insertThreshold();
+        deleteThreshold(id, insertThreshold);
     }
 
     $(document).ready(function() {

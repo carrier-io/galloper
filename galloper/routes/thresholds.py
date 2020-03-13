@@ -48,9 +48,8 @@ class ApiThresholds(Resource):
 
     def post(self):
         args = self.post_parser.parse_args(strict=False)
-        create_thresholds(args['test'], args['scope'], args['target'], args['aggregation'],
-                          args['comparison'], args['yellow'], args['red'])
-        return {"message": "OK"}
+        return {"message": create_thresholds(args['test'], args['scope'], args['target'], args['aggregation'],
+                                             args['comparison'], args['yellow'], args['red'])}
 
     def delete(self):
         args = self.delete_parser.parse_args(strict=False)

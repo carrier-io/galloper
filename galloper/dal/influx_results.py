@@ -371,7 +371,7 @@ def get_threholds(test_name):
     return list(get_client().query(query)['thresholds'])
 
 
-def create_thresholds(test, scope, target, aggregation, comparison, yellow, red):
+def _create_threshold(test, scope, target, aggregation, comparison, yellow, red, client):
     json_body = [{
         "measurement": "thresholds",
         "tags": {
@@ -387,17 +387,25 @@ def create_thresholds(test, scope, target, aggregation, comparison, yellow, red)
             "red": red
         }
     }]
-    client = get_client('thresholds')
-    client.write_points(json_body)
-    client.close()
-    return True
+    return client.write_points(json_body)
 
 
-def delete_threshold(test, target, scope, aggregation, comparison):
+def _delete_threshold(test, target, scope, aggregation, comparison, client):
     query = f"DELETE from thresholds where simulation='{test}' " \
             f"and target='{target}' and scope='{scope}' " \
             f"and aggregation='{aggregation}' and comparison='{comparison}'"
+    return client.query(query)
+
+
+def create_thresholds(test, scope, target, aggregation, comparison, yellow, red):
     client = get_client('thresholds')
-    client.query(query)
+    res = _create_threshold(test, scope, target, aggregation, comparison, yellow, red, client)
+    client.close()
+    return res
+
+
+def delete_threshold(test, target, scope, aggregation, comparison):
+    client = get_client('thresholds')
+    _delete_threshold(test, target, scope, aggregation, comparison, client)
     client.close()
     return True
