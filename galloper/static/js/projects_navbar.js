@@ -10,11 +10,15 @@
                 "/api/v1/project/?" + new URLSearchParams({"get_selected": true}),
                 {method: "GET"}
             );
-            projectData = await response.json();
+            if (response.status === 200) {
+                projectData = await response.json();
+            }
+        }
+        if (projectData instanceof Object) {
+            selectedProjectId.textContent = projectData.id;
+            selectedProjectTitle.textContent = projectData.name
         }
 
-        selectedProjectId.textContent = projectData.id;
-        selectedProjectTitle.textContent = projectData.name
     }
 
     async function selectSessionProject(projectData) {
@@ -30,9 +34,11 @@
                     body: JSON.stringify({action: "select"})
                 }
             );
-            let responseJson = await response.json();
-            console.log(responseJson);
-            await initProjectDropdown(projectData);
+            if (response.status === 200) {
+                let responseJson = await response.json();
+                console.log(responseJson);
+                await initProjectDropdown(projectData);
+            }
         } catch (err) {
             console.error(err);
             // Handle errors here
@@ -48,19 +54,21 @@
         let response = await fetch(
             "/api/v1/project/", {method: "GET"}
         );
-        let projectsData = await response.json();
-        for (let projectData of projectsData) {
-            let aElement = document.createElement("a");
-            aElement.setAttribute("class", "dropdown-item");
-            let spanElement = document.createElement("span");
-            let projectNameText = document.createTextNode(projectData.name);
-            spanElement.appendChild(projectNameText);
-            aElement.appendChild(spanElement);
-            aElement.addEventListener(
-                "click",
-                () => selectSessionProject(projectData), false
-            );
-            projectsDropdownItems.appendChild(aElement);
+        if (response.status === 200) {
+            let projectsData = await response.json();
+            for (let projectData of projectsData) {
+                let aElement = document.createElement("a");
+                aElement.setAttribute("class", "dropdown-item");
+                let spanElement = document.createElement("span");
+                let projectNameText = document.createTextNode(projectData.name);
+                spanElement.appendChild(projectNameText);
+                aElement.appendChild(spanElement);
+                aElement.addEventListener(
+                    "click",
+                    () => selectSessionProject(projectData), false
+                );
+                projectsDropdownItems.appendChild(aElement);
+            }
         }
     }
 

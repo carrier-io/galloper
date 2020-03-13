@@ -26,8 +26,8 @@ class ProjectAPI(Resource):
     UNSELECT_ACTION = "unselect"
 
     get_rules = (
-        dict(name="offset", type=int, default=0, location="args"),
-        dict(name="limit", type=int, default=0, location="args"),
+        dict(name="offset", type=int, default=None, location="args"),
+        dict(name="limit", type=int, default=None, location="args"),
         dict(name="search", type=str, default="", location="args"),
         dict(name="get_selected", type=bool, default=False, location="args"),
     )
