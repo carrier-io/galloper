@@ -185,7 +185,7 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
     else:
         aggr_func = f"percentile(response_time, 50)"
     if sampler:
-        sampler_piece = f"'{sampler}' and"
+        sampler_piece = f"sampler_type='{sampler}' and "
     query = f"select {aggr_func} as rt from {lg_type}..{test_name} where {sampler_piece}" \
             f"build_id='{build_id}' {scope_addon} {group_by}"
     return round(list(get_client().query(query)[test_name])[0]["rt"], 2)
