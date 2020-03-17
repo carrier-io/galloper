@@ -16,13 +16,16 @@ from io import BytesIO
 
 from flask import Blueprint, request, render_template, redirect, url_for, send_file
 
+from galloper.database.models.project import Project
 from galloper.processors import minio
+from galloper.utils.auth import project_required
 
 bp = Blueprint("artifacts", __name__)
 
 
 @bp.route("/artifacts", methods=["GET", "POST"])
-def index():
+@project_required
+def index(project: Project):
     bucket_name = request.args.get("q", None)
     buckets_list = minio.list_bucket()
     if not bucket_name or bucket_name not in buckets_list:
@@ -34,7 +37,8 @@ def index():
 
 
 @bp.route("/artifacts/<bucket>/upload", methods=["POST"])
-def upload(bucket):
+@project_required
+def upload(project: Project, bucket: str):
     if "file" in request.files:
         f = request.files["file"]
         minio.upload_file(bucket, f.read(), f.filename)
@@ -42,19 +46,22 @@ def upload(bucket):
 
 
 @bp.route("/artifacts/<bucket>/<fname>/delete", methods=["GET"])
-def delete(bucket, fname):
+@project_required
+def delete(project: Project, bucket, fname):
     minio.remove_file(bucket, fname)
     return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
 @bp.route("/artifacts/<bucket>/<fname>", methods=["GET"])
-def download(bucket, fname):
+@project_required
+def download(project: Project, bucket: str, fname: str):
     fobj = minio.download_file(bucket, fname)
     return send_file(BytesIO(fobj), attachment_filename=fname)
 
 
 @bp.route("/artifacts/bucket", methods=["POST"])
-def create_bucket():
+@project_required
+def create_bucket(project: Project):
     bucket = request.form["bucket"]
     res = minio.create_bucket(bucket)
     if not res:
@@ -63,6 +70,7 @@ def create_bucket():
 
 
 @bp.route("/artifacts/<bucket>/delete", methods=["GET"])
-def delete_bucket(bucket):
+@project_required
+def delete_bucket(project: Project, bucket: str):
     minio.remove_bucket(bucket)
     return redirect(url_for("artifacts.index"), code=302)
