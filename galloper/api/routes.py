@@ -22,18 +22,18 @@ from galloper.utils.api_utils import add_resource_to_api
 
 
 def initialize_api_routes(api: Api):
-    add_resource_to_api(api, ReleaseAPI, "/releases/<int:project_id>/api")
-    add_resource_to_api(api, ApiReportsAPI, "/releases/<int:project_id>/api/reports")
+    add_resource_to_api(api, ReleaseAPI, "/releases/<int:project_id>")
+    add_resource_to_api(api, ApiReportsAPI, "/releases/<int:project_id>/reports")
 
-    add_resource_to_api(api, ThresholdsAPI, "/thresholds/api")
-    add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>/api")
+    add_resource_to_api(api, ThresholdsAPI, "/thresholds")
+    add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>")
 
-    add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>/api")
-    add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>/api")
-    add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>/api")
+    add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>")
+    add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>")
+    add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>")
 
-    add_resource_to_api(api, SecurityReportAPI, "/security/api", "/security/<int:project_id>/api")
-    add_resource_to_api(api, FindingsAPI, "/security/finding/api")
-    add_resource_to_api(api, FindingsAnalysisAPI, "/security/fpa/api")
+    add_resource_to_api(api, SecurityReportAPI, "/security", "/security/<int:project_id>")
+    add_resource_to_api(api, FindingsAPI, "/security/finding")
+    add_resource_to_api(api, FindingsAnalysisAPI, "/security/fpa")
 
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")

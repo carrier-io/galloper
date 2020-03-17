@@ -145,7 +145,7 @@
 
     $("#assignToRelease").on("show.bs.modal", function () {
         let selectedProjectId = getSelectedProjectId();
-        $.get(`/api/v1/releases/${selectedProjectId}/api`,
+        $.get(`/api/v1/releases/${selectedProjectId}`,
                 function (data) {
                     $("#releases option").each(function () {
                         $(this).remove();
@@ -163,7 +163,7 @@
         };
         let selectedProjectId = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/releases/${selectedProjectId}/api`,
+            url: `/api/v1/releases/${selectedProjectId}`,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -184,7 +184,7 @@
         };
         let selectedProjectId = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/releases/${selectedProjectId}/api`,
+            url: `/api/v1/releases/${selectedProjectId}`,
             type: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -199,7 +199,7 @@
         console.log('DOneeeeee');
         let selectedProjectId = getSelectedProjectId();
         $("#results").bootstrapTable('refresh', {
-            url: `/api/v1/reports/${selectedProjectId}/api`
+            url: `/api/v1/reports/${selectedProjectId}`
         });
     }
 
@@ -235,7 +235,7 @@
     }
 
     function deleteReports() {
-        var reports = "/api/v1/report/api?";
+        var reports = "/api/v1/report?";
         $("#results").bootstrapTable('getSelections').forEach(item => {
             reports += "id[]=" + item["id"] + "&"
         });
