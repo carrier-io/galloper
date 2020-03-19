@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from galloper.models.api_reports import APIReport
+from galloper.database.models.api_reports import APIReport
 from galloper.dal.influx_results import (get_backend_requests, get_hits_tps, average_responses, get_build_data, get_tps,
                                          get_hits, get_errors, get_response_codes, get_backend_users,
                                          get_throughput_per_test, get_response_time_per_test)
@@ -12,7 +12,7 @@ def _timeframe(args, time_as_ts=False):
     end_time = args['end_time']
     high_value = args.get('high_value', 100)
     if not end_time:
-        end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:$SZ")
+        end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         high_value = 100
     return calculate_proper_timeframe(args.get('low_value', 0), high_value,
                                       args['start_time'], end_time, args.get('aggregator', 'auto'),

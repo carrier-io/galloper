@@ -47,7 +47,7 @@
           <div class="row">
             <div class="col">
               <h5 class="card-title text-uppercase text-muted mb-0">Error Rate</h5>
-              <span class="h2 font-weight-bold mb-0">{{ (test_data['failures'] * 100 / test_data['total'])|round(2) }} %</span>
+              <span class="h2 font-weight-bold mb-0">{{ (test_data['failures'] * 100 , test_data['total']) | is_zero }} %</span>
             </div>
             <div class="col-auto">
               <div class="icon icon-shape bg-red text-white rounded-circle shadow">
@@ -197,19 +197,19 @@
                     </select>
                 </li>
                 <li class="nav-item mr-2 mr-md-0">
-                  <a id="RT" onclick="loadRequestData('/api/chart/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="RT" onclick="loadRequestData('/api/v1/chart/requests/summary', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Responses</span>
                     <span class="d-md-none">M</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a id="AR" onclick="loadRequestData('/api/chart/requests/average', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="AR" onclick="loadRequestData('/api/v1/chart/requests/average', 'Response time, ms')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Average Reponse</span>
                     <span class="d-md-none">A</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a id="HT" onclick="loadRequestData('/api/chart/requests/hits', 'Hits/Requests per second')" class="nav-link py-2 px-3" data-toggle="tab">
+                  <a id="HT" onclick="loadRequestData('/api/v1/chart/requests/hits', 'Hits/Requests per second')" class="nav-link py-2 px-3" data-toggle="tab">
                     <span class="d-none d-md-block">Hits/TPS</span>
                     <span class="d-md-none">H</span>
                   </a>

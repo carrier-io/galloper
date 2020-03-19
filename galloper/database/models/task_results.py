@@ -12,16 +12,18 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Blueprint, render_template
+from sqlalchemy import String, Column, Integer, Text
 
-from galloper.database.models.api_reports import APIReport
-from galloper.database.models.project import Project
-
-bp = Blueprint("thresholds", __name__)
+from galloper.database.db_manager import Base
+from galloper.database.abstract_base import AbstractBaseMixin
 
 
-@bp.route("/<int:project_id>/thresholds", methods=["GET"])
-def report(project_id: int):
-    project = Project.get_object_or_404(pk=project_id)
-    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).all()
-    return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])
+class Results(AbstractBaseMixin, Base):
+    __tablename__ = "results"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
+    task_id = Column(String(128), unique=False, nullable=False)
+    ts = Column(Integer, unique=False, nullable=False)
+    results = Column(String(512), unique=False, nullable=False)
+    log = Column(Text, unique=False, nullable=False)

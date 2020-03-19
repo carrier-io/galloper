@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp, MAX_DOTS_ON_CHART
 
+
 def colors(n):
     try:
         ret = []
@@ -26,7 +27,7 @@ def create_dataset(timeline, data, label, axe):
     labels = []
     for _ in timeline:
         labels.append(datetime.strptime(_, "%Y-%m-%dT%H:%M:%SZ").strftime("%m-%d %H:%M:%S"))
-    color = colors(1)[0]
+    r, g, b = colors(1)[0]
     return {
         "labels": labels,
         "datasets": [
@@ -38,8 +39,8 @@ def create_dataset(timeline, data, label, axe):
                 "borderWidth": 2,
                 "lineTension": 0,
                 "spanGaps": True,
-                "backgroundColor": f"rgb({color[0]}, {color[1]}, {color[2]})",
-                "borderColor": f"rgb({color[0]}, {color[1]}, {color[2]})"
+                "backgroundColor": f"rgb({r}, {g}, {b})",
+                "borderColor": f"rgb({r}, {g}, {b})"
             }
         ]
     }
@@ -141,13 +142,13 @@ def render_analytics_control(requests):
 def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggregation, time_as_ts=False):
     start_time = str_to_timestamp(start_time)
     end_time = str_to_timestamp(end_time)
-    interval = end_time-start_time
-    start_shift = interval*(float(low_value)/100.0)
-    end_shift = interval*(float(high_value)/100.0)
+    interval = end_time - start_time
+    start_shift = interval * (float(low_value) / 100.0)
+    end_shift = interval * (float(high_value) / 100.0)
     end_time = start_time + end_shift
     start_time += start_shift
     real_interval = end_time - start_time
-    seconds = real_interval/MAX_DOTS_ON_CHART
+    seconds = real_interval / MAX_DOTS_ON_CHART
     if seconds > 1:
         seconds = int(seconds)
     else:
@@ -156,5 +157,8 @@ def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggr
         aggregation = f'{seconds}s'
     if time_as_ts:
         return int(start_time), int(end_time), aggregation
-    return datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), \
-           datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), aggregation
+    return (
+        datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        aggregation
+    )

@@ -25,7 +25,7 @@
               <table
                   id="results"
                   data-toggle="table"
-                  data-url="/api/security"
+                  data-url="/api/v1/security"
                   data-page-size=10
                   data-page-list=[10,20,50,100]
                   data-side-pagination="server"
@@ -71,7 +71,7 @@ function createLinkToReport(value, row, index){
  })
 
 function deleteReports() {
-    var reports = "/api/security?"
+    var reports = "/api/v1/security?";
     $("#results").bootstrapTable('getSelections').forEach(item => {
         reports+= "id[]="+item["id"]+"&"
     });

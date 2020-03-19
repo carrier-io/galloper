@@ -12,16 +12,21 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Blueprint, render_template
-
-from galloper.database.models.api_reports import APIReport
-from galloper.database.models.project import Project
-
-bp = Blueprint("thresholds", __name__)
+from abc import ABCMeta
+from threading import Lock
+from typing import Optional
 
 
-@bp.route("/<int:project_id>/thresholds", methods=["GET"])
-def report(project_id: int):
-    project = Project.get_object_or_404(pk=project_id)
-    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).all()
-    return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])
+class SingletonMeta(type):
+    _instance: Optional["SingletonABC"] = None
+    _lock: Lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if not cls._instance:
+                cls._instance = super().__call__(*args, **kwargs)
+        return cls._instance
+
+
+class SingletonABC(SingletonMeta, ABCMeta):
+    ...
