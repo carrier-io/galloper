@@ -21,7 +21,7 @@ from time import sleep
 from flask import Blueprint, request, render_template, current_app, redirect, url_for
 
 from galloper.constants import check_ui_performance
-from galloper.processors.minio import upload_file
+from galloper.processors.minio import MinioClient
 from galloper.processors.perfui import prepareReport
 
 bp = Blueprint("observer", __name__)
@@ -89,7 +89,7 @@ def run_test():
     # rmtree(videofolder)
     report = report.get_report()
     report_name = f"{results['info']['title']}_{int(start_time)}.html"
-    upload_file("reports", report, report_name)
+    MinioClient().upload_file("reports", report, report_name)
     return redirect(
         url_for("observer.index", message=f"/artifacts/reports/{report_name}"),
         code=302

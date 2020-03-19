@@ -1,14 +1,15 @@
+from typing import Optional
+
 import boto3
 from botocore.client import Config
 from galloper.constants import MINIO_ACCESS, MINIO_ENDPOINT, MINIO_SECRET, MINIO_REGION
 from galloper.database.models.project import Project
-from galloper.utils.patterns import SingletonParametrizedABC
 
 
-class MinioClient(metaclass=SingletonParametrizedABC):
+class MinioClient:
     PROJECT_SECRET_KEY: str = "minio_aws_access"
 
-    def __init__(self, project: Project):
+    def __init__(self, project: Optional[Project] = None):
         self.project = project
         aws_access_key_id, aws_secret_access_key = self.extract_access_data()
         self.s3_client = boto3.client(
@@ -20,7 +21,7 @@ class MinioClient(metaclass=SingletonParametrizedABC):
         )
         
     def extract_access_data(self) -> tuple:
-        if self.PROJECT_SECRET_KEY in self.project.secrets_json or {}:
+        if self.project and self.PROJECT_SECRET_KEY in (self.project.secrets_json or {}):
             aws_access_json = self.project.secrets_json[self.PROJECT_SECRET_KEY]
             aws_access_key_id = aws_access_json.get("aws_access_key_id")
             aws_secret_access_key = aws_access_json.get("aws_secret_access_key")
