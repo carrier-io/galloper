@@ -58,5 +58,5 @@ class Config(metaclass=SingletonABC):
                 database=database
             )
 
-            self.db_engine_config["pool_size"] = 2
-            self.db_engine_config["max_overflow"] = 0
+            self.db_engine_config["pool_size"] = 10
+            self.db_engine_config["max_overflow"] = 5

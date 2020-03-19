@@ -21,8 +21,10 @@ from time import sleep
 from flask import Blueprint, request, render_template, current_app, redirect, url_for
 
 from galloper.constants import check_ui_performance
+from galloper.database.models.project import Project
 from galloper.processors.minio import MinioClient
 from galloper.processors.perfui import prepareReport
+from galloper.utils.auth import project_required
 
 bp = Blueprint("observer", __name__)
 
@@ -55,7 +57,8 @@ def analyze_sync():
 
 
 @bp.route("/observer/test", methods=["POST"])
-def run_test():
+@project_required
+def run_test(project: Project):
     current_app.logger.info(request.form)
     url = request.form.get("url")
     remote_driver_address = request.form.get("remote_address", "127.0.0.1:4444")
@@ -89,7 +92,7 @@ def run_test():
     # rmtree(videofolder)
     report = report.get_report()
     report_name = f"{results['info']['title']}_{int(start_time)}.html"
-    MinioClient().upload_file("reports", report, report_name)
+    MinioClient(project=project).upload_file("reports", report, report_name)
     return redirect(
         url_for("observer.index", message=f"/artifacts/reports/{report_name}"),
         code=302

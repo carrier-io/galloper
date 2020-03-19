@@ -38,6 +38,8 @@
                 let responseJson = await response.json();
                 console.log(responseJson);
                 await initProjectDropdown(projectData);
+                window.location.reload();
+                return false
             }
         } catch (err) {
             console.error(err);

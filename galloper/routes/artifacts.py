@@ -29,8 +29,6 @@ def index(project: Project):
     bucket_name = request.args.get("q", None)
     minio_client = MinioClient(project=project)
     buckets_list = minio_client.list_bucket()
-    if not buckets_list:
-        return redirect(url_for("artifacts.create_bucket"), code=302)
     if not bucket_name or bucket_name not in buckets_list:
         return redirect(url_for("artifacts.index", q=buckets_list[0]))
     return render_template("artifacts/files.html",
