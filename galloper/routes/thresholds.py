@@ -13,64 +13,15 @@
 #     limitations under the License.
 
 from flask import Blueprint, render_template
-from flask_restful import Api, Resource, reqparse
 
-from galloper.dal.influx_results import get_threholds, create_thresholds, delete_threshold
 from galloper.database.models.api_reports import APIReport
+from galloper.database.models.project import Project
 
-bp = Blueprint('thresholds', __name__)
-api = Api(bp)
-
-
-@bp.route("/thresholds/api", methods=["GET"])
-def report():
-    tests = APIReport.query.with_entities(APIReport.name).all()
-    return render_template('quality_gates/thresholds.html', tests=[each[0] for each in tests])
+bp = Blueprint("thresholds", __name__)
 
 
-class ApiThresholds(Resource):
-    get_parser = reqparse.RequestParser()
-    get_parser.add_argument('name', type=str, location='args')
-
-    delete_parser = reqparse.RequestParser()
-    delete_parser.add_argument('test', type=str, location=['args', 'json'])
-    delete_parser.add_argument('scope', type=str, location=['args', 'json'])
-    delete_parser.add_argument('target', type=str, location=['args', 'json'])
-    delete_parser.add_argument('aggregation', type=str, location=['args', 'json'])
-    delete_parser.add_argument('comparison', type=str, location=['args', 'json'])
-
-    post_parser = delete_parser.copy()
-    post_parser.add_argument('yellow', type=float, location='json')
-    post_parser.add_argument('red', type=float, location='json')
-
-    def get(self):
-        args = self.get_parser.parse_args(strict=False)
-        return get_threholds(args.get("name"))
-
-    def post(self):
-        args = self.post_parser.parse_args(strict=False)
-        create_thresholds(args['test'], args['scope'], args['target'], args['aggregation'],
-                          args['comparison'], args['yellow'], args['red'])
-        return {"message": "OK"}
-
-    def delete(self):
-        args = self.delete_parser.parse_args(strict=False)
-        delete_threshold(args['test'], args['target'], args['scope'],
-                         args['aggregation'], args['comparison'])
-        return {"message": "OK"}
-
-
-class ApiRequests(Resource):
-    get_parser = reqparse.RequestParser()
-    get_parser.add_argument('name', type=str, location='args')
-
-    def get(self):
-        args = self.get_parser.parse_args(strict=False)
-        requests_data = set()
-        for each in APIReport.query.filter(APIReport.name == args.get('name')).order_by(APIReport.id.asc()).all():
-            requests_data.update(set(each.requests.split(";")))
-        return list(requests_data)
-
-
-api.add_resource(ApiThresholds, "/api/thresholds")
-api.add_resource(ApiRequests, "/api/requests")
+@bp.route("/<int:project_id>/thresholds", methods=["GET"])
+def report(project_id: int):
+    project = Project.get_object_or_404(pk=project_id)
+    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).all()
+    return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])

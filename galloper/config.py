@@ -30,6 +30,9 @@ class Config(metaclass=SingletonABC):
 
     DATABASE_SCHEMA: Optional[str] = None
 
+    SECRET_KEY = os.environ.get("SECRET_KEY", ":iMHK_F`4hyrE;Wfr;+Ui8l&R3wYiB")
+    PROJECT_CACHE_KEY = os.environ.get("PROJECT_CACHE_KEY", "project_cache_key")
+
     def __init__(self) -> None:
 
         self.db_engine_config = {
@@ -39,13 +42,13 @@ class Config(metaclass=SingletonABC):
 
         if self.DATABASE_VENDOR == "postgresql":
 
-            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "galloper_schema")
+            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "carrier")
 
             host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
-            database = os.environ.get("POSTGRES_DB", "galloper_database")
-            username = os.environ.get("POSTGRES_USER", "galloper_username")
-            password = os.environ.get("POSTGRES_PASSWORD", "galloper_password")
+            database = os.environ.get("POSTGRES_DB", "carrier_pg_db")
+            username = os.environ.get("POSTGRES_USER", "carrier_pg_user")
+            password = os.environ.get("POSTGRES_PASSWORD", "carrier_pg_password")
 
             self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,

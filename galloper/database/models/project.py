@@ -12,18 +12,24 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from sqlalchemy import String, Column, Integer, Text
+from sqlalchemy import String, Column, Integer
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
+from galloper.utils.auth import SessionProject
 
 
-class Results(AbstractBaseMixin, Base):
-    __tablename__ = "results"
+class Project(AbstractBaseMixin, Base):
+    __tablename__ = "project"
 
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, unique=False, nullable=False)
-    task_id = Column(String(128), unique=False, nullable=False)
-    ts = Column(Integer, unique=False, nullable=False)
-    results = Column(String(512), unique=False, nullable=False)
-    log = Column(Text, unique=False, nullable=False)
+    name = Column(String(256), unique=False)
+
+    def used_in_session(self):
+        selected_id = SessionProject.get()
+        return self.id == selected_id
+
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        json_data = super().to_json(exclude_fields=exclude_fields)
+        json_data["used_in_session"] = self.used_in_session()
+        return json_data

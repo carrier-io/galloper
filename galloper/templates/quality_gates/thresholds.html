@@ -156,31 +156,32 @@
 
 <script>
     function renderTable() {
-        $("#thresholds").attr("data-url", "/api/thresholds?name="+$("#testName").val())
+        $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val());
         $("#thresholds").bootstrapTable('refresh');
     }
     renderTable();
 
     function editAndDelete(value, row, index) {
-        var id = row['time']
+        var id = row['time'];
         return `<a href="#" onclick="showEditThreshold('`+id+`')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
     }
 
     $("#addThresholdsModal").on("show.bs.modal", function() {
-        $.get("/api/requests",
+        let selectedProjectId = getSelectedProjectId();
+        $.get(`/api/v1/requests/${selectedProjectId}`,
           { name: $("#testName").val() },
           function(data) {
-            var scope = $("#scope").val()
-            var title = $("#modal_title").html()
+            var scope = $("#scope").val();
+            var title = $("#modal_title").html();
             $("#modal_title").html("Add Threshold");
-            $("#scope option").each(function() {$(this).remove();})
+            $("#scope option").each(function() {$(this).remove();});
             $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
-			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);})
+			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);});
 			if (title != "Add Threshold") {
 			    $("#scope").selectpicker('val', scope);
 			    $("#modal_title").html(title);
 			}
-			$("#scope").selectpicker('refresh')
+			$("#scope").selectpicker('refresh');
 		  })
     });
 
@@ -199,12 +200,12 @@
         $("#comparison").selectpicker('val', data['comparison']);
         $("#yellow").val(data['yellow']);
         $("#red").val(data['red']);
-        $("#submit").attr('onclick', `editThreshold("${index}")`)
+        $("#submit").attr('onclick', `editThreshold("${index}")`);
     }
 
     function insertThreshold(){
         $.ajax({
-            url: "/api/thresholds",
+            url: "/api/v1/thresholds",
             type: "POST",
             data: JSON.stringify({
                 test: $("#testName").val(),
@@ -232,9 +233,9 @@
             target: data['target'],
             aggregation: data['aggregation'],
             comparison: data['comparison']
-        })
+        });
         $.ajax({
-            url: "/api/thresholds?"+request_params,
+            url: "/api/v1/thresholds?"+request_params,
             type: "DELETE",
             success: function(){
                 $("#thresholds").bootstrapTable('refresh');

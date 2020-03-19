@@ -33,6 +33,7 @@ def init_db():
     # you will have to import them first before calling init_db()
     from .models import api_release
     from .models import api_reports
+    from .models import project
     from .models import security_details
     from .models import security_reports
     from .models import security_results
