@@ -20,7 +20,7 @@ class MinioClient(metaclass=SingletonParametrizedABC):
         )
         
     def extract_access_data(self) -> tuple:
-        if self.PROJECT_SECRET_KEY in self.project.secrets_json:
+        if self.PROJECT_SECRET_KEY in self.project.secrets_json or {}:
             aws_access_json = self.project.secrets_json[self.PROJECT_SECRET_KEY]
             aws_access_key_id = aws_access_json.get("aws_access_key_id")
             aws_secret_access_key = aws_access_json.get("aws_secret_access_key")
