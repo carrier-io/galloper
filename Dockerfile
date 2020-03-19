@@ -6,26 +6,16 @@ ARG PREFIX=/opt/ffmpeg
 ARG LD_LIBRARY_PATH=/opt/ffmpeg/lib
 ARG MAKEFLAGS="-j4"
 
-RUN apk add postgresql-dev --no-cache
-
 # FFmpeg build dependencies.
 RUN apk add --update --no-cache \
   build-base \
   coreutils \
-#  freetype-dev \
   gcc \
   lame-dev \
   libressl \
   libxcb \
   libxcb-dev \
   libressl-dev \
-#  libogg-dev \
-#  libass \
-#  libass-dev \
-#  libvpx-dev \
-#  libvorbis-dev \
-#  libwebp-dev \
-#  libtheora-dev \
   opus-dev \
   pkgconf \
   pkgconfig \
@@ -46,10 +36,6 @@ RUN apk add --update --no-cache \
   linux-headers \
   libc-dev
 
-# Get fdk-aac from testing.
-RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
-  apk add --update fdk-aac-dev
-
 # Get ffmpeg source.
 RUN cd /tmp/ && \
   wget http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
@@ -63,20 +49,6 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
   --enable-nonfree \
   --enable-small \
   --enable-libxcb \
-#  --enable-libmp3lame \
-#  --enable-libx264 \
-#  --enable-libx265 \
-#  --enable-libvpx \
-#  --enable-libtheora \
-#  --enable-libvorbis \
-#  --enable-libopus \
-#  --enable-libfdk-aac \
-#  --enable-libass \
-#  --enable-libwebp \
-#  --enable-librtmp \
-#  --enable-postproc \
-#  --enable-avresample \
-#  --enable-libfreetype \
   --enable-openssl \
   --disable-debug \
   --disable-doc \
@@ -92,19 +64,11 @@ ENV PATH=/opt/ffmpeg/bin:$PATH
 
 RUN apk add --update \
   ca-certificates \
-#  openssl \
-#  pcre \
-#  lame \
-#  libogg \
-#  libass \
-#  libvpx \
-#  libvorbis \
-#  libwebp \
-#  libtheora \
   opus \
   rtmpdump \
   x264-dev \
-  x265-dev
+  x265-dev \
+  postgresql-dev
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 

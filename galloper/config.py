@@ -21,7 +21,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(metaclass=SingletonABC):
-    APP_HOST: str = os.environ.get("APP_HOST") or "0.0.0.0"
+    APP_HOST: str = os.environ.get("IP") or "0.0.0.0"
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
     DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "sqlite")
     DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
@@ -36,7 +36,7 @@ class Config(metaclass=SingletonABC):
     def __init__(self) -> None:
 
         self.db_engine_config = {
-            "isolation_level": "READ COMMITTED",
+            "isolation_level": "READ COMMITTED" if self.DATABASE_VENDOR != 'sqlite' else 'SERIALIZABLE',
             "echo": False
         }
 
