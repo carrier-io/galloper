@@ -3,21 +3,40 @@
     <nav class="navbar navbar-top navbar-expand-md navbar-dark" id="navbar-main">
         <div class="container-fluid">
             <!-- Brand -->
-            <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="/tasks">
-                <img src="{{ url_for('static', filename='img/brand/white.svg') }}" class="navbar-brand-img" alt="...">
+            <a class="navbar-brand h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="/tasks">
+                <img src="{{ url_for('static', filename='img/brand/white.svg') }}" class="navbar-brand-img"
+                     alt="...">
             </a>
-            <ul class="navbar-nav align-items-center  ml-auto ml-md-0 ">
-                <li class="nav-item dropdown">
-                    <a id="projects-dropdown" class="nav-link pr-0" href="#" role="button" data-toggle="dropdown"
-                       aria-haspopup="true"
-                       aria-expanded="false">
-                        <span id="selected-project" class="nav-link-inner--text">Select Project</span>
-                        <span id="selected-project-id" hidden></span>
-                    </a>
-                    <div id="projects-dropdown-items" class="dropdown-menu dropdown-menu-right">
+            <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbar-primary"
+                    aria-controls="navbar-primary" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar-primary">
+                <div class="navbar-collapse-header">
+                    <div class="row">
+                        <div class="col-6 collapse-close">
+                            <button type="button" class="navbar-toggler" data-toggle="collapse"
+                                    data-target="#navbar-primary" aria-controls="navbar-primary"
+                                    aria-expanded="false" aria-label="Toggle navigation">
+                                <span></span>
+                                <span></span>
+                            </button>
+                        </div>
                     </div>
-                </li>
-            </ul>
+                </div>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="projects-dropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span id="selected-project"
+                                  class="nav-link-inner--text d-lg-inline-block">Select Project</span>
+                            <span id="selected-project-id" hidden></span>
+                        </a>
+                        <div id="projects-dropdown-items" class="dropdown-menu" aria-labelledby="projects-dropdown">
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
     <!-- Header -->

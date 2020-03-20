@@ -16,12 +16,13 @@ from flask import Blueprint, render_template
 
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
+from galloper.utils.auth import project_required
 
 bp = Blueprint("thresholds", __name__)
 
 
-@bp.route("/<int:project_id>/thresholds", methods=["GET"])
-def report(project_id: int):
-    project = Project.get_object_or_404(pk=project_id)
+@bp.route("/thresholds/api", methods=["GET"])
+@project_required
+def report(project: Project):
     tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).distinct()
     return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])
