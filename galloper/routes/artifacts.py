@@ -16,53 +16,62 @@ from io import BytesIO
 
 from flask import Blueprint, request, render_template, redirect, url_for, send_file
 
-from galloper.processors import minio
+from galloper.database.models.project import Project
+from galloper.processors.minio import MinioClient
+from galloper.utils.auth import project_required
 
-bp = Blueprint('artifacts', __name__)
+bp = Blueprint("artifacts", __name__)
 
 
-@bp.route('/artifacts', methods=["GET", "POST"])
-def index():
+@bp.route("/artifacts", methods=["GET", "POST"])
+@project_required
+def index(project: Project):
     bucket_name = request.args.get("q", None)
-    buckets_list = minio.list_bucket()
+    minio_client = MinioClient(project=project)
+    buckets_list = minio_client.list_bucket()
     if not bucket_name or bucket_name not in buckets_list:
-        return redirect(url_for('artifacts.index', q=buckets_list[0]))
-    return render_template('artifacts/files.html', 
-                           files=minio.list_files(bucket_name), 
+        return redirect(url_for("artifacts.index", q=buckets_list[0]))
+    return render_template("artifacts/files.html",
+                           files=minio_client.list_files(bucket_name),
                            buckets=buckets_list,
                            bucket=bucket_name)
 
 
-@bp.route('/artifacts/<bucket>/upload', methods=["POST"])
-def upload(bucket):
-    if 'file' in request.files:
-        f = request.files['file']
-        minio.upload_file(bucket, f.read(), f.filename)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
+@bp.route("/artifacts/<string:bucket>/upload", methods=["POST"])
+@project_required
+def upload(project: Project, bucket: str):
+    if "file" in request.files:
+        f = request.files["file"]
+        MinioClient(project=project).upload_file(bucket, f.read(), f.filename)
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
-@bp.route('/artifacts/<bucket>/<fname>/delete', methods=["GET"])
-def delete(bucket, fname):
-    minio.remove_file(bucket, fname)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
-    
+@bp.route("/artifacts/<string:bucket>/<string:fname>/delete", methods=["GET"])
+@project_required
+def delete(project: Project, bucket, fname):
+    MinioClient(project=project).remove_file(bucket, fname)
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
-@bp.route('/artifacts/<bucket>/<fname>', methods=["GET"])
-def download(bucket, fname):
-    fobj = minio.download_file(bucket, fname)
+
+@bp.route("/artifacts/<string:bucket>/<string:fname>", methods=["GET"])
+@project_required
+def download(project: Project, bucket: str, fname: str):
+    fobj = MinioClient(project=project).download_file(bucket, fname)
     return send_file(BytesIO(fobj), attachment_filename=fname)
 
 
-@bp.route('/artifacts/bucket', methods=["POST"])
-def create_bucket():
-    bucket = request.form['bucket']
-    res = minio.create_bucket(bucket)
+@bp.route("/artifacts/bucket", methods=["POST"])
+@project_required
+def create_bucket(project: Project):
+    bucket = request.form["bucket"]
+    res = MinioClient(project=project).create_bucket(bucket)
     if not res:
-        return redirect(url_for('artifacts.index'), code=302)
-    return redirect(url_for('artifacts.index', q=bucket), code=302)
+        return redirect(url_for("artifacts.index"), code=302)
+    return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
-@bp.route('/artifacts/<bucket>/delete', methods=["GET"])
-def delete_bucket(bucket):
-    minio.remove_bucket(bucket)
-    return redirect(url_for('artifacts.index'), code=302)
+@bp.route("/artifacts/<string:bucket>/delete", methods=["GET"])
+@project_required
+def delete_bucket(project: Project, bucket: str):
+    MinioClient(project=project).remove_bucket(bucket)
+    return redirect(url_for("artifacts.index"), code=302)

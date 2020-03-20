@@ -21,7 +21,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(metaclass=SingletonABC):
-    APP_HOST: str = os.environ.get("APP_HOST") or "0.0.0.0"
+    APP_HOST: str = os.environ.get("IP") or "0.0.0.0"
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
     DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "sqlite")
     DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
@@ -30,22 +30,25 @@ class Config(metaclass=SingletonABC):
 
     DATABASE_SCHEMA: Optional[str] = None
 
+    SECRET_KEY = os.environ.get("SECRET_KEY", ":iMHK_F`4hyrE;Wfr;+Ui8l&R3wYiB")
+    PROJECT_CACHE_KEY = os.environ.get("PROJECT_CACHE_KEY", "project_cache_key")
+
     def __init__(self) -> None:
 
         self.db_engine_config = {
-            "isolation_level": "READ COMMITTED",
+            "isolation_level": "READ COMMITTED" if self.DATABASE_VENDOR != 'sqlite' else 'SERIALIZABLE',
             "echo": False
         }
 
         if self.DATABASE_VENDOR == "postgresql":
 
-            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "galloper_schema")
+            self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "carrier")
 
             host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
-            database = os.environ.get("POSTGRES_DB", "galloper_database")
-            username = os.environ.get("POSTGRES_USER", "galloper_username")
-            password = os.environ.get("POSTGRES_PASSWORD", "galloper_password")
+            database = os.environ.get("POSTGRES_DB", "carrier_pg_db")
+            username = os.environ.get("POSTGRES_USER", "carrier_pg_user")
+            password = os.environ.get("POSTGRES_PASSWORD", "carrier_pg_password")
 
             self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,
@@ -55,5 +58,5 @@ class Config(metaclass=SingletonABC):
                 database=database
             )
 
-            self.db_engine_config["pool_size"] = 2
-            self.db_engine_config["max_overflow"] = 0
+            self.db_engine_config["pool_size"] = 10
+            self.db_engine_config["max_overflow"] = 5
