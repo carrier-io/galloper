@@ -19,7 +19,7 @@ class MinioClient:
             config=Config(signature_version="s3v4"),
             region_name=MINIO_REGION
         )
-        
+
     def extract_access_data(self) -> tuple:
         if self.project and self.PROJECT_SECRET_KEY in (self.project.secrets_json or {}):
             aws_access_json = self.project.secrets_json[self.PROJECT_SECRET_KEY]
@@ -75,3 +75,20 @@ class MinioClient:
         for file_obj in self.list_files(bucket):
             self.remove_file(bucket, file_obj["name"])
         self.s3_client.delete_bucket(Bucket=bucket)
+
+    def configure_bucket_lifecycle(self, bucket: str, days: int) -> None:
+        self.s3_client.put_bucket_lifecycle_configuration(
+            Bucket=bucket,
+            LifecycleConfiguration={
+                "Rules": [
+                    {
+                        "Expiration": {
+                            "Days": days,
+                            "ExpiredObjectDeleteMarker": True
+                        },
+                        "ID": "bucket-retention-policy",
+                        "Status": "Enabled"
+                    }
+                ]
+            }
+        )

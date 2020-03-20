@@ -64,9 +64,12 @@ def download(project: Project, bucket: str, fname: str):
 @project_required
 def create_bucket(project: Project):
     bucket = request.form["bucket"]
-    res = MinioClient(project=project).create_bucket(bucket)
+    days = int(request.form["days"])
+    minio_client = MinioClient(project=project)
+    res = minio_client.create_bucket(bucket)
     if not res:
         return redirect(url_for("artifacts.index"), code=302)
+    minio_client.configure_bucket_lifecycle(bucket=bucket, days=days)
     return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
