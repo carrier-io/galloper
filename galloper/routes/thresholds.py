@@ -21,7 +21,7 @@ from galloper.utils.auth import project_required
 bp = Blueprint("thresholds", __name__)
 
 
-@bp.route("/thresholds", methods=["GET"])
+@bp.route("/thresholds/api", methods=["GET"])
 @project_required
 def report(project: Project):
     tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).distinct()
