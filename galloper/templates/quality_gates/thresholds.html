@@ -16,7 +16,7 @@
                               <span>Test</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
-                              <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="switchTest()">
+                              <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="renderTable()">
                                   {% for test in tests %}
                                     <option>{{ test }}</option>
                                   {% endfor %}
@@ -144,7 +144,7 @@
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="addThreshold('none')">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="submit" onclick="insertThreshold()">Submit</button>
       </div>
     </div>
@@ -155,6 +155,7 @@
 </html>
 
 <script>
+    $("#thresholds").bootstrapTable('refreshOptions', {url: "/api/thresholds?name="+$("#testName").val()})
     function renderTable() {
         $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val());
         $("#thresholds").bootstrapTable('refresh');
@@ -180,6 +181,13 @@
 			if (title != "Add Threshold") {
 			    $("#scope").selectpicker('val', scope);
 			    $("#modal_title").html(title);
+			    $("#scope").selectpicker('val', 'all');
+                $("#target").selectpicker('val', 'throughput');
+                $("#aggregation").selectpicker('val', 'max');
+                $("#comparison").selectpicker('val', 'gte');
+                $("#yellow").val('');
+                $("#red").val('');
+                $("#submit").attr('onclick', 'insertThreshold()');
 			}
 			$("#scope").selectpicker('refresh');
 		  })
@@ -225,7 +233,7 @@
         });
     }
 
-    function deleteThreshold(id) {
+    function deleteThreshold(id, callback) {
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
@@ -239,13 +247,18 @@
             type: "DELETE",
             success: function(){
                 $("#thresholds").bootstrapTable('refresh');
+                if (callback !== undefined) {
+                    callback()
+                }
             }
         })
     }
 
     function editThreshold(id) {
-        deleteThreshold(id);
-        insertThreshold();
+         deleteThreshold(id, insertThreshold);
     }
 
+    $(document).ready(function() {
+        renderTable();
+    });
 </script>

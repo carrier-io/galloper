@@ -16,6 +16,7 @@ from functools import wraps
 from typing import Optional
 
 from flask import session, redirect, url_for
+from werkzeug.exceptions import NotFound
 
 from galloper.config import Config
 
@@ -43,11 +44,12 @@ def project_required(func):
     def decorated_function(*args, **kwargs):
         project_id = SessionProject.get()
 
-        if project_id is None:
-            return redirect(url_for("projects.add_project"))
+        try:
+            project = Project.get_object_or_404(pk=project_id)
+            return func(project, *args, **kwargs)
+        except NotFound:
+            ...
 
-        project = Project.get_object_or_404(pk=project_id)
-
-        return func(project, *args, **kwargs)
+        return redirect(url_for("projects.add_project"))
 
     return decorated_function

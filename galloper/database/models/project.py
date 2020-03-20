@@ -12,7 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from sqlalchemy import String, Column, Integer
+from sqlalchemy import String, Column, Integer, JSON
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
@@ -24,6 +24,7 @@ class Project(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=False)
+    secrets_json = Column(JSON, unique=False)
 
     def used_in_session(self):
         selected_id = SessionProject.get()
