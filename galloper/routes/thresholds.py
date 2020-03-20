@@ -24,5 +24,5 @@ bp = Blueprint("thresholds", __name__)
 @bp.route("/thresholds", methods=["GET"])
 @project_required
 def report(project: Project):
-    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).all()
+    tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).distinct()
     return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])

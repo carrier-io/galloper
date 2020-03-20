@@ -21,6 +21,8 @@ from galloper.database.models.api_release import APIRelease
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
+from galloper.data_utils.charts_utils import get_throughput_per_test, get_response_time_per_test
+from galloper.data_utils import arrays
 
 
 class ReleaseAPI(Resource):
@@ -97,5 +99,59 @@ class ApiReportsAPI(Resource):
             ).all()
             api_report_ids = [each.id for each in api_reports]
             return api_report_ids
+        except AttributeError:
+            return []
+
+
+class ReleaseApiSaturation(Resource):
+    _rules = (
+        dict(name="release_name", type=str, location="args"),
+        dict(name="release_id", type=int, location="args"),
+        dict(name='sampler', type=str, location="args", required=True),
+        dict(name='request', type=str, location="args", required=True),
+        dict(name='test_name', type=str, location="args", required=True),
+        dict(name='environment', type=str, location="args", required=True),
+        dict(name='max_errors', type=float, default=1.0, location="args")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser = build_req_parser(rules=self._rules)
+
+    def get(self):
+        args = self._parser.parse_args(strict=False)
+        try:
+            if args.get("release_name"):
+                release_id = APIRelease.query.filter_by(release_name=args.get("release_name")).first().id
+            else:
+                release_id = args.get("release_id")
+            api_reports = APIReport.query.filter(and_(
+                APIReport.release_id == release_id,
+                APIReport.name == args["test_name"],
+                APIReport.environment == args["environment"])).order_by(APIReport.vusers.asc()).all()
+            response_time = []
+            throughput = []
+            error_rate = []
+            users = []
+            for _ in api_reports:
+                users.append(_.vusers)
+                throughput.append(
+                    get_throughput_per_test(_.build_id, _.name, _.lg_type, args["sampler"], args["request"], "1s"))
+                response_time.append(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
+                                                                args["request"], "pct95"))
+                error_rate.append(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
+                                                             args["request"], "errors"))
+            if arrays.non_decreasing(throughput) and arrays.within_bounds(error_rate, args['max_errors']):
+                return {"message": "proceed", "code": 0}
+            else:
+                return {
+                    "message": "saturation",
+                    "users": users,
+                    "throughput": throughput,
+                    "errors": error_rate,
+                    "code": 1
+                }
         except AttributeError:
             return []

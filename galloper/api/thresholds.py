@@ -52,7 +52,7 @@ class ThresholdsAPI(Resource):
 
     def post(self):
         args = self._parser_post.parse_args(strict=False)
-        create_thresholds(
+        return {"message": create_thresholds(
             test=args["test"],
             scope=args["scope"],
             target=args["target"],
@@ -60,8 +60,7 @@ class ThresholdsAPI(Resource):
             comparison=args["comparison"],
             yellow=args["yellow"],
             red=args["red"]
-        )
-        return {"message": "OK"}
+        )}
 
     def delete(self):
         args = self._parser_delete.parse_args(strict=False)
