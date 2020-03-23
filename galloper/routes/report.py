@@ -329,11 +329,12 @@ class FindingsApi(Resource):
             # Verify issue is false_positive or ignored
             finding['details'] = hash_id.id
             entrypoints = ''
-            for each in finding.get("endpoints", []):
-                if isinstance(each, list):
-                    entrypoints += "<br />".join(each)
-                else:
-                    entrypoints += f"<br />{each}"
+            if finding.get("endpoints"):
+                for each in finding.get("endpoints", []):
+                    if isinstance(each, list):
+                        entrypoints += "<br />".join(each)
+                    else:
+                        entrypoints += f"<br />{each}"
             finding["endpoints"] = entrypoints
             if not (finding['false_positive'] == 1 or finding['excluded_finding'] == 1):
                 # TODO: add validation that finding is a part of project, applicaiton. etc.
