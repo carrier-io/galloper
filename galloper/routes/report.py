@@ -253,8 +253,7 @@ class SecurityReportApi(Resource):
             filter_ = or_(SecurityResults.project_name.like(f'%{args["search"]}%'),
                           SecurityResults.app_name.like(f'%{args["search"]}%'),
                           SecurityResults.scan_type.like(f'%{args["search"]}%'),
-                          SecurityResults.environment.like(f'%{args["search"]}%'),
-                          SecurityResults.endpoint.like(f'%{args["search"]}%'))
+                          SecurityResults.environment.like(f'%{args["search"]}%'))
             res = SecurityResults.query.filter(filter_).order_by(sort_rule). \
                 limit(args.get('limit')).offset(args.get('offset')).all()
             total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
@@ -272,7 +271,6 @@ class SecurityReportApi(Resource):
             each.delete()
         for each in SecurityResults.query.filter(SecurityResults.id.in_(args["id[]"])
                                                  ).order_by(SecurityResults.id.asc()).all():
-            delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
 
@@ -333,11 +331,12 @@ class FindingsApi(Resource):
             # Verify issue is false_positive or ignored
             finding['details'] = hash_id.id
             entrypoints = ''
-            for each in finding.get("endpoints"):
-                if isinstance(each, list):
-                    entrypoints += "<br />".join(each)
-                else:
-                    entrypoints += f"<br />{each}"
+            if finding.get("endpoints"):
+                for each in finding.get("endpoints", []):
+                    if isinstance(each, list):
+                        entrypoints += "<br />".join(each)
+                    else:
+                        entrypoints += f"<br />{each}"
             finding["endpoints"] = entrypoints
             if not (finding['false_positive'] == 1 or finding['excluded_finding'] == 1):
                 # TODO: add validation that finding is a part of project, applicaiton. etc.
