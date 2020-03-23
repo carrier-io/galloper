@@ -193,7 +193,7 @@ def create_benchmark_dataset(args):
                                                                                 calculation)
             else:
                 data[_.environment][str(_.vusers)] = None
-        except:
+        except IndexError:
             pass
 
     labels = [""] + sorted(list(labels)) + [""]
