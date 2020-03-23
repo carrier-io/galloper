@@ -304,7 +304,6 @@ class SecurityReportAPI(Resource):
         for each in SecurityResults.query.filter(
             SecurityResults.id.in_(args["id[]"])
         ).order_by(SecurityResults.id.asc()).all():
-            delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
 
@@ -346,21 +345,29 @@ class FindingsAPI(Resource):
         self._parser_get = build_req_parser(rules=self.get_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
 
-    def get(self):
+    def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
         if args["type"] == "false_positives":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.false_positive == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.false_positive == 1)
         elif args["type"] == "findings":
-            filt = and_(SecurityReport.report_id == args["id"],
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
                         SecurityReport.info_finding == 0,
                         SecurityReport.false_positive == 0,
                         SecurityReport.excluded_finding == 0)
         elif args["type"] == "info_findings":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.info_finding == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.info_finding == 1)
         elif args["type"] == "excluded_finding":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.excluded_finding == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.excluded_finding == 1)
         else:
-            filt = and_(SecurityReport.report_id == args["id"])
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"])
         issues = SecurityReport.query.filter(filt).all()
         results = []
         for issue in issues:
@@ -369,16 +376,19 @@ class FindingsAPI(Resource):
             results.append(_res)
         return results
 
-    def post(self):
+    def post(self, project_id: int):
         finding_db = None
         for finding in request.json:
             md5 = hashlib.md5(finding["details"].encode("utf-8")).hexdigest()
-            hash_id = SecurityDetails.query.filter(SecurityDetails.detail_hash == md5).first()
+            hash_id = SecurityDetails.query.filter(
+                and_(SecurityDetails.project_id == project_id, SecurityDetails.detail_hash == md5)
+            ).first()
             if not hash_id:
-                hash_id = SecurityDetails(detail_hash=md5, details=finding["details"])
+                hash_id = SecurityDetails(detail_hash=md5, project_id=project_id, details=finding["details"])
                 hash_id.insert()
             # Verify issue is false_positive or ignored
             finding["details"] = hash_id.id
+            finding['project_id'] = project_id
             entrypoints = ""
             for each in finding.get("endpoints"):
                 if isinstance(each, list):
@@ -402,16 +412,20 @@ class FindingsAPI(Resource):
         if finding_db:
             finding_db.commit()
 
-    def put(self):
+    def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
-        # test_data = SecurityResults.query.filter_by(id=args["id"]).first()
-        issue_hash = SecurityReport.query.filter_by(id=args["issue_id"]).first().issue_hash
+        issue_hash = SecurityReport.query.filter(and_(SecurityReport.project_id == project_id,
+                                                      SecurityReport.id == args["issue_id"])
+                                                 ).first().issue_hash
         if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
         else:
             upd = {"false_positive": 0, "info_finding": 0}
         # TODO: add validation that finding is a part of project, applicaiton. etc.
-        SecurityReport.query.filter(SecurityReport.issue_hash == issue_hash).update(upd)
+        SecurityReport.query.filter(and_(
+            SecurityReport.project_id == project_id,
+            SecurityReport.issue_hash == issue_hash)
+        ).update(upd)
         SecurityReport.commit()
         return {"message": "accepted"}
 
@@ -430,9 +444,10 @@ class FindingsAnalysisAPI(Resource):
     def __init_req_parsers(self):
         self._parser_get = build_req_parser(rules=self.get_rules)
 
-    def get(self):
+    def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        projects_filter = and_(SecurityResults.project_name == args["project_name"],
+        projects_filter = and_(SecurityResults.project_id == project_id,
+                               SecurityResults.project_name == args["project_name"],
                                SecurityResults.app_name == args["app_name"],
                                SecurityResults.scan_type == args["scan_type"])
         ids = SecurityResults.query.filter(projects_filter).all()

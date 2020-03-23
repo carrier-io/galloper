@@ -54,11 +54,14 @@
   </div>
 </div>
 </div>
+
 {% include 'common/foot.html' %}
+
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
 function createLinkToReport(value, row, index){
-    return '<a href="/security/finding?id='+row['id']+'">'+value+'</a>'
+    var project_id = $("#selected-project-id").text();
+    return `<a href="/security/${project_id}/finding?id=${row.id}">${value}</a>`
 }
 
  $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {
@@ -71,7 +74,8 @@ function createLinkToReport(value, row, index){
  })
 
 function deleteReports() {
-    var reports = "/api/v1/security?";
+    var project_id = $("#selected-project-id").text();
+    var reports = `/api/v1/security/${project_id}?`;
     $("#results").bootstrapTable('getSelections').forEach(item => {
         reports+= "id[]="+item["id"]+"&"
     });
