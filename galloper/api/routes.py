@@ -33,7 +33,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>")
 
     add_resource_to_api(api, SecurityReportAPI, "/security", "/security/<int:project_id>")
-    add_resource_to_api(api, FindingsAPI, "/security/finding")
-    add_resource_to_api(api, FindingsAnalysisAPI, "/security/fpa")
+    add_resource_to_api(api, FindingsAPI, "/security/<int:project_id>/finding")
+    add_resource_to_api(api, FindingsAnalysisAPI, "/security/<int:project_id>/fpa")
 
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
