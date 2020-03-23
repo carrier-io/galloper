@@ -67,6 +67,7 @@ class ReleaseApiSaturation(Resource):
     parser.add_argument('test_name', type=str, location="args", required=True)
     parser.add_argument('environment', type=str, location="args", required=True)
     parser.add_argument('max_errors', type=float, default=1.0, location="args")
+    parser.add_argument('aggregation', type=str, default="1s", location="args")
 
     def get(self):
         args = self.parser.parse_args(strict=False)
@@ -86,11 +87,15 @@ class ReleaseApiSaturation(Resource):
             for _ in api_reports:
                 users.append(_.vusers)
                 throughput.append(
-                    get_throughput_per_test(_.build_id, _.name, _.lg_type, args["sampler"], args["request"], "1s"))
+                    get_throughput_per_test(_.build_id, _.name, _.lg_type, args["sampler"], args["request"],
+                                            args["aggregation"]))
                 response_time.append(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
                                                                 args["request"], "pct95"))
-                error_rate.append(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
-                                                             args["request"], "errors"))
+                errors_count = int(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
+                                                              args["request"], "errors"))
+                total = int(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
+                                                       args["request"], "total"))
+                error_rate.append(round(float(errors_count/total) * 100, 2))
             if arrays.non_decreasing(throughput) and arrays.within_bounds(error_rate, args['max_errors']):
                 return {"message": "proceed", "code": 0}
             else:
@@ -101,8 +106,11 @@ class ReleaseApiSaturation(Resource):
                     "errors": error_rate,
                     "code": 1
                 }
-        except AttributeError:
-            return []
+        except (AttributeError, IndexError):
+            return {
+                "message": "exception",
+                "code": 1
+            }
 
 
 api.add_resource(ReleaseApi, "/api/releases/api")
