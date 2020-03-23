@@ -115,10 +115,12 @@ class ReportApi(Resource):
         else:
             filter_ = or_(APIReport.name.like(f'%{args["search"]}%'),
                           APIReport.environment.like(f'%{args["search"]}%'),
+                          APIReport.release_id.like(f'%{args["search"]}%'),
                           APIReport.type.like(f'%{args["search"]}%'))
-            res = APIReport.query.filter(filter_).order_by(sort_rule).\
-                limit(args.get('limit')).offset(args.get('offset')).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            limit = len(total) if args.get('limit') == 'All' else args.get('limit')
+            res = APIReport.query.filter(filter_).order_by(sort_rule). \
+                limit(limit).offset(args.get('offset')).all()
         for each in res:
             each_json = each.to_json()
             each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]
