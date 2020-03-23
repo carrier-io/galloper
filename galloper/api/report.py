@@ -266,7 +266,7 @@ class SecurityReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
-    def get(self):
+    def get(self, project_id):
         reports = []
         args = self._parser_get.parse_args(strict=False)
         search_ = args.get("search")
@@ -277,16 +277,17 @@ class SecurityReportAPI(Resource):
         else:
             sort_rule = SecurityResults.id.desc()
         if not args.get("search") and not args.get("sort"):
-            total = SecurityResults.query.order_by(sort_rule).count()
-            res = SecurityResults.query.order_by(sort_rule).limit(limit_).offset(offset_).all()
+            total = SecurityResults.query.filter_by(project_id=project_id).order_by(sort_rule).count()
+            res = SecurityResults.query.filter_by(project_id=project_id).\
+                order_by(sort_rule).limit(limit_).offset(offset_).all()
         else:
-            filter_ = or_(SecurityResults.project_name.like(f"%{search_}%"),
+            filter_ = and_(SecurityResults.project_id==project_id,
+                      or_(SecurityResults.project_name.like(f"%{search_}%"),
                           SecurityResults.app_name.like(f"%{search_}%"),
                           SecurityResults.scan_type.like(f"%{search_}%"),
-                          SecurityResults.environment.like(f"%{search_}%"),
-                          SecurityResults.endpoint.like(f"%{search_}%"))
+                          SecurityResults.environment.like(f"%{search_}%")))
             res = SecurityResults.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
-            total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
+            total = SecurityResults.query.filter(filter_).order_by(sort_rule).count()
         for each in res:
             each_json = each.to_json()
             each_json["scan_time"] = each_json["scan_time"].replace("T", " ").split(".")[0]
