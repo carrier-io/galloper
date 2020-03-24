@@ -20,6 +20,7 @@ from .report import (ReportAPI, ReportChartsAPI, ReportsCompareAPI,
                      SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI)
 from .artifacts import BucketsApi, ArtifactApi
 from .thresholds import ThresholdsAPI, RequestsAPI
+from .task import TaskActionApi
 from galloper.utils.api_utils import add_resource_to_api
 
 
@@ -42,3 +43,5 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
+
+    add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")

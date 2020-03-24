@@ -107,38 +107,7 @@ def suspend_task(project: Project, task_id: str, action: str):
                 and_(Task.task_id == task_id, Task.project_id == project.id)
             ).first()
         getattr(task, action)()
-    elif action == "edit":
-        if request.method == "POST":
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
-            for key, value in request.form.items():
-                if key in ["id", "task_id", "zippath", "last_run"]:
-                    continue
-                elem = getattr(task, key, None)
-                if value in ["None", "none", ""]:
-                    value = None
-                if elem != value:
-                    setattr(task, key, value)
-                task.commit()
-            return "OK", 201
-
-        return "Data is miss-formatted", 200
-
     elif action == "results":
-        if request.method == "POST":
-            data = request.get_json()
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
-            task.set_last_run(data["ts"])
-            result = Results(task_id=task_id,
-                             ts=data["ts"],
-                             results=data["results"],
-                             log=data["stderr"])
-            result.insert()
-            return "OK", 201
-
         result = Results.query.filter(
             and_(Results.task_id == task_id, Task.project_id == project.id)
         ).order_by(Results.ts.desc()).all()
@@ -146,5 +115,4 @@ def suspend_task(project: Project, task_id: str, action: str):
             and_(Task.task_id == task_id, Task.project_id == project.id)
         ).first()
         return render_template("lambdas/task_results.html", results=result, task=task)
-
     return redirect(url_for("tasks.tasks"))

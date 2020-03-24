@@ -76,7 +76,7 @@ def run_lambda(task, event):
         "Content-Type": "application/json",
         "Token": task['token']
     }
-    post(f'{APP_HOST}/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
+    post(f'{APP_HOST}/api/v1/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
     return results
 
 
