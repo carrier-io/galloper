@@ -1,17 +1,16 @@
-(async function () {
+(function () {
     let projectsDropdown = document.getElementById("projects-dropdown");
     let projectsDropdownItems = document.getElementById("projects-dropdown-items");
     let selectedProjectTitle = document.getElementById("selected-project");
     let selectedProjectId = document.getElementById("selected-project-id");
 
-    async function initProjectDropdown(projectData) {
+    function initProjectDropdown(projectData) {
         if (projectData === undefined) {
-            let response = await fetch(
-                "/api/v1/project/?" + new URLSearchParams({"get_selected": true}),
-                {method: "GET"}
-            );
-            if (response.status === 200) {
-                projectData = await response.json();
+            var request = new XMLHttpRequest();
+            request.open('GET', "/api/v1/project/?" + new URLSearchParams({"get_selected": true}), false);
+            request.send(null);
+            if (request.status === 200) {
+                projectData = JSON.parse(request.responseText);
             }
         }
         if (projectData instanceof Object) {
@@ -21,43 +20,34 @@
 
     }
 
-    async function selectSessionProject(projectData) {
+    function selectSessionProject(projectData) {
         try {
-            let response = await fetch(
-                `/api/v1/project/${projectData.id}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({action: "select"})
-                }
-            );
-            if (response.status === 200) {
-                let responseJson = await response.json();
+            var request = new XMLHttpRequest();
+            request.open('GET', `/api/v1/project/${projectData.id}`, false);
+            request.setRequestHeader("Accept", "application/json")
+            request.setRequestHeader("Content-Type", "application/json")
+            request.send(JSON.stringify({action: "select"}))
+            if (request.status === 200) {
+                let responseJson = JSON.parse(request.responseText);
                 console.log(responseJson);
-                await initProjectDropdown(projectData);
+                initProjectDropdown(projectData);
                 window.location.reload();
                 return false
             }
         } catch (err) {
             console.error(err);
-            // Handle errors here
         }
     }
 
-    async function fillDropdown() {
-
+    function fillDropdown() {
         while (projectsDropdownItems.firstChild) {
             projectsDropdownItems.removeChild(projectsDropdownItems.firstChild);
         }
-
-        let response = await fetch(
-            "/api/v1/project/", {method: "GET"}
-        );
-        if (response.status === 200) {
-            let projectsData = await response.json();
+        var request = new XMLHttpRequest();
+        request.open('GET',  "/api/v1/project/", false);
+        request.send(null);
+        if (request.status === 200) {
+            let projectsData = JSON.parse(request.responseText);
             for (let projectData of projectsData) {
                 let aElement = document.createElement("a");
                 aElement.setAttribute("class", "dropdown-item");
@@ -74,7 +64,7 @@
         }
     }
 
-    await initProjectDropdown();
+    initProjectDropdown();
 
     projectsDropdown.addEventListener("click", fillDropdown, false);
 

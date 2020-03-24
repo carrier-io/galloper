@@ -37,6 +37,32 @@ def tasks(project: Project):
     return render_template("lambdas/tasks.html", tasks=tasks_, project_id=project.id)
 
 
+@bp.route("/task/<string:task_id>", methods=["GET", "POST"])
+def call_lambda(task_id: str):
+    if request.method == "POST":
+        if request.content_type == "application/json":
+            task = Task.query.filter(
+                and_(Task.task_id == task_id)
+            ).first().to_json()
+            event = request.get_json()
+            app = run.connect_to_celery(1)
+            celery_task = app.signature("tasks.execute",
+                                        kwargs={"task": task, "event": event})
+            celery_task.apply_async()
+            return "Accepted", 201
+        elif request.content_type == "application/x-www-form-urlencoded":
+            return f"Calling {task_id} with {request.form}"
+
+    task = Task.query.filter(
+        and_(Task.task_id == task_id)
+    ).first()
+    return render_template(
+        "lambdas/task.html",
+        task=task,
+        runtimes=NAME_CONTAINER_MAPPING.keys()
+    )
+
+
 @bp.route("/task", methods=["GET", "POST"])
 @project_required
 def add_task(project: Project):
@@ -71,34 +97,6 @@ def add_task(project: Project):
             return f"{filename}"
 
     return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
-
-
-@bp.route("/task/<string:task_id>", methods=["GET", "POST"])
-@project_required
-def call_lambda(project: Project, task_id: str):
-
-    if request.method == "POST":
-        if request.content_type == "application/json":
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first().to_json()
-            event = request.get_json()
-            app = run.connect_to_celery(1)
-            celery_task = app.signature("tasks.execute",
-                                        kwargs={"task": task, "event": event})
-            celery_task.apply_async()
-            return "Accepted", 201
-        elif request.content_type == "application/x-www-form-urlencoded":
-            return f"Calling {task_id} with {request.form}"
-
-    task = Task.query.filter(
-        and_(Task.task_id == task_id, Task.project_id == project.id)
-    ).first()
-    return render_template(
-        "lambdas/task.html",
-        task=task,
-        runtimes=NAME_CONTAINER_MAPPING.keys()
-    )
 
 
 @bp.route("/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
