@@ -132,17 +132,6 @@ function getData(scope, request_name) {
     }
 }
 
-
-$(document).ready(function() {
-    setParams();
-    loadRequestData('/api/chart/requests/summary', "Response time, ms");
-    analyticsCanvas();
-    fillTable();
-    fillErrorTable();
-    $('#RT').trigger( "click" )
-    $("#analytics").hide();
-});
-
 function analyticsCanvas() {
     analyticsLine = Chart.Line(analyticsContext, {
         data: analyticsData,
@@ -305,3 +294,13 @@ function fillErrorTable() {
     var high_value = $("#input-slider-range-value-high").html()
     $("#errors").bootstrapTable('refreshOptions', {url: `/api/chart/errors/table?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
 }
+
+$(document).ready(function() {
+    setParams();
+    loadRequestData('/api/chart/requests/summary', "Response time, ms");
+    analyticsCanvas();
+    fillTable();
+    fillErrorTable();
+    $('#RT').trigger( "click" )
+    $("#analytics").hide();
+});

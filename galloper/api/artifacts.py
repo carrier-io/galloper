@@ -27,10 +27,8 @@ class BucketsApi(Resource):
 
     def post(self, project_id: int, bucket: str):
         project = Project.get_object_or_404(pk=project_id)
-        if "file" in request.files:
-            f = request.files["file"]
-            MinioClient(project=project).upload_file(bucket, f.read(), f.filename)
-        return {"message": "Done", "code": 200}
+        MinioClient(project=project).create_bucket(bucket)
+        return {"message": "Created", "code": 200}
 
     def delete(self, project_id: int, bucket: str):
         project = Project.get_object_or_404(pk=project_id)
@@ -54,6 +52,12 @@ class ArtifactApi(Resource):
         fobj = MinioClient(project=project).download_file(bucket, filename)
         return send_file(BytesIO(fobj), attachment_filename=filename)
 
+    def post(self, project_id: int, bucket: str, filename: str):
+        project = Project.get_object_or_404(pk=project_id)
+        if "file" in request.files:
+            f = request.files["file"]
+            MinioClient(project=project).upload_file(bucket, f.read(), f.filename)
+        return {"message": "Done", "code": 200}
 
     def delete(self, project_id: int, bucket: str, filename: str):
         args = self._parser_delete.parse_args(strict=False)
