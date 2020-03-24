@@ -47,7 +47,6 @@
                 </div>
                 <div class="card-body" id="preset">
                     <table
-                            onload="refreshTable()"
                             id="results"
                             data-toggle="table"
                             data-page-size=10
@@ -196,12 +195,13 @@
     }
 
     function refreshTable() {
-        console.log('DOneeeeee');
         let selectedProjectId = getSelectedProjectId();
-        $("#results").bootstrapTable('refresh', {
-            url: `/api/v1/reports/${selectedProjectId}`
-        });
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/reports/${selectedProjectId}`});
     }
+
+    $(document).ready(function() {
+        refreshTable();
+    });
 
     function lgFormatter(value, row, index) {
         if (value === "jmeter") {
@@ -235,7 +235,8 @@
     }
 
     function deleteReports() {
-        var reports = "/api/v1/report?";
+        var project_id = $("#selected-project-id").text();
+        var reports = `/api/v1/reports/${project_id}?`;
         $("#results").bootstrapTable('getSelections').forEach(item => {
             reports += "id[]=" + item["id"] + "&"
         });

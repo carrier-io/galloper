@@ -37,6 +37,7 @@ def index(project: Project):
                            bucket=bucket_name)
 
 
+# TODO: retire
 @bp.route("/artifacts/<string:bucket>/upload", methods=["POST"])
 @project_required
 def upload(project: Project, bucket: str):
@@ -46,6 +47,7 @@ def upload(project: Project, bucket: str):
     return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
+# TODO: retire
 @bp.route("/artifacts/<string:bucket>/<string:fname>/delete", methods=["GET"])
 @project_required
 def delete(project: Project, bucket, fname):
@@ -53,6 +55,7 @@ def delete(project: Project, bucket, fname):
     return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
+# TODO: retire
 @bp.route("/artifacts/<string:bucket>/<string:fname>", methods=["GET"])
 @project_required
 def download(project: Project, bucket: str, fname: str):
@@ -70,6 +73,7 @@ def create_bucket(project: Project):
     return redirect(url_for("artifacts.index", q=bucket), code=302)
 
 
+# TODO: retire
 @bp.route("/artifacts/<string:bucket>/delete", methods=["GET"])
 @project_required
 def delete_bucket(project: Project, bucket: str):
