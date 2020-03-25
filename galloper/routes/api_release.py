@@ -68,9 +68,15 @@ class ReleaseApiSaturation(Resource):
     parser.add_argument('environment', type=str, location="args", required=True)
     parser.add_argument('max_errors', type=float, default=1.0, location="args")
     parser.add_argument('aggregation', type=str, default="1s", location="args")
+    parser.add_argument('global', type=str, default=None, location="args")
 
     def get(self):
         args = self.parser.parse_args(strict=False)
+        response_time = []
+        throughput = []
+        error_rate = []
+        global_error_rate = []
+        users = []
         try:
             if args.get("release_name"):
                 release_id = APIRelease.query.filter_by(release_name=args.get("release_name")).first().id
@@ -80,12 +86,15 @@ class ReleaseApiSaturation(Resource):
                 APIReport.release_id == release_id,
                 APIReport.name == args["test_name"],
                 APIReport.environment == args["environment"])).order_by(APIReport.vusers.asc()).all()
-            response_time = []
-            throughput = []
-            error_rate = []
-            users = []
             for _ in api_reports:
                 users.append(_.vusers)
+                if args["global"]:
+                    errors_count = int(get_response_time_per_test(_.build_id, _.name, _.lg_type, None,
+                                                                  'All', "errors"))
+                    total = int(get_response_time_per_test(_.build_id, _.name, _.lg_type, None,
+                                                           'All', "total"))
+                    global_error_rate.append(round(float(errors_count / total) * 100, 2))
+
                 throughput.append(
                     get_throughput_per_test(_.build_id, _.name, _.lg_type, args["sampler"], args["request"],
                                             args["aggregation"]))
@@ -96,19 +105,23 @@ class ReleaseApiSaturation(Resource):
                 total = int(get_response_time_per_test(_.build_id, _.name, _.lg_type, args["sampler"],
                                                        args["request"], "total"))
                 error_rate.append(round(float(errors_count/total) * 100, 2))
-            if arrays.non_decreasing(throughput) and arrays.within_bounds(error_rate, args['max_errors']):
-                return {"message": "proceed", "code": 0}
+
+            if arrays.non_decreasing(throughput):
+                return {"message": "proceed", "error_rate": int(global_error_rate[-1]), "code": 0}
             else:
                 return {
                     "message": "saturation",
                     "users": users,
                     "throughput": throughput,
                     "errors": error_rate,
+                    "global_errors": global_error_rate,
                     "code": 1
                 }
         except (AttributeError, IndexError):
             return {
                 "message": "exception",
+                "error_rate": error_rate,
+                "global_errors": global_error_rate,
                 "code": 1
             }
 
