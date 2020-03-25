@@ -69,6 +69,9 @@ class ReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
+    def __calcualte_limit(self, limit, total):
+        return len(total) if limit == 'All' else limit
+
     def get(self, project_id: int):
         project = Project.get_object_or_404(pk=project_id)
         reports = []
@@ -85,23 +88,27 @@ class ReportAPI(Resource):
             total = APIReport.query.filter(APIReport.project_id == project.id).order_by(sort_rule).count()
             res = APIReport.query.filter(
                 APIReport.project_id == project.id
-            ).order_by(sort_rule).limit(limit_).offset(offset_).all()
+            ).order_by(sort_rule).limit(self.__calcualte_limit(limit_, total)).offset(offset_).all()
         elif args.get("search"):
             search_args = f"%{args['search']}%"
             filter_ = and_(APIReport.project_id == project.id,
                            or_(APIReport.name.like(search_args),
                                APIReport.environment.like(search_args),
+                               APIReport.release_id.like(search_args),
                                APIReport.type.like(search_args)))
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
+
         elif args.get("filter"):
             filter_ = list()
             filter_.append(operator.eq(APIReport.project_id, project.id))
             for key, value in loads(args.get("filter")).items():
                 filter_.append(operator.eq(getattr(APIReport, key), value))
             filter_ = and_(*tuple(filter_))
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
         for each in res:
             each_json = each.to_json()
             each_json["start_time"] = each_json["start_time"].replace("T", " ").split(".")[0]
