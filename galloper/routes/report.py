@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 import hashlib
+import operator
+from json import loads
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import Blueprint, request, render_template
@@ -80,6 +82,7 @@ get_report_parser.add_argument('limit', type=int, default=0, location="args")
 get_report_parser.add_argument('search', type=str, default='', location="args")
 get_report_parser.add_argument('sort', type=str, default='', location="args")
 get_report_parser.add_argument('order', type=str, default='', location="args")
+get_report_parser.add_argument('filter', type=str, default='', location="args")
 
 delete_report_parser = reqparse.RequestParser()
 delete_report_parser.add_argument('id[]', type=int, action='append', location="args")
@@ -105,22 +108,33 @@ class ReportApi(Resource):
     def get(self):
         reports = []
         args = get_report_parser.parse_args(strict=False)
+        total = 0
+        res = []
+        limit_ = args.get("limit")
+        offset_ = args.get("offset")
         if args.get('sort'):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
             sort_rule = APIReport.id.asc()
-        if not args.get('search') and not args.get('sort'):
+        if not args.get('search') and not args.get("filter"):
             total = APIReport.query.order_by(sort_rule).count()
-            res = APIReport.query.order_by(sort_rule).limit(args.get('limit')).offset(args.get('offset')).all()
-        else:
+            res = APIReport.query.order_by(sort_rule).limit(limit_).offset(offset_).all()
+        elif args.get("search"):
             filter_ = or_(APIReport.name.like(f'%{args["search"]}%'),
                           APIReport.environment.like(f'%{args["search"]}%'),
                           APIReport.release_id.like(f'%{args["search"]}%'),
                           APIReport.type.like(f'%{args["search"]}%'))
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
-            limit = len(total) if args.get('limit') == 'All' else args.get('limit')
+            limit = len(total) if limit_ == 'All' else limit_
             res = APIReport.query.filter(filter_).order_by(sort_rule). \
-                limit(limit).offset(args.get('offset')).all()
+                limit(limit).offset(offset_).all()
+        elif args.get("filter"):
+            filter_ = []
+            for key, value in loads(args.get("filter")).items():
+                filter_.append(operator.eq(getattr(APIReport, key), value))
+            filter_ = and_(*tuple(filter_))
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
+            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
         for each in res:
             each_json = each.to_json()
             each_json['start_time'] = each_json['start_time'].replace("T", " ").split(".")[0]

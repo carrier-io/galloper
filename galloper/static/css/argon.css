@@ -2498,7 +2498,9 @@ select.form-control:focus::-ms-value
 
 }
 
-.form-control-sm
+.form-control-sm,
+.filter-control input,
+.filter-control select
 {
     font-size: .875rem;
     line-height: 1.5;
