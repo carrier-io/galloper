@@ -81,7 +81,7 @@ class ReportAPI(Resource):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
             sort_rule = APIReport.id.asc()
-        if not args.get("search") and not args.get("sort"):
+        if not args.get('search') and not args.get('filter'):
             total = APIReport.query.filter(APIReport.project_id == project.id).order_by(sort_rule).count()
             res = APIReport.query.filter(
                 APIReport.project_id == project.id
