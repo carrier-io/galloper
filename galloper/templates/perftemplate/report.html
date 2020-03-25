@@ -37,6 +37,11 @@
                                     </button>
                                 </li>
                                 <li class="nav-item mr-2 mr-md-0">
+                                    <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
+                                        <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
+                                    </button>
+                                </li>
+                                <li class="nav-item mr-2 mr-md-0">
                                     <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
                                         <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
                                     </button>
@@ -53,20 +58,21 @@
                             data-page-list=[10,20,50,100]
                             data-side-pagination="server"
                             data-pagination="true"
-                            data-search="true">
+                            data-search="true"
+                            data-filter-control="true">
                         <thead>
                         <tr>
                             <th data-checkbox="true"></th>
                             <th data-visible="false" data-field="id">index</th>
                             <th data-sortable="true" data-field="start_time">Start</th>
-                            <th data-sortable="true" data-field="name" data-formatter=createLinkToReport>Name</th>
-                            <th data-sortable="true" data-field="duration">Duration</th>
-                            <th data-sortable="true" data-field="vusers">vUsers</th>
-                            <th data-sortable="true" data-field="environment">Env</th>
-                            <th data-sortable="true" data-field="type">Test Type</th>
+                            <th data-sortable="true" data-field="name" data-formatter=createLinkToReport data-filter-control="input">Name</th>
+                            <th data-sortable="true" data-field="duration" data-filter-control="input">Duration</th>
+                            <th data-sortable="true" data-field="vusers" data-filter-control="input">vUsers</th>
+                            <th data-sortable="true" data-field="environment" data-filter-control="input">Env</th>
+                            <th data-sortable="true" data-field="type" data-filter-control="select">Test Type</th>
                             <th data-field="throughput">TPS</th>
                             <th data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
-                            <th data-field="release_id">Release ID</th>
+                            <th data-field="release_id" data-filter-control="input">Release ID</th>
                             <th data-field="lg_type" data-formatter=lgFormatter>Runner</th>
                         </tr>
                         </thead>
@@ -133,6 +139,7 @@
 </div>
 
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 <script>
     function createLinkToReport(value, row, index) {
         return '<a href="/report/backend?report_id=' + row['id'] + '">' + value + '</a>'
@@ -140,6 +147,11 @@
 
     function percentFormatter(value, row, index) {
         return value + '&nbsp;%'
+    }
+
+    function filters() {
+        $(".filter-control input").css("visibility", $(".filter-control input").css("visibility")==="visible" ? "hidden" : "visible")
+        $(".filter-control select").css("visibility", $(".filter-control select").css("visibility")==="visible" ? "hidden" : "visible")
     }
 
     $("#assignToRelease").on("show.bs.modal", function () {
@@ -201,6 +213,7 @@
 
     $(document).ready(function() {
         refreshTable();
+        filters();
     });
 
     function lgFormatter(value, row, index) {

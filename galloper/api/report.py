@@ -13,6 +13,8 @@
 #     limitations under the License.
 
 import hashlib
+import operator
+from json import loads
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import request
@@ -37,7 +39,8 @@ class ReportAPI(Resource):
         dict(name="search", type=str, default="", location="args"),
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
-        dict(name="name", type=str, location="args")
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
     )
     delete_rules = (
         dict(name="id[]", type=int, action="append", location="args"),
@@ -72,6 +75,8 @@ class ReportAPI(Resource):
         args = self._parser_get.parse_args(strict=False)
         limit_ = args.get("limit")
         offset_ = args.get("offset")
+        res = []
+        total = 0
         if args.get("sort"):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
@@ -81,12 +86,19 @@ class ReportAPI(Resource):
             res = APIReport.query.filter(
                 APIReport.project_id == project.id
             ).order_by(sort_rule).limit(limit_).offset(offset_).all()
-        else:
+        elif args.get("search"):
             search_args = f"%{args['search']}%"
             filter_ = and_(APIReport.project_id == project.id,
                            or_(APIReport.name.like(search_args),
                                APIReport.environment.like(search_args),
                                APIReport.type.like(search_args)))
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
+            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+        elif args.get("filter"):
+            filter_ = []
+            for key, value in loads(args.get("filter")).items():
+                filter_.append(operator.eq(getattr(APIReport, key), value))
+            filter_ = and_(*tuple(filter_))
             res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
         for each in res:
