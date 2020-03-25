@@ -95,7 +95,8 @@ class ReportAPI(Resource):
             res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
         elif args.get("filter"):
-            filter_ = []
+            filter_ = list()
+            filter_.append(operator.eq(APIReport.project_id, project.id))
             for key, value in loads(args.get("filter")).items():
                 filter_.append(operator.eq(getattr(APIReport, key), value))
             filter_ = and_(*tuple(filter_))
