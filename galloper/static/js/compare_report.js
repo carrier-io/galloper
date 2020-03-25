@@ -32,7 +32,7 @@ function setParams(){
 
 function getPerTestData() {
     $.get(
-  '/api/compare/tests',
+  '/api/v1/compare/tests',
     {
     id: build_ids,
     },
@@ -50,7 +50,7 @@ function getPerTestData() {
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
-  '/api/compare/data',
+  '/api/v1/compare/data',
   {
     scope: request_name,
     metric: metric,
@@ -303,11 +303,12 @@ function switchSampler() {
 
 function loadBenchmarkData(aggregator, request, calculation) {
     $.get(
-      "/api/compare/benchmark",
+      "/api/v1/compare/benchmark",
       {
         id: page_params.getAll("id[]"),
         aggregator: aggregator,
         request: request,
+        status: status,
         calculation: calculation
       }, function( data ) {
         benchmarkData = data["data"]
@@ -357,7 +358,8 @@ function switchAggregator() {
     aggregator = $("#timeaggr").val();
     request = $("#requestsaggr").val();
     calculation = $("#calculationaggr").val();
-    loadBenchmarkData(aggregator, request, calculation);
+    status = $("#status").val();
+    loadBenchmarkData(aggregator, request, calculation, status);
 }
 
 $(document).ready(function() {

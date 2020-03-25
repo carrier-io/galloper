@@ -113,7 +113,8 @@ class ReleaseApiSaturation(Resource):
         dict(name='environment', type=str, location="args", required=True),
         dict(name='max_errors', type=float, default=1.0, location="args"),
         dict(name='aggregation', type=str, default="1s", location="args"),
-        dict(name='global', type=str, default=None, location="args")
+        dict(name='global', type=str, default=None, location="args"),
+        dict(name='status', type=str, default='ok', location="args")
     )
 
     def __init__(self):
@@ -152,9 +153,9 @@ class ReleaseApiSaturation(Resource):
                                                            'All', "total"))
                     global_error_rate.append(round(float(errors_count / total) * 100, 2))
                 throughput.append(get_throughput_per_test(
-                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "1s"))
+                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "1s", args["status"]))
                 response_time.append(get_response_time_per_test(
-                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "pct95"))
+                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "pct95", args["status"]))
                 error_rate.append(get_response_time_per_test(
                     _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "errors"))
             if arrays.non_decreasing(throughput):

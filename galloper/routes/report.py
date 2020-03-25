@@ -19,6 +19,8 @@ from galloper.dal.influx_results import get_test_details, get_sampler_types
 from galloper.data_utils.report_utils import render_analytics_control
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.security_results import SecurityResults
+from galloper.database.models.project import Project
+from galloper.utils.auth import project_required
 
 bp = Blueprint("reports", __name__)
 
@@ -42,7 +44,8 @@ def findings(project_id):
 
 
 @bp.route("/report/backend", methods=["GET"])
-def view_report():
+@project_required
+def view_report(project: Project):
     if request.args.get("report_id", None):
         test_data = APIReport.query.filter_by(id=request.args.get("report_id")).first().to_json()
     else:

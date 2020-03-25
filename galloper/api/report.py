@@ -195,7 +195,8 @@ class ReportChartsAPI(Resource):
         dict(name="scope", type=str, default="", location="args"),
         dict(name="build_id", type=str, location="args"),
         dict(name="test_name", type=str, location="args"),
-        dict(name="lg_type", type=str, location="args")
+        dict(name="lg_type", type=str, location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "requests": {
@@ -234,7 +235,8 @@ class ReportsCompareAPI(Resource):
         dict(name="id[]", action="append", location="args"),
         dict(name="request", type=str, default="", location="args"),
         dict(name="calculation", type=str, default="", location="args"),
-        dict(name="aggregator", type=str, default="1s", location="args")
+        dict(name="aggregator", type=str, default="1s", location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "data": prepare_comparison_responses,
