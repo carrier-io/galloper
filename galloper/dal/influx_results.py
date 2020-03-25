@@ -182,6 +182,8 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
         aggr_func = f"percentile(response_time, {aggr})"
     elif 'errors' in aggr:
         aggr_func = 'sum(errorCount)'
+    elif 'total' in aggr:
+        aggr_func = 'count(response_time)'
     else:
         aggr_func = f"percentile(response_time, 50)"
     if sampler:
