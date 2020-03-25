@@ -51,7 +51,7 @@ class MinioClient:
     def list_files(self, bucket: str) -> list:
         response = self.s3_client.list_objects_v2(Bucket=bucket)
         files = [
-            {"name": each["Key"], "size": each["Size"], "modified": each["LastModified"]}
+            {"name": each["Key"], "size": each["Size"], "modified": each["LastModified"].strftime("%Y-%m-%d %H:%M:%S")}
             for each in response.get("Contents", {})
         ]
         continuation_token = response.get("NextContinuationToken")
@@ -59,7 +59,7 @@ class MinioClient:
             response = self.s3_client.list_objects_v2(Bucket=bucket,
                                                       ContinuationToken=continuation_token)
             appendage = [
-                {"name": each["Key"], "size": each["Size"], "modified": each["LastModified"]}
+                {"name": each["Key"], "size": each["Size"], "modified": each["LastModified"].strftime("%Y-%m-%d %H:%M:%S")}
                 for each in response.get("Contents", {})
             ]
             if not appendage:
@@ -68,7 +68,7 @@ class MinioClient:
             continuation_token = response.get("NextContinuationToken")
         return files
 
-    def upload_file(self, bucket: str, file_obj: str, file_name: str):
+    def upload_file(self, bucket: str, file_obj, file_name: str):
         return self.s3_client.put_object(Key=file_name, Bucket=bucket, Body=file_obj)
 
     def download_file(self, bucket: str, file_name: str):

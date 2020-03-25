@@ -175,22 +175,24 @@ def create_benchmark_dataset(args):
     data = {}
     y_axis = ''
     for _ in tests_meta:
-        labels.add(_.vusers)
-        if _.environment not in data:
-            data[_.environment] = {}
-        if calculation == 'throughput':
-            y_axis = 'Requests per second'
-            data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
-                                                                         _.lg_type, "", req,
-                                                                         aggregator)
-        elif calculation != ['throughput']:
-            y_axis = 'Response time, ms'
-            if calculation == 'errors':
-                y_axis = 'Errors'
-            data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
-                                                                            _.lg_type, "", req,
-                                                                            calculation)
-        else:
-            data[_.environment][str(_.vusers)] = None
+        try:
+            labels.add(_.vusers)
+            if _.environment not in data:
+                data[_.environment] = {}
+            if calculation == 'throughput':
+                y_axis = 'Requests per second'
+                data[_.environment][str(_.vusers)] = get_throughput_per_test(
+                    _.build_id, _.name, _.lg_type, "", req, aggregator)
+            elif calculation != ['throughput']:
+                y_axis = 'Response time, ms'
+                if calculation == 'errors':
+                    y_axis = 'Errors'
+                data[_.environment][str(_.vusers)] = get_response_time_per_test(
+                    _.build_id, _.name, _.lg_type, "", req, calculation)
+            else:
+                data[_.environment][str(_.vusers)] = None
+        except IndexError:
+            pass
+
     labels = [""] + sorted(list(labels)) + [""]
     return {"data": chart_data(labels, [], data, "data"), "label": y_axis}

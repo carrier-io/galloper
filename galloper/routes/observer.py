@@ -88,12 +88,14 @@ def run_test(project: Project):
     current_app.logger.info(videofolder)
     with open(video_path, "w+b") as f:
         f.write(video_results)
+    video_name = f"{results['info']['title']}_{int(start_time)}.mp4"
+    MinioClient(project=project).upload_file("reports", open(video_path, "rb"), video_name)
     report = prepareReport(video_path, results, videofolder, True)
-    # rmtree(videofolder)
     report = report.get_report()
     report_name = f"{results['info']['title']}_{int(start_time)}.html"
     MinioClient(project=project).upload_file("reports", report, report_name)
+    rmtree(videofolder)
     return redirect(
-        url_for("observer.index", message=f"/artifacts/reports/{report_name}"),
+        url_for("observer.index", message=f"/api/v1/artifacts/{project.id}/reports/{report_name}"),
         code=302
     )

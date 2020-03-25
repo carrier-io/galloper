@@ -37,6 +37,32 @@ def tasks(project: Project):
     return render_template("lambdas/tasks.html", tasks=tasks_, project_id=project.id)
 
 
+@bp.route("/task/<string:task_id>", methods=["GET", "POST"])
+def call_lambda(task_id: str):
+    if request.method == "POST":
+        if request.content_type == "application/json":
+            task = Task.query.filter(
+                and_(Task.task_id == task_id)
+            ).first().to_json()
+            event = request.get_json()
+            app = run.connect_to_celery(1)
+            celery_task = app.signature("tasks.execute",
+                                        kwargs={"task": task, "event": event})
+            celery_task.apply_async()
+            return "Accepted", 201
+        elif request.content_type == "application/x-www-form-urlencoded":
+            return f"Calling {task_id} with {request.form}"
+
+    task = Task.query.filter(
+        and_(Task.task_id == task_id)
+    ).first()
+    return render_template(
+        "lambdas/task.html",
+        task=task,
+        runtimes=NAME_CONTAINER_MAPPING.keys()
+    )
+
+
 @bp.route("/task", methods=["GET", "POST"])
 @project_required
 def add_task(project: Project):
@@ -73,34 +99,6 @@ def add_task(project: Project):
     return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
 
 
-@bp.route("/task/<string:task_id>", methods=["GET", "POST"])
-@project_required
-def call_lambda(project: Project, task_id: str):
-
-    if request.method == "POST":
-        if request.content_type == "application/json":
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first().to_json()
-            event = request.get_json()
-            app = run.connect_to_celery(1)
-            celery_task = app.signature("tasks.execute",
-                                        kwargs={"task": task, "event": event})
-            celery_task.apply_async()
-            return "Accepted", 201
-        elif request.content_type == "application/x-www-form-urlencoded":
-            return f"Calling {task_id} with {request.form}"
-
-    task = Task.query.filter(
-        and_(Task.task_id == task_id, Task.project_id == project.id)
-    ).first()
-    return render_template(
-        "lambdas/task.html",
-        task=task,
-        runtimes=NAME_CONTAINER_MAPPING.keys()
-    )
-
-
 @bp.route("/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
 @project_required
 def suspend_task(project: Project, task_id: str, action: str):
@@ -109,38 +107,7 @@ def suspend_task(project: Project, task_id: str, action: str):
                 and_(Task.task_id == task_id, Task.project_id == project.id)
             ).first()
         getattr(task, action)()
-    elif action == "edit":
-        if request.method == "POST":
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
-            for key, value in request.form.items():
-                if key in ["id", "task_id", "zippath", "last_run"]:
-                    continue
-                elem = getattr(task, key, None)
-                if value in ["None", "none", ""]:
-                    value = None
-                if elem != value:
-                    setattr(task, key, value)
-                task.commit()
-            return "OK", 201
-
-        return "Data is miss-formatted", 200
-
     elif action == "results":
-        if request.method == "POST":
-            data = request.get_json()
-            task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
-            task.set_last_run(data["ts"])
-            result = Results(task_id=task_id,
-                             ts=data["ts"],
-                             results=data["results"],
-                             log=data["stderr"])
-            result.insert()
-            return "OK", 201
-
         result = Results.query.filter(
             and_(Results.task_id == task_id, Task.project_id == project.id)
         ).order_by(Results.ts.desc()).all()
@@ -148,5 +115,4 @@ def suspend_task(project: Project, task_id: str, action: str):
             and_(Task.task_id == task_id, Task.project_id == project.id)
         ).first()
         return render_template("lambdas/task_results.html", results=result, task=task)
-
     return redirect(url_for("tasks.tasks"))

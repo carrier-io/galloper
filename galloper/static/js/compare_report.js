@@ -73,10 +73,6 @@ $.get(
  );
 }
 
-$(document).ready(function() {
-    resizeChart();
-});
-
 function resizeChart() {
     setParams();
     analyticsCanvas();
@@ -324,22 +320,6 @@ function loadBenchmarkData(aggregator, request, calculation) {
 }
 
 function drawCanvas(y_label) {
-//    stepSize = 0
-//    max_value = 0
-//    benchmarkData.datasets.forEach(set => {
-//        set.data.forEach(item => {
-//            if (item != null && max_value < item) {
-//                      max_value=item;
-//                }
-//            })
-//        })
-//    console.log(max_value);
-//
-//    sSize = Math.floor(max_value / 5);
-//    if (sSize === 0) {
-//        sSize = 1;
-//    }
-//    console.log(sSize)
     benchmarkLine = Chart.Line(benchmarkContext, {
         data: benchmarkData,
         options: {
@@ -379,3 +359,7 @@ function switchAggregator() {
     calculation = $("#calculationaggr").val();
     loadBenchmarkData(aggregator, request, calculation);
 }
+
+$(document).ready(function() {
+    resizeChart();
+});
