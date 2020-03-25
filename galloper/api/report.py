@@ -91,7 +91,7 @@ class ReportAPI(Resource):
             filter_ = and_(APIReport.project_id == project.id,
                            or_(APIReport.name.like(search_args),
                                APIReport.environment.like(search_args),
-                               APIReport.release_id.like(f'%{args["search"]}%'),
+                               APIReport.release_id.like(search_args),
                                APIReport.type.like(search_args)))
             res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
