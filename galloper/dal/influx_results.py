@@ -117,7 +117,7 @@ def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
 
 
 def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                         timestamps=None, users=None, scope=None, aggr='pct95'):
+                         timestamps=None, users=None, scope=None, aggr='pct95', status='all'):
     """
     :param build_id: - could be obtained from control_tower during tests execution
     :param test_name: - name of the test used as measurement in database
@@ -128,6 +128,7 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
 
     """
     scope_addon = ""
+    status_addon = ""
     group_by = ""
     if aggr in ["Min", "Max"]:
         aggr_func = f"{aggr.lower()}(response_time)"
@@ -142,10 +143,13 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
     elif scope != 'All':
         group_by = "request_name, "
 
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
+
     if not (timestamps and users):
         timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     query = f"select time, {group_by}{aggr_func} as rt from {lg_type}..{test_name} " \
-            f"where time>='{start_time}' and time<='{end_time}' and sampler_type='{sampler}' and " \
+            f"where time>='{start_time}' and time<='{end_time}' {status_addon} and sampler_type='{sampler}' and " \
             f"build_id='{build_id}' {scope_addon} group by {group_by}time({aggregation})"
     res = get_client().query(query)[test_name]
     results = {}
@@ -167,10 +171,11 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
     return timestamps, results, users
 
 
-def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, aggr):
+def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, aggr, status='all'):
     scope_addon = ""
     group_by = ""
     sampler_piece = ""
+    status_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
     elif scope != 'All':
@@ -182,42 +187,52 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
         aggr_func = f"percentile(response_time, {aggr})"
     elif 'errors' in aggr:
         aggr_func = 'sum(errorCount)'
+    elif 'total' in aggr:
+        aggr_func = 'count(response_time)'
     else:
         aggr_func = f"percentile(response_time, 50)"
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     if sampler:
         sampler_piece = f"sampler_type='{sampler}' and "
     query = f"select {aggr_func} as rt from {lg_type}..{test_name} where {sampler_piece}" \
-            f"build_id='{build_id}' {scope_addon} {group_by}"
+            f"build_id='{build_id}'{status_addon} {scope_addon} {group_by}"
     return round(list(get_client().query(query)[test_name])[0]["rt"], 2)
 
 
-def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope, aggregator):
+def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope, aggregator, status='all'):
     scope_addon = ""
     group_by_addon = ""
     sampler_piece = ""
+    status_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
     elif scope != 'All':
         group_by_addon = "request_name"
     if sampler:
         sampler_piece = f"sampler_type='{sampler}' and"
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     group_by = f"group by {group_by_addon} time({aggregator})"
     query = f"select mean(rt) as throughput from (" \
             f"select count(response_time) as rt from {lg_type}..{test_name} " \
-            f"where {sampler_piece} build_id='{build_id}' {scope_addon} {group_by} " \
+            f"where {sampler_piece} build_id='{build_id}'{status_addon} {scope_addon} {group_by} " \
             f")"
     return round(list(get_client().query(query)[test_name])[0]["throughput"], 2)
 
 
 def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-            timestamps=None, users=None, scope=None):
+            timestamps=None, users=None, scope=None, status='all'):
     if not (timestamps and users):
         timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = ""
+    status_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     responses_query = f"select time, count(response_time) from {lg_type}..{test_name} where time>='{start_time}' " \
-                      f"and time<='{end_time}' and sampler_type='{sampler}' and build_id='{build_id}' " \
+                      f"and time<='{end_time}' and sampler_type='{sampler}' {status_addon} and build_id='{build_id}' " \
                       f"{scope_addon} group by time(1s)"
     res = get_client().query(responses_query)[test_name]
     results = {"responses": {}}
@@ -236,14 +251,17 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
 
 
 def get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                       timestamps=None, users=None, scope=None, aggr="2xx"):
+                       timestamps=None, users=None, scope=None, aggr="2xx", status='all'):
     if not (timestamps and users):
         timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = f"and status_code=~/^{aggr[0]}/ "
+    status_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     rcode_query = f"select time, count(status_code) from {lg_type}..{test_name} where build_id='{build_id}' " \
-                  f"and sampler_type='{sampler}' and time>='{start_time}' and time<='{end_time}' " \
+                  f"and sampler_type='{sampler}' and time>='{start_time}' and time<='{end_time}'{status_addon} " \
                   f"{scope_addon} group by time({aggregation})"
     res = get_client().query(rcode_query)[test_name]
     results = {"rcodes": {}}
@@ -280,14 +298,17 @@ def get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, 
 
 
 def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-             timestamps=None, users=None, scope=None):
+             timestamps=None, users=None, scope=None, status='all'):
     if not (timestamps and users):
         timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = ""
+    status_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     hits_query = f"select time, response_time from {lg_type}..{test_name} where " \
-                 f"time>='{start_time}' and time<='{end_time}' and sampler_type='{sampler}' and" \
+                 f"time>='{start_time}' and time<='{end_time}'{status_addon} and sampler_type='{sampler}' and" \
                  f" build_id='{build_id}' {scope_addon}"
     results = {"hits": {}}
     for _ in timestamps:
@@ -315,23 +336,26 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
     return timestamps, results, users
 
 
-def get_hits_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler):
+def get_hits_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler, status='all'):
     timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     results = {"responses": {}, "hits": {}}
     _, responses, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                              timestamps, users)
+                              timestamps, users, status=status)
     results['responses'] = responses['responses']
     _, hits, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                          timestamps, users)
+                          timestamps, users, status=status)
     results['hits'] = hits['hits']
     return timestamps, results, users
 
 
-def average_responses(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler):
+def average_responses(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler, status='all'):
     timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
+    status_addon = ""
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     responses_query = f"select time, percentile(response_time, 95) from {lg_type}..{test_name} " \
                       f"where time>='{start_time}' " \
-                      f"and time<='{end_time}' and sampler_type='{sampler}' and " \
+                      f"and time<='{end_time}' and sampler_type='{sampler}'{status_addon} and " \
                       f"build_id='{build_id}' group by time({aggregation})"
     res = get_client().query(responses_query)[test_name]
     results = {"responses": {}}
@@ -342,14 +366,23 @@ def average_responses(build_id, test_name, lg_type, start_time, end_time, aggreg
     return timestamps, results, users
 
 
-def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler):
+def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, status='all'):
+    status_addon = ""
+    if status != 'all':
+        status_addon = f" and status='{status.upper()}'"
     requests_in_range = f"select time, request_name, max(response_time) from {lg_type}..{test_name} " \
                         f"where time>='{start_time}' " \
-                        f"and time<='{end_time}' and sampler_type='{sampler}' and " \
+                        f"and time<='{end_time}' and sampler_type='{sampler}'{status_addon} and " \
                         f"build_id='{build_id}' group by request_name"
     res = get_client().query(requests_in_range)[test_name]
-    requests = "|".join([f"'{each['request_name']}'" for each in res])
-    query = f"select * from comparison..api_comparison where build_id='{build_id}' and request_name=~/^[{requests}]/"
+    requests_names = [f"'{each['request_name']}'" for each in res]
+    if len(requests_names) > 1:
+        requests = f'[{"|".join(requests_names)}]'
+    elif requests_names:
+        requests = requests_names[0].replace("'", "")
+    else:
+        return []
+    query = f"select * from comparison..api_comparison where build_id='{build_id}' and request_name=~/^{requests}/"
     return list(get_client().query(query)['api_comparison'])
 
 
@@ -396,6 +429,7 @@ def _delete_threshold(test, target, scope, aggregation, comparison, client):
             f"and aggregation='{aggregation}' and comparison='{comparison}'"
     return client.query(query)
 
+
 def create_thresholds(test, scope, target, aggregation, comparison, yellow, red):
     client = get_client('thresholds')
     res = _create_threshold(test, scope, target, aggregation, comparison, yellow, red, client)
@@ -408,3 +442,6 @@ def delete_threshold(test, target, scope, aggregation, comparison):
     _delete_threshold(test, target, scope, aggregation, comparison, client)
     client.close()
     return True
+
+# print(get_build_data('build_22176355-0b33-4c06-b828-0b4eaee64e7b', 'Flood', 'jmeter', '2020-03-25T18:22:33.641Z',
+#                      '2020-03-25T18:23:35.484Z', 'REQUEST', 'ok'))

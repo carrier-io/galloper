@@ -13,6 +13,8 @@
 #     limitations under the License.
 
 import hashlib
+import operator
+from json import loads
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import request
@@ -37,7 +39,8 @@ class ReportAPI(Resource):
         dict(name="search", type=str, default="", location="args"),
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
-        dict(name="name", type=str, location="args")
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
     )
     delete_rules = (
         dict(name="id[]", type=int, action="append", location="args"),
@@ -66,29 +69,46 @@ class ReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
+    def __calcualte_limit(self, limit, total):
+        return len(total) if limit == 'All' else limit
+
     def get(self, project_id: int):
         project = Project.get_object_or_404(pk=project_id)
         reports = []
         args = self._parser_get.parse_args(strict=False)
         limit_ = args.get("limit")
         offset_ = args.get("offset")
+        res = []
+        total = 0
         if args.get("sort"):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
             sort_rule = APIReport.id.asc()
-        if not args.get("search") and not args.get("sort"):
+        if not args.get('search') and not args.get('filter'):
             total = APIReport.query.filter(APIReport.project_id == project.id).order_by(sort_rule).count()
             res = APIReport.query.filter(
                 APIReport.project_id == project.id
-            ).order_by(sort_rule).limit(limit_).offset(offset_).all()
-        else:
+            ).order_by(sort_rule).limit(self.__calcualte_limit(limit_, total)).offset(offset_).all()
+        elif args.get("search"):
             search_args = f"%{args['search']}%"
             filter_ = and_(APIReport.project_id == project.id,
                            or_(APIReport.name.like(search_args),
                                APIReport.environment.like(search_args),
+                               APIReport.release_id.like(search_args),
                                APIReport.type.like(search_args)))
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
+
+        elif args.get("filter"):
+            filter_ = list()
+            filter_.append(operator.eq(APIReport.project_id, project.id))
+            for key, value in loads(args.get("filter")).items():
+                filter_.append(operator.eq(getattr(APIReport, key), value))
+            filter_ = and_(*tuple(filter_))
+            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
         for each in res:
             each_json = each.to_json()
             each_json["start_time"] = each_json["start_time"].replace("T", " ").split(".")[0]
@@ -175,7 +195,8 @@ class ReportChartsAPI(Resource):
         dict(name="scope", type=str, default="", location="args"),
         dict(name="build_id", type=str, location="args"),
         dict(name="test_name", type=str, location="args"),
-        dict(name="lg_type", type=str, location="args")
+        dict(name="lg_type", type=str, location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "requests": {
@@ -214,7 +235,8 @@ class ReportsCompareAPI(Resource):
         dict(name="id[]", action="append", location="args"),
         dict(name="request", type=str, default="", location="args"),
         dict(name="calculation", type=str, default="", location="args"),
-        dict(name="aggregator", type=str, default="1s", location="args")
+        dict(name="aggregator", type=str, default="1s", location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "data": prepare_comparison_responses,

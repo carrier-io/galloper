@@ -62,7 +62,7 @@ class MinioClient:
             continuation_token = response.get("NextContinuationToken")
         return files
 
-    def upload_file(self, bucket: str, file_obj: str, file_name: str):
+    def upload_file(self, bucket: str, file_obj, file_name: str):
         return self.s3_client.put_object(Key=file_name, Bucket=bucket, Body=file_obj)
 
     def download_file(self, bucket: str, file_name: str):

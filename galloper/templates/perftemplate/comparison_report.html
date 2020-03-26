@@ -261,6 +261,13 @@
                             </select>
                         </li>
                         <li class="nav-item mr-2 mr-md-0">
+                            <select class="selectpicker show-tick form-control form-control-md " id="status" onchange="switchAggregator()">
+                                <option>all</option>
+                                <option>ok</option>
+                                <option>ko</option>
+                            </select>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
                             <select class="selectpicker show-tick form-control form-control-md " id="requestsaggr" onchange="switchAggregator()">
                                 <option>All</option>
                                 {% for request in requests %}
