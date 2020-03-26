@@ -1,7 +1,8 @@
+import logging
 from typing import Optional
 
 import boto3
-from botocore.client import Config
+from botocore.client import Config, ClientError
 from galloper.constants import MINIO_ACCESS, MINIO_ENDPOINT, MINIO_SECRET, MINIO_REGION
 from galloper.database.models.project import Project
 
@@ -9,7 +10,8 @@ from galloper.database.models.project import Project
 class MinioClient:
     PROJECT_SECRET_KEY: str = "minio_aws_access"
 
-    def __init__(self, project: Optional[Project] = None):
+    def __init__(self, project: Optional[Project] = None, logger: Optional[logging.Logger] = None):
+        self._logger = logger or logging.getLogger(self.__class__.__name__.lower())
         self.project = project
         aws_access_key_id, aws_secret_access_key = self.extract_access_data()
         self.s3_client = boto3.client(
@@ -19,7 +21,7 @@ class MinioClient:
             config=Config(signature_version="s3v4"),
             region_name=MINIO_REGION
         )
-        
+
     def extract_access_data(self) -> tuple:
         if self.project and self.PROJECT_SECRET_KEY in (self.project.secrets_json or {}):
             aws_access_json = self.project.secrets_json[self.PROJECT_SECRET_KEY]
@@ -39,8 +41,12 @@ class MinioClient:
                     Bucket=bucket,
                     CreateBucketConfiguration={"LocationConstraint": MINIO_REGION}
                 )
-        except:
-            return {}
+        except ClientError as client_error:
+            self._logger.warning(str(client_error))
+        except Exception as exc:
+            self._logger.error(str(exc))
+
+        return {}
 
     def list_files(self, bucket: str) -> list:
         response = self.s3_client.list_objects_v2(Bucket=bucket)
@@ -75,3 +81,23 @@ class MinioClient:
         for file_obj in self.list_files(bucket):
             self.remove_file(bucket, file_obj["name"])
         self.s3_client.delete_bucket(Bucket=bucket)
+
+    def configure_bucket_lifecycle(self, bucket: str, days: int) -> None:
+        self.s3_client.put_bucket_lifecycle_configuration(
+            Bucket=bucket,
+            LifecycleConfiguration={
+                "Rules": [
+                    {
+                        "Expiration": {
+                            "Days": days,
+                            "ExpiredObjectDeleteMarker": True
+                        },
+                        "ID": "bucket-retention-policy",
+                        "Status": "Enabled"
+                    }
+                ]
+            }
+        )
+
+    def get_bucket_lifecycle(self, bucket: str) -> dict:
+        return self.s3_client.get_bucket_lifecycle(Bucket=bucket)

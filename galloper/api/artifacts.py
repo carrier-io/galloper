@@ -12,22 +12,49 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+from datetime import datetime
 from io import BytesIO
+
+from dateutil.relativedelta import relativedelta
 from flask import request, send_file
 from flask_restful import Resource
+
 from galloper.database.models.project import Project
 from galloper.processors.minio import MinioClient
 from galloper.utils.api_utils import build_req_parser
 
 
 class BucketsApi(Resource):
+    post_rules = (
+        dict(name="expiration_measure", type=str, location="json",
+             choices=("days", "weeks", "months", "years"),
+             help="Bad choice: {error_msg}"),
+        dict(name="expiration_value", type=int, location="json"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
     def get(self, project_id: int, bucket: str):
         project = Project.get_object_or_404(pk=project_id)
         return MinioClient(project=project).list_files(bucket)
 
     def post(self, project_id: int, bucket: str):
+        args = self._parser_post.parse_args()
+        expiration_measure = args["expiration_measure"]
+        expiration_value = args["expiration_value"]
+
         project = Project.get_object_or_404(pk=project_id)
-        MinioClient(project=project).create_bucket(bucket)
+        minio_client = MinioClient(project=project)
+        created = minio_client.create_bucket(bucket)
+        if created:
+            today_date = datetime.today().date()
+            expiration_date = today_date + relativedelta(**{expiration_measure: expiration_value})
+            time_delta = expiration_date - today_date
+            minio_client.configure_bucket_lifecycle(bucket=bucket, days=time_delta.days)
         return {"message": "Created", "code": 200}
 
     def delete(self, project_id: int, bucket: str):

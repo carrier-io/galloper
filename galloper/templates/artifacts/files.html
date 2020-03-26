@@ -76,6 +76,22 @@
                                             </div>
                                         </div>
                                         <div class="form-group">
+                                            <select id="expiration-measure" class="selectpicker show-tick form-control">
+                                            <option value="days">Days</option>
+                                            <option value="weeks">Weeks</option>
+                                            <option value="months">Months</option>
+                                            <option value="years">Years</option>
+                                          </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group input-group-alternative">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="ni ni-settings-gear-65"></i></span>
+                                                </div>
+                                                <input type="number" min="1" class="form-control" id="expiration-value" name="expiration_value" placeholder="Retention policy value">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
                                             <div class="input-group input-group-alternative">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
@@ -160,12 +176,20 @@
 
     function createBucket() {
         var project_id = $("#selected-project-id").text();
-        var bucket = $("#bucketName").val()
+        var bucket = $("#bucketName").val();
+        var expirationMeasure = $("#expiration-measure").val();
+        var expirationValue = $("#expiration-value").val();
         $.ajax({
             url: `/api/v1/artifacts/${project_id}/${bucket}`,
             type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify({"expiration_measure": expirationMeasure, "expiration_value": expirationValue}),
             success: function (result) {
-                $(location).attr('href', `/artifacts?q=${bucket}`);
+                window.location.href = `/artifacts?q=${bucket}`;
+            },
+            error: function (result) {
+                console.log(result);
             }
         });
     }
