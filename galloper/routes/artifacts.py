@@ -12,8 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from io import BytesIO
-
 from flask import Blueprint, request, render_template, redirect, url_for, send_file
 
 from galloper.database.models.project import Project
