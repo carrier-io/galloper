@@ -6,26 +6,42 @@
           <div class="card shadow">
             <div class="card-header bg-white border-0">
               <div class="row align-items-center">
-                <div class="col-8">
-                  <h3 class="mb-0">Files from {{ bucket }}</h3>
+                <div class="col-5">
+                  <h3 class="mb-0">Bucket: {{ bucket }}</h3>
                   <br />
                 </div>
-                <div class="col-4 text-right">
-                    <div class="dropdown">
-                      <a class="nav-link nav-link-icon" href="#" id="navbar-default_dropdown_1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          <i class="ni ni-box-2"></i>
-                          <span class="nav-link-inner--text">Buckets</span>
-                      </a>
-                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbar-default_dropdown_1">
-                          <a class="dropdown-item" data-toggle="modal" data-target="#modal-form">Create New Bucket</a>
-                          <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" data-toggle="modal" data-target="#delete-form">Delete {{ bucket }}</a>
-                          <div class="dropdown-divider"></div>
-                          {% for b in buckets %}
-                          <a class="dropdown-item" href="artifacts?q={{ b }}">{{ b }}</a>
-                          {% endfor %}
-                      </div>
-                    </div>
+                <div class="col-7 text-right">
+                    <ul id="chart-control" class="nav nav-pills justify-content-end">
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="upload" class="btn btn-primary btn-sm">
+                            <span class="d-none d-md-block text-white">Upload</span>
+                            <span class="d-md-none">U</span>
+                          </a>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                          <a id="delete" onclick="deleteFiles()" class="btn btn-primary btn-sm">
+                            <span class="d-none d-md-block text-white">Delete</span>
+                            <span class="d-md-none">D</span>
+                          </a>
+                        </li>
+                        <li class="nav-item mr-2 mr-md-0">
+                            <div class="dropdown">
+                              <a class="btn btn-primary btn-sm" href="#" id="navbar-default_dropdown_1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  <i class="ni ni-box-2"></i>
+                                  <span class="nav-link-inner--text">Buckets Menu</span>
+                              </a>
+                              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbar-default_dropdown_1">
+                                  <a class="dropdown-item" data-toggle="modal" data-target="#modal-form">Create New Bucket</a>
+                                  <div class="dropdown-divider"></div>
+                                  <a class="dropdown-item" data-toggle="modal" data-target="#delete-form">Delete {{ bucket }}</a>
+                                  <div class="dropdown-divider"></div>
+                                  {% for b in buckets %}
+                                  <a class="dropdown-item" href="artifacts?q={{ b }}">{{ b }}</a>
+                                  {% endfor %}
+                              </div>
+                            </div>
+                        </li>
+                    </ul>
                   </div>
               </div>
               <div class="modal fade" id="delete-form" tabindex="-1" role="dialog" aria-labelledby="delete-form" aria-hidden="true">
@@ -36,7 +52,7 @@
                                 <div class="card-body px-lg-5 py-lg-5">
                                     <div class="text-muted text-center mt-2 mb-3">Confirm Deletion of  {{ bucket }}</div>
                                     <br />
-                                    <a href="/artifacts/{{bucket}}/delete" type="button" class="btn btn-warning">Confirm</a>
+                                    <a onclick="deleteBucket()" type="button" id="deleteBucket" class="btn btn-warning">Confirm</a>
                                 </div>
                             </div>
                           </div>
@@ -50,13 +66,29 @@
                             <div class="card bg-secondary shadow border-0">
                                 <div class="card-body px-lg-5 py-lg-5">
                                     <div class="text-muted text-center mt-2 mb-3">Create bucket</div>
-                                    <form role="form" action="/artifacts/bucket" method="POST">
+                                    <form role="form" id="createBucketForm" method="POST">
                                         <div class="form-group mb-3">
                                             <div class="input-group input-group-alternative">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="ni ni-box-2"></i></span>
                                                 </div>
-                                                <input class="form-control" name="bucket" placeholder="Bucket name">
+                                                <input class="form-control" id="bucketName" name="bucket" placeholder="Bucket name">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <select id="expiration-measure" class="selectpicker show-tick form-control">
+                                            <option value="days">Days</option>
+                                            <option value="weeks">Weeks</option>
+                                            <option value="months">Months</option>
+                                            <option value="years">Years</option>
+                                          </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group input-group-alternative">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="ni ni-settings-gear-65"></i></span>
+                                                </div>
+                                                <input type="number" min="1" class="form-control" id="expiration-value" name="expiration_value" placeholder="Retention policy value">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -68,7 +100,7 @@
                                             </div>
                                         </div>
                                         <div class="text-center">
-                                            <button type="submit" class="btn btn-primary">Create</button>
+                                            <button type="submit" onclick="createBucket()" class="btn btn-primary">Create</button>
                                         </div>
                                     </form>
                                 </div>
@@ -77,80 +109,141 @@
                       </div>
                   </div>
               </div>
-              <div class="row">
-                <div class="col-8">
-                  <div class="table-responsive">
-                    <table class="table align-items-center table-flush">
-                      <thead class="thead-light">
-                        <tr>
-                          <th scope="col">Name</th>
-                          <th scope="col">Size</th>
-                          <th scope="col">Modified</th>
-                          <th scope="col"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {% for f in files %}
-                        <span>
-                          <th scope="row">
-                            <a href="/artifacts/{{ bucket }}/{{ f.name }}">{{ f.name }}</a>
-                          </th>
-                          <td>
-                            {{ f.size }}
-                          </td>
-                          <td>
-                              {{ f.modified }}
-                          </td>
-                          <td class="text-right">
-                              <a class="nav-link nav-link-icon" href="/artifacts/{{ bucket }}/{{ f.name }}/delete" id="delete_file">
-                                  <i class="ni ni-fat-remove"></i>
-                                  <span class="nav-link-inner--text">Delete</span>
-                              </a>
-                          </td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="col-4">
-                    <form action="/artifacts/{{ bucket }}/upload" class="dropzone needsclick dz-clickable" id="demo-upload">
-                      <div class="dz-message needsclick">
-                        Drop files here or click to upload.<br>
+              <div class="row" id="tpl" style="display: none">
+                  <div class="col-12">
+                      <div class="table table-striped files" id="previews">
+                          <div id="template" class="file-row">
+                            <div>
+                                <span class="preview"><img data-dz-thumbnail /></span>
+                            </div>
+                            <div>
+                                <p class="name" data-dz-name></p>
+                                <strong class="error text-danger" data-dz-errormessage></strong>
+                            </div>
+                            <div>
+                                <p class="size" data-dz-size></p>
+                                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                  <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
+                                </div>
+                            </div>
+                          </div>
                       </div>
-                    </form>
+                  </div>
+              </div>
+              <div class="row" id="dz">
+                <div class="col-12">
+                  <table
+                        id="artifacts"
+                        data-toggle="table"
+                        data-page-size=10
+                        data-page-list=[10,20,50,100]
+                        data-pagination="true"
+                        data-search="true">
+                    <thead>
+                    <tr>
+                        <th data-checkbox="true"></th>
+                        <th data-sortable="true" data-field="name" data-formatter=createLinkToArtifact>Name</th>
+                        <th data-sortable="true" data-field="size">Size</th>
+                        <th data-sortable="true" data-field="modified">Modified</th>
+                    </tr>
+                    </thead>
+                  </table>
                 </div>
               </div>
             </div>
-            <div class="card-footer py-4">
-              <!--<nav aria-label="...">-->
-                <!--<ul class="pagination justify-content-end mb-0">-->
-                  <!--<li class="page-item disabled">-->
-                    <!--<a class="page-link" href="#" tabindex="-1">-->
-                      <!--<i class="fas fa-angle-left"></i>-->
-                      <!--<span class="sr-only">Previous</span>-->
-                    <!--</a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item active">-->
-                    <!--<a class="page-link" href="#">1</a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item">-->
-                    <!--<a class="page-link" href="#">2 <span class="sr-only">(current)</span></a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item"><a class="page-link" href="#">3</a></li>-->
-                  <!--<li class="page-item">-->
-                    <!--<a class="page-link" href="#">-->
-                      <!--<i class="fas fa-angle-right"></i>-->
-                      <!--<span class="sr-only">Next</span>-->
-                    <!--</a>-->
-                  <!--</li>-->
-                <!--</ul>-->
-              <!--</nav>-->
+            <div class="card-footer py-2">
             </div>
           </div>
         </div>
       </div>
 {% include 'common/foot.html' %}
 <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script>
+
+    function createLinkToArtifact(value, row, index) {
+        var project_id = $("#selected-project-id").text();
+        var page_params = new URLSearchParams(window.location.search);
+        var bucket = page_params.get("q")
+        return `<a target="_blank" href="/api/v1/artifacts/${project_id}/${bucket}/${value}">${value}</a>`
+    }
+    function refreshTable() {
+        var project_id = $("#selected-project-id").text();
+        var page_params = new URLSearchParams(window.location.search);
+        var bucket = page_params.get("q");
+        $("#artifacts").bootstrapTable('refresh', {url: `/api/v1/artifacts/${project_id}/${bucket}`});
+    }
+
+    function createBucket() {
+        var project_id = $("#selected-project-id").text();
+        var bucket = $("#bucketName").val();
+        var expirationMeasure = $("#expiration-measure").val();
+        var expirationValue = $("#expiration-value").val();
+        $.ajax({
+            url: `/api/v1/artifacts/${project_id}/${bucket}`,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify({"expiration_measure": expirationMeasure, "expiration_value": expirationValue}),
+            success: function (result) {
+                window.location.href = `/artifacts?q=${bucket}`;
+            },
+            error: function (result) {
+                console.log(result);
+            }
+        });
+    }
+
+    function deleteFiles() {
+        var project_id = $("#selected-project-id").text();
+        var page_params = new URLSearchParams(window.location.search);
+        var bucket = page_params.get("q");
+        var url = `/api/v1/artifacts/${project_id}/${bucket}/file?`
+        $("#artifacts").bootstrapTable('getSelections').forEach(item => {
+            url += "fname[]=" + item["name"] + "&"
+        });
+        $.ajax({
+            url: url.substring(0, url.length - 1),
+            type: 'DELETE',
+            success: function (result) {
+                refreshTable();
+            }
+        });
+    }
+
+    function deleteBucket() {
+        var project_id = $("#selected-project-id").text();
+        var page_params = new URLSearchParams(window.location.search);
+        var bucket = page_params.get("q");
+        $.ajax({
+            url: `/api/v1/artifacts/${project_id}/${bucket}`,
+            type: 'DELETE',
+            success: function (result) {
+                $(location).attr('href', "/artifacts")
+            }
+        });
+    }
+
+
+    $(document).ready(function() {
+        refreshTable();
+        var project_id = $("#selected-project-id").text();
+        var page_params = new URLSearchParams(window.location.search);
+        var bucket = page_params.get("q");
+        var dz=new Dropzone("#dz", {
+            url: `/api/v1/artifacts/${project_id}/${bucket}/file`,
+            paramName: "file",
+            parallelUploads: 1,
+            createImageThumbnails: false,
+            previewTemplate: document.querySelector('#tpl').innerHTML,
+            clickable: "#upload",
+            complete: function(file) {
+                refreshTable();
+                setTimeout(function(){file.previewElement.remove()}, 5000);
+            }
+        });
+      });
+</script>
+
 </body>
 </html>

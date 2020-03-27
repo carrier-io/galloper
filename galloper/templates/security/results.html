@@ -140,13 +140,15 @@
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
     var page_params = new URLSearchParams(window.location.search);
+
     $(document).ready(function() {
         $('#all').trigger( "click" )
     })
 
     function renderTable(scope) {
         var report_id = page_params.get("id");
-        $("#errors").bootstrapTable('refreshOptions', {url: `/api/v1/security/finding?id=${report_id}&type=${scope}`})
+        var project_id = $("#selected-project-id").text();
+        $("#errors").bootstrapTable('refreshOptions', {url: `/api/v1/security/${project_id}/finding?id=${report_id}&type=${scope}`})
     }
 
     function statusFormatter(value, row, index) {
@@ -171,7 +173,8 @@
     }
 
     function modify_issue(report_id, issue_id, action) {
-        var url = "/api/v1/security/finding";
+        var project_id = $("#selected-project-id").text();
+        var url = `/api/v1/security/${project_id}/finding`;
         data = {
             id: report_id,
             action: action,
@@ -199,7 +202,6 @@
     function detailFormatter(index, row) {
         var html = []
         html.push('<p><b>Issue Details:</b></p> ' + row['details'] + '<br />')
-        html.push('<p><b>Endpoints:</b></p> ' + row['endpoints'] + '<br />')
         return html.join('')
   }
 </script>

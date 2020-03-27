@@ -111,31 +111,31 @@
                      <div class="col">
                          <p class="mb-0">
                              <span class="h5 card-title text-uppercase text-muted mb-0 ">1xx:&nbsp;</span>
-                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['1xx'] }}</span>
+                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['onexx'] }}</span>
                          </p>
                      </div>
                      <div class="col">
                          <p class="mb-0">
                              <span class="h5 card-title text-uppercase text-muted mb-0 ">2xx:&nbsp;</span>
-                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['2xx'] }}</span>
+                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['twoxx'] }}</span>
                          </p>
                      </div>
                      <div class="col">
                          <p class="mb-0">
                              <span class="h5 card-title text-uppercase text-muted mb-0 ">3xx:&nbsp;</span>
-                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['3xx'] }}</span>
+                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['threexx'] }}</span>
                          </p>
                      </div>
                      <div class="col">
                          <p class="mb-0">
                              <span class="h5 card-title text-uppercase text-muted mb-0 ">4xx:&nbsp;</span>
-                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['4xx'] }}</span>
+                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['fourxx'] }}</span>
                          </p>
                      </div>
                      <div class="col">
                          <p class="mb-0">
                              <span class="h5 card-title text-uppercase text-muted mb-0 ">5xx:&nbsp;</span>
-                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['5xx'] }}</span>
+                             <span class="h4 font-weight-bold mb-0 ">{{ test_data['fivexx'] }}</span>
                          </p>
                      </div>
                  </div>
@@ -187,6 +187,13 @@
                         <option>1m</option>
                         <option>5m</option>
                         <option>10m</option>
+                    </select>
+                </li>
+                <li class="nav-item mr-2 mr-md-0">
+                    <select class="selectpicker show-tick form-control form-control-md " id="status" onchange="switchStatus()">
+                        <option>all</option>
+                        <option>ok</option>
+                        <option>ko</option>
                     </select>
                 </li>
                 <li class="nav-item mr-2 mr-md-0">

@@ -22,7 +22,8 @@ def _timeframe(args, time_as_ts=False):
 def _query_only(args, query_func):
     start_time, end_time, aggregation = _timeframe(args)
     timeline, results, users = query_func(args['build_id'], args['test_name'], args['lg_type'],
-                                          start_time, end_time, aggregation, args['sampler'])
+                                          start_time, end_time, aggregation,
+                                          sampler=args['sampler'], status=args["status"])
     return chart_data(timeline, users, results)
 
 
@@ -142,7 +143,7 @@ def prepare_comparison_responses(args):
                                                          tests_meta[longest_test]['name'],
                                                          tests_meta[longest_test]['lg_type'],
                                                          start_time, end_time, aggregation,
-                                                         sampler, scope, metric)}
+                                                         sampler, scope, metric, status)}
     for i in range(len(tests_meta)):
         if i != longest_test:
             test_start_time = "{}_{}".format(tests_meta[i]['start_time'].replace("T", " ").split(".")[0], metric)
@@ -150,7 +151,7 @@ def prepare_comparison_responses(args):
                                                                 tests_meta[i]['lg_type'],
                                                                 tests_meta[i]['start_time'],
                                                                 tests_meta[i]['end_time'],
-                                                                aggregation, sampler, scope, metric)
+                                                                aggregation, sampler, scope, metric, status)
     return comparison_data(timeline=timestamps, data=data)
 
 
@@ -168,6 +169,7 @@ def create_benchmark_dataset(args):
     req = args.get('request')
     calculation = args.get('calculation')
     aggregator = args.get('aggregator')
+    status = args.get("status", 'all')
     if not aggregator or aggregator == 'auto':
         aggregator = '1s'
     tests_meta = APIReport.query.filter(APIReport.id.in_(build_ids)).order_by(APIReport.vusers.asc()).all()
@@ -175,22 +177,24 @@ def create_benchmark_dataset(args):
     data = {}
     y_axis = ''
     for _ in tests_meta:
-        labels.add(_.vusers)
-        if _.environment not in data:
-            data[_.environment] = {}
-        if calculation == 'throughput':
-            y_axis = 'Requests per second'
-            data[_.environment][str(_.vusers)] = get_throughput_per_test(_.build_id, _.name,
-                                                                         _.lg_type, "", req,
-                                                                         aggregator)
-        elif calculation != ['throughput']:
-            y_axis = 'Response time, ms'
-            if calculation == 'errors':
-                y_axis = 'Errors'
-            data[_.environment][str(_.vusers)] = get_response_time_per_test(_.build_id, _.name,
-                                                                            _.lg_type, "", req,
-                                                                            calculation)
-        else:
-            data[_.environment][str(_.vusers)] = None
+        try:
+            labels.add(_.vusers)
+            if _.environment not in data:
+                data[_.environment] = {}
+            if calculation == 'throughput':
+                y_axis = 'Requests per second'
+                data[_.environment][str(_.vusers)] = get_throughput_per_test(
+                    _.build_id, _.name, _.lg_type, "", req, aggregator, status)
+            elif calculation != ['throughput']:
+                y_axis = 'Response time, ms'
+                if calculation == 'errors':
+                    y_axis = 'Errors'
+                data[_.environment][str(_.vusers)] = get_response_time_per_test(
+                    _.build_id, _.name, _.lg_type, "", req, calculation, status)
+            else:
+                data[_.environment][str(_.vusers)] = None
+        except IndexError:
+            pass
+
     labels = [""] + sorted(list(labels)) + [""]
     return {"data": chart_data(labels, [], data, "data"), "label": y_axis}

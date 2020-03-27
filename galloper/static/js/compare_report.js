@@ -32,7 +32,7 @@ function setParams(){
 
 function getPerTestData() {
     $.get(
-  '/api/compare/tests',
+  '/api/v1/compare/tests',
     {
     id: build_ids,
     },
@@ -50,7 +50,7 @@ function getPerTestData() {
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
-  '/api/compare/data',
+  '/api/v1/compare/data',
   {
     scope: request_name,
     metric: metric,
@@ -72,10 +72,6 @@ $.get(
   }
  );
 }
-
-$(document).ready(function() {
-    resizeChart();
-});
 
 function resizeChart() {
     setParams();
@@ -307,11 +303,12 @@ function switchSampler() {
 
 function loadBenchmarkData(aggregator, request, calculation) {
     $.get(
-      "/api/compare/benchmark",
+      "/api/v1/compare/benchmark",
       {
         id: page_params.getAll("id[]"),
         aggregator: aggregator,
         request: request,
+        status: status,
         calculation: calculation
       }, function( data ) {
         benchmarkData = data["data"]
@@ -324,22 +321,6 @@ function loadBenchmarkData(aggregator, request, calculation) {
 }
 
 function drawCanvas(y_label) {
-//    stepSize = 0
-//    max_value = 0
-//    benchmarkData.datasets.forEach(set => {
-//        set.data.forEach(item => {
-//            if (item != null && max_value < item) {
-//                      max_value=item;
-//                }
-//            })
-//        })
-//    console.log(max_value);
-//
-//    sSize = Math.floor(max_value / 5);
-//    if (sSize === 0) {
-//        sSize = 1;
-//    }
-//    console.log(sSize)
     benchmarkLine = Chart.Line(benchmarkContext, {
         data: benchmarkData,
         options: {
@@ -377,5 +358,10 @@ function switchAggregator() {
     aggregator = $("#timeaggr").val();
     request = $("#requestsaggr").val();
     calculation = $("#calculationaggr").val();
-    loadBenchmarkData(aggregator, request, calculation);
+    status = $("#status").val();
+    loadBenchmarkData(aggregator, request, calculation, status);
 }
+
+$(document).ready(function() {
+    resizeChart();
+});

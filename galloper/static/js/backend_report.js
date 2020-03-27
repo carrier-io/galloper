@@ -2,6 +2,7 @@ var page_params = new URLSearchParams(window.location.search);
 var presetsContext=document.getElementById("chart-requests").getContext("2d");
 var analyticsContext=document.getElementById("chart-analytics").getContext("2d");
 var samplerType;
+var statusType;
 var build_id;
 var test_name;
 var lg_type;
@@ -15,6 +16,7 @@ function setParams(){
     test_name = page_params.get("test_name");
     lg_type = page_params.get("lg_type");
     samplerType = $("#sampler").val().toUpperCase();
+    statusType = $("#status").val().toLowerCase();
     if (build_id == null) {
         build_id = document.querySelector("[property~=build_id][content]").content;
         lg_type = document.querySelector("[property~=lg_type][content]").content;
@@ -49,6 +51,7 @@ function loadRequestData(url, y_label) {
         lg_type: lg_type,
         sampler: samplerType,
         aggregator: aggregator,
+        status: statusType,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -65,12 +68,13 @@ function loadRequestData(url, y_label) {
 
 function fillTable(){
     $.get(
-    '/api/chart/requests/table',
+    '/api/v1/chart/requests/table',
     {
         build_id: build_id,
         test_name: test_name,
         lg_type: lg_type,
         sampler: samplerType,
+        status: statusType,
         start_time: $("#start_time").html(),
         end_time: $("#end_time").html(),
         low_value: $("#input-slider-range-value-low").html(),
@@ -97,7 +101,7 @@ function findAndRemoveDataSet(dataset_name){
 
 function getDataForAnalysis(metric, request_name) {
 $.get(
-  '/api/chart/requests/data',
+  '/api/v1/chart/requests/data',
   {
     scope: request_name,
     metric: metric,
@@ -106,6 +110,7 @@ $.get(
     lg_type: lg_type,
     sampler: samplerType,
     aggregator: aggregator,
+    status: statusType,
     start_time: $("#start_time").html(),
     end_time: $("#end_time").html(),
     low_value: $("#input-slider-range-value-low").html(),
@@ -131,17 +136,6 @@ function getData(scope, request_name) {
         getDataForAnalysis(scope, request_name)
     }
 }
-
-
-$(document).ready(function() {
-    setParams();
-    loadRequestData('/api/chart/requests/summary', "Response time, ms");
-    analyticsCanvas();
-    fillTable();
-    fillErrorTable();
-    $('#RT').trigger( "click" )
-    $("#analytics").hide();
-});
 
 function analyticsCanvas() {
     analyticsLine = Chart.Line(analyticsContext, {
@@ -291,6 +285,11 @@ function switchSampler() {
     resizeChart();
 }
 
+function switchStatus() {
+    statusType = $("#status").val().toLowerCase();
+    resizeChart();
+}
+
 function switchAggregator() {
     aggregator = $("#aggregator").val();
     console.log(aggregator)
@@ -303,5 +302,15 @@ function fillErrorTable() {
     var end_time = $("#end_time").html()
     var low_value = $("#input-slider-range-value-low").html()
     var high_value = $("#input-slider-range-value-high").html()
-    $("#errors").bootstrapTable('refreshOptions', {url: `/api/chart/errors/table?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}`})
+    $("#errors").bootstrapTable('refreshOptions', {url: `/api/v1/chart/errors/table?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}&status=${statusType}`})
 }
+
+$(document).ready(function() {
+    setParams();
+    loadRequestData('/api/v1/chart/requests/summary', "Response time, ms");
+    analyticsCanvas();
+    fillTable();
+    fillErrorTable();
+    $('#RT').trigger( "click" )
+    $("#analytics").hide();
+});

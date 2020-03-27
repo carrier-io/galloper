@@ -13,11 +13,14 @@
 #     limitations under the License.
 
 from flask import Blueprint, request, render_template
+from sqlalchemy import and_
 
 from galloper.dal.influx_results import get_test_details, get_sampler_types
 from galloper.data_utils.report_utils import render_analytics_control
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.security_results import SecurityResults
+from galloper.database.models.project import Project
+from galloper.utils.auth import project_required
 
 bp = Blueprint("reports", __name__)
 
@@ -32,15 +35,17 @@ def security():
     return render_template("security/report.html")
 
 
-@bp.route("/security/finding", methods=["GET"])
-def findings():
+@bp.route("/security/<int:project_id>/finding", methods=["GET"])
+def findings(project_id):
     report_id = request.args.get("id", None)
-    test_data = SecurityResults.query.filter_by(id=report_id).first()
+    test_data = SecurityResults.query.filter(
+        and_(SecurityResults.project_id == project_id, SecurityResults.id == report_id)).first()
     return render_template("security/results.html", test_data=test_data)
 
 
 @bp.route("/report/backend", methods=["GET"])
-def view_report():
+@project_required
+def view_report(project: Project):
     if request.args.get("report_id", None):
         test_data = APIReport.query.filter_by(id=request.args.get("report_id")).first().to_json()
     else:

@@ -214,7 +214,7 @@
           data.append('auth', $('#auth')[0].value);
           $.ajax(
             {
-              url:"/task/{{ task.task_id }}/edit",
+              url:"/api/v1/task/{{ task.task_id }}/edit",
               data: data,
               cache: false,
               contentType: false,

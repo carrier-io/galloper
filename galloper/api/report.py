@@ -13,6 +13,8 @@
 #     limitations under the License.
 
 import hashlib
+import operator
+from json import loads
 from datetime import datetime
 from sqlalchemy import or_, and_
 from flask import request
@@ -37,7 +39,8 @@ class ReportAPI(Resource):
         dict(name="search", type=str, default="", location="args"),
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
-        dict(name="name", type=str, location="args")
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
     )
     delete_rules = (
         dict(name="id[]", type=int, action="append", location="args"),
@@ -66,29 +69,44 @@ class ReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
+    def __calcualte_limit(self, limit, total):
+        return len(total) if limit == 'All' else limit
+
     def get(self, project_id: int):
         project = Project.get_object_or_404(pk=project_id)
         reports = []
         args = self._parser_get.parse_args(strict=False)
         limit_ = args.get("limit")
         offset_ = args.get("offset")
+        res = []
+        total = 0
         if args.get("sort"):
             sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
         else:
             sort_rule = APIReport.id.asc()
-        if not args.get("search") and not args.get("sort"):
+        if not args.get('search') and not args.get('filter'):
             total = APIReport.query.filter(APIReport.project_id == project.id).order_by(sort_rule).count()
             res = APIReport.query.filter(
                 APIReport.project_id == project.id
-            ).order_by(sort_rule).limit(limit_).offset(offset_).all()
-        else:
+            ).order_by(sort_rule).limit(self.__calcualte_limit(limit_, total)).offset(offset_).all()
+        elif args.get("search"):
             search_args = f"%{args['search']}%"
             filter_ = and_(APIReport.project_id == project.id,
                            or_(APIReport.name.like(search_args),
                                APIReport.environment.like(search_args),
                                APIReport.type.like(search_args)))
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
             total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
+        elif args.get("filter"):
+            filter_ = list()
+            filter_.append(operator.eq(APIReport.project_id, project.id))
+            for key, value in loads(args.get("filter")).items():
+                filter_.append(operator.eq(getattr(APIReport, key), value))
+            filter_ = and_(*tuple(filter_))
+            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
+            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
+                self.__calcualte_limit(limit_, total)).offset(offset_).all()
         for each in res:
             each_json = each.to_json()
             each_json["start_time"] = each_json["start_time"].replace("T", " ").split(".")[0]
@@ -175,7 +193,8 @@ class ReportChartsAPI(Resource):
         dict(name="scope", type=str, default="", location="args"),
         dict(name="build_id", type=str, location="args"),
         dict(name="test_name", type=str, location="args"),
-        dict(name="lg_type", type=str, location="args")
+        dict(name="lg_type", type=str, location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "requests": {
@@ -214,7 +233,8 @@ class ReportsCompareAPI(Resource):
         dict(name="id[]", action="append", location="args"),
         dict(name="request", type=str, default="", location="args"),
         dict(name="calculation", type=str, default="", location="args"),
-        dict(name="aggregator", type=str, default="1s", location="args")
+        dict(name="aggregator", type=str, default="1s", location="args"),
+        dict(name='status', type=str, default='all', location="args")
     )
     mapping = {
         "data": prepare_comparison_responses,
@@ -266,7 +286,7 @@ class SecurityReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
-    def get(self):
+    def get(self, project_id):
         reports = []
         args = self._parser_get.parse_args(strict=False)
         search_ = args.get("search")
@@ -277,16 +297,17 @@ class SecurityReportAPI(Resource):
         else:
             sort_rule = SecurityResults.id.desc()
         if not args.get("search") and not args.get("sort"):
-            total = SecurityResults.query.order_by(sort_rule).count()
-            res = SecurityResults.query.order_by(sort_rule).limit(limit_).offset(offset_).all()
+            total = SecurityResults.query.filter_by(project_id=project_id).order_by(sort_rule).count()
+            res = SecurityResults.query.filter_by(project_id=project_id).\
+                order_by(sort_rule).limit(limit_).offset(offset_).all()
         else:
-            filter_ = or_(SecurityResults.project_name.like(f"%{search_}%"),
+            filter_ = and_(SecurityResults.project_id==project_id,
+                      or_(SecurityResults.project_name.like(f"%{search_}%"),
                           SecurityResults.app_name.like(f"%{search_}%"),
                           SecurityResults.scan_type.like(f"%{search_}%"),
-                          SecurityResults.environment.like(f"%{search_}%"),
-                          SecurityResults.endpoint.like(f"%{search_}%"))
+                          SecurityResults.environment.like(f"%{search_}%")))
             res = SecurityResults.query.filter(filter_).order_by(sort_rule).limit(limit_).offset(offset_).all()
-            total = SecurityResults.query.order_by(sort_rule).filter(filter_).count()
+            total = SecurityResults.query.filter(filter_).order_by(sort_rule).count()
         for each in res:
             each_json = each.to_json()
             each_json["scan_time"] = each_json["scan_time"].replace("T", " ").split(".")[0]
@@ -304,7 +325,6 @@ class SecurityReportAPI(Resource):
         for each in SecurityResults.query.filter(
             SecurityResults.id.in_(args["id[]"])
         ).order_by(SecurityResults.id.asc()).all():
-            delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
 
@@ -346,21 +366,29 @@ class FindingsAPI(Resource):
         self._parser_get = build_req_parser(rules=self.get_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
 
-    def get(self):
+    def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
         if args["type"] == "false_positives":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.false_positive == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.false_positive == 1)
         elif args["type"] == "findings":
-            filt = and_(SecurityReport.report_id == args["id"],
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
                         SecurityReport.info_finding == 0,
                         SecurityReport.false_positive == 0,
                         SecurityReport.excluded_finding == 0)
         elif args["type"] == "info_findings":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.info_finding == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.info_finding == 1)
         elif args["type"] == "excluded_finding":
-            filt = and_(SecurityReport.report_id == args["id"], SecurityReport.excluded_finding == 1)
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"],
+                        SecurityReport.excluded_finding == 1)
         else:
-            filt = and_(SecurityReport.report_id == args["id"])
+            filt = and_(SecurityReport.project_id == project_id,
+                        SecurityReport.report_id == args["id"])
         issues = SecurityReport.query.filter(filt).all()
         results = []
         for issue in issues:
@@ -369,22 +397,26 @@ class FindingsAPI(Resource):
             results.append(_res)
         return results
 
-    def post(self):
+    def post(self, project_id: int):
         finding_db = None
         for finding in request.json:
             md5 = hashlib.md5(finding["details"].encode("utf-8")).hexdigest()
-            hash_id = SecurityDetails.query.filter(SecurityDetails.detail_hash == md5).first()
+            hash_id = SecurityDetails.query.filter(
+                and_(SecurityDetails.project_id == project_id, SecurityDetails.detail_hash == md5)
+            ).first()
             if not hash_id:
-                hash_id = SecurityDetails(detail_hash=md5, details=finding["details"])
+                hash_id = SecurityDetails(detail_hash=md5, project_id=project_id, details=finding["details"])
                 hash_id.insert()
             # Verify issue is false_positive or ignored
             finding["details"] = hash_id.id
+            finding['project_id'] = project_id
             entrypoints = ""
-            for each in finding.get("endpoints"):
-                if isinstance(each, list):
-                    entrypoints += "<br />".join(each)
-                else:
-                    entrypoints += f"<br />{each}"
+            if finding.get("endpoints"):
+                for each in finding.get("endpoints"):
+                    if isinstance(each, list):
+                        entrypoints += "<br />".join(each)
+                    else:
+                        entrypoints += f"<br />{each}"
             finding["endpoints"] = entrypoints
             if not (finding["false_positive"] == 1 or finding["excluded_finding"] == 1):
                 # TODO: add validation that finding is a part of project, applicaiton. etc.
@@ -402,16 +434,20 @@ class FindingsAPI(Resource):
         if finding_db:
             finding_db.commit()
 
-    def put(self):
+    def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
-        # test_data = SecurityResults.query.filter_by(id=args["id"]).first()
-        issue_hash = SecurityReport.query.filter_by(id=args["issue_id"]).first().issue_hash
+        issue_hash = SecurityReport.query.filter(and_(SecurityReport.project_id == project_id,
+                                                      SecurityReport.id == args["issue_id"])
+                                                 ).first().issue_hash
         if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
         else:
             upd = {"false_positive": 0, "info_finding": 0}
         # TODO: add validation that finding is a part of project, applicaiton. etc.
-        SecurityReport.query.filter(SecurityReport.issue_hash == issue_hash).update(upd)
+        SecurityReport.query.filter(and_(
+            SecurityReport.project_id == project_id,
+            SecurityReport.issue_hash == issue_hash)
+        ).update(upd)
         SecurityReport.commit()
         return {"message": "accepted"}
 
@@ -430,9 +466,10 @@ class FindingsAnalysisAPI(Resource):
     def __init_req_parsers(self):
         self._parser_get = build_req_parser(rules=self.get_rules)
 
-    def get(self):
+    def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        projects_filter = and_(SecurityResults.project_name == args["project_name"],
+        projects_filter = and_(SecurityResults.project_id == project_id,
+                               SecurityResults.project_name == args["project_name"],
                                SecurityResults.app_name == args["app_name"],
                                SecurityResults.scan_type == args["scan_type"])
         ids = SecurityResults.query.filter(projects_filter).all()
