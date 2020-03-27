@@ -29,7 +29,7 @@ class BucketsApi(Resource):
         dict(name="expiration_measure", type=str, location="json",
              choices=("days", "weeks", "months", "years"),
              help="Bad choice: {error_msg}"),
-        dict(name="expiration_value", type=int, location="json"),
+        dict(name="expiration_value", type=int, location="json", required=False),
     )
 
     def __init__(self):
@@ -50,7 +50,7 @@ class BucketsApi(Resource):
         project = Project.get_object_or_404(pk=project_id)
         minio_client = MinioClient(project=project)
         created = minio_client.create_bucket(bucket)
-        if created:
+        if created and expiration_value and expiration_measure:
             today_date = datetime.today().date()
             expiration_date = today_date + relativedelta(**{expiration_measure: expiration_value})
             time_delta = expiration_date - today_date
