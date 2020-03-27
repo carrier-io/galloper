@@ -58,7 +58,8 @@ class MinioClient:
         if bucket:
             response = self.s3_client.list_objects_v2(Bucket=bucket)
             files = [
-                {"name": each["Key"], "size": each["Size"], "modified": each["LastModified"].strftime("%Y-%m-%d %H:%M:%S")}
+                {"name": each["Key"], "size": each["Size"],
+                 "modified": each["LastModified"].strftime("%Y-%m-%d %H:%M:%S")}
                 for each in response.get("Contents", {})
             ]
             continuation_token = response.get("NextContinuationToken")

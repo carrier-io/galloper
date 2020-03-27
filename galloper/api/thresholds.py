@@ -87,7 +87,7 @@ class RequestsAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
 
         requests_data = set()
         query_result = APIReport.query.filter(

@@ -16,6 +16,7 @@ from typing import Optional, Union
 
 from flask_restful import Resource
 
+from galloper.database.db_manager import db_session
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
@@ -52,7 +53,7 @@ class ProjectAPI(Resource):
         if get_selected_ or project_id:
             if get_selected_:
                 project_id = SessionProject.get()
-            project = Project.get_object_or_404(pk=project_id)
+            project = Project.query.get_or_404(project_id)
             return project.to_json()
         elif search_:
             projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
@@ -76,10 +77,9 @@ class ProjectAPI(Resource):
         }
 
     def delete(self, project_id: int):
-        project = Project.get_object_or_404(pk=project_id)
-        project.delete()
-        selected_project_id = SessionProject.get()
+        Project.apply_full_delete_by_pk(pk=project_id)
 
+        selected_project_id = SessionProject.get()
         if project_id == selected_project_id:
             SessionProject.pop()
 

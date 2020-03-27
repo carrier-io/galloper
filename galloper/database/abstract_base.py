@@ -13,10 +13,6 @@
 #     limitations under the License.
 
 import json
-from collections.abc import Iterable
-from typing import Any, Optional
-
-from werkzeug.exceptions import NotFound
 
 from galloper.config import Config
 from galloper.database.db_manager import db_session
@@ -51,29 +47,3 @@ class AbstractBaseMixin:
     def delete(self) -> None:
         db_session.delete(self)
         self.commit()
-
-    @classmethod
-    def get_object_or_404(
-        cls, pk_field_name: str = "id", pk: Optional[int] = None, custom_params: Optional[Any] = None
-    ) -> object:
-        if not pk and not custom_params:
-            raise ValueError("You must specify neither 'pk' or 'custom_params' calling method")
-        if not custom_params:
-            instance = cls.query.filter_by(**{pk_field_name: pk}).first()
-        else:
-            instance = cls.query.filter(
-                *custom_params if isinstance(custom_params, Iterable) else custom_params
-            ).first()
-        if not instance:
-            raise NotFound(description=f"{cls.__name__} object not found")
-        return instance
-
-    @classmethod
-    def get_and_delete_object(
-        cls, pk_field_name: str = "id", pk: Optional[int] = None, custom_params: Optional[Any] = None
-    ) -> None:
-        try:
-            instance = cls.get_object_or_404(pk=pk, pk_field_name=pk_field_name, custom_params=custom_params)
-            instance.delete()
-        except NotFound:
-            ...
