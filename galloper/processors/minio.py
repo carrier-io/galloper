@@ -93,8 +93,10 @@ class MinioClient:
     def remove_bucket(self, bucket: str):
         for file_obj in self.list_files(bucket):
             self.remove_file(bucket, file_obj["name"])
+
+        bucket_internal_name = self.project.get_bucket_internal_name(bucket_name=bucket)
         self.project.delete_bucket(bucket_name=bucket)
-        self.s3_client.delete_bucket(Bucket=bucket)
+        self.s3_client.delete_bucket(Bucket=bucket_internal_name)
 
     def configure_bucket_lifecycle(self, bucket: str, days: int) -> None:
         bucket = self.project.get_bucket_internal_name(bucket_name=bucket)

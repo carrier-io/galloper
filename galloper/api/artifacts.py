@@ -89,6 +89,6 @@ class ArtifactApi(Resource):
     def delete(self, project_id: int, bucket: str, filename: str):
         args = self._parser_delete.parse_args(strict=False)
         project = Project.get_object_or_404(pk=project_id)
-        for filename in args["fname[]"]:
+        for filename in args.get("fname[]", ()) or ():
             MinioClient(project=project).remove_file(bucket, filename)
         return {"message": "Deleted", "code": 200}
