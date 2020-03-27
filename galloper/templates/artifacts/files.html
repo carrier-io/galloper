@@ -66,13 +66,29 @@
                             <div class="card bg-secondary shadow border-0">
                                 <div class="card-body px-lg-5 py-lg-5">
                                     <div class="text-muted text-center mt-2 mb-3">Create bucket</div>
-                                    <form role="form" id="createBucketForm" method="POST">
+                                    <form role="form" id="createBucketForm">
                                         <div class="form-group mb-3">
                                             <div class="input-group input-group-alternative">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="ni ni-box-2"></i></span>
                                                 </div>
                                                 <input class="form-control" id="bucketName" name="bucket" placeholder="Bucket name">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <select id="expiration-measure" class="selectpicker show-tick form-control">
+                                            <option value="days">Days</option>
+                                            <option value="weeks">Weeks</option>
+                                            <option value="months">Months</option>
+                                            <option value="years">Years</option>
+                                          </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group input-group-alternative">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="ni ni-settings-gear-65"></i></span>
+                                                </div>
+                                                <input type="number" min="1" class="form-control" id="expiration-value" name="expiration_value" placeholder="Retention policy value">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -160,12 +176,25 @@
 
     function createBucket() {
         var project_id = $("#selected-project-id").text();
-        var bucket = $("#bucketName").val()
+        var bucket = $("#bucketName").val();
+        var expirationMeasure = $("#expiration-measure").val();
+        var expirationValue = $("#expiration-value").val();
         $.ajax({
             url: `/api/v1/artifacts/${project_id}/${bucket}`,
             type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify(
+                {
+                    "expiration_measure": expirationMeasure,
+                    "expiration_value": !expirationValue ? null : expirationValue
+                }
+            ),
             success: function (result) {
-                $(location).attr('href', `/artifacts?q=${bucket}`);
+                window.location.href = `/artifacts?q=${bucket}`;
+            },
+            error: function (result) {
+                console.log(result);
             }
         });
     }
