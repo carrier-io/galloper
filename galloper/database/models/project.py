@@ -44,6 +44,7 @@ class Project(AbstractBaseMixin, Base):
         import psycopg2
 
         from galloper.processors.minio import MinioClient
+        from galloper.dal.influx_results import delete_test_data
 
         from galloper.database.models.task_results import Results
         from galloper.database.models.task import Task
@@ -62,9 +63,18 @@ class Project(AbstractBaseMixin, Base):
 
         db_session.query(Project).filter_by(id=pk).delete()
         for model_class in (
-            Results, Task, SecurityResults, SecurityReport, SecurityDetails, APIReport, APIRelease
+            Results, Task, SecurityResults, SecurityReport, SecurityDetails, APIRelease
         ):
             db_session.query(model_class).filter_by(project_id=pk).delete()
+
+        
+        influx_result_data = []
+        api_reports = APIReport.query.filter_by(project_id=pk).all()
+        for api_report in api_reports:
+            influx_result_data.append(
+                (api_report.build_id, api_report.name, api_report.lg_type)
+            )
+            api_report.delete(commit=False)
 
         try:
             db_session.flush()
@@ -82,4 +92,10 @@ class Project(AbstractBaseMixin, Base):
             db_session.commit()
             for bucket in buckets_for_removal:
                 minio_client.remove_bucket(bucket=bucket)
+            for influx_item_data in influx_result_data:
+                delete_test_data(*influx_item_data)
             _logger.info("Project successfully deleted!")
+
+        selected_project_id = SessionProject.get()
+        if project_id == selected_project_id:
+            SessionProject.pop()

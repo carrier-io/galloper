@@ -44,6 +44,7 @@ class AbstractBaseMixin:
         self.add()
         self.commit()
 
-    def delete(self) -> None:
+    def delete(self, commit: bool = True) -> None:
         db_session.delete(self)
-        self.commit()
+        if commit:
+            self.commit()

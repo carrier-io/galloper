@@ -78,9 +78,4 @@ class ProjectAPI(Resource):
 
     def delete(self, project_id: int):
         Project.apply_full_delete_by_pk(pk=project_id)
-
-        selected_project_id = SessionProject.get()
-        if project_id == selected_project_id:
-            SessionProject.pop()
-
         return {"message": f"Successfully deleted"}
