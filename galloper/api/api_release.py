@@ -153,7 +153,7 @@ class ReleaseApiSaturation(Resource):
                                                            'All', "total"))
                     global_error_rate.append(round(float(errors_count / total) * 100, 2))
                 throughput.append(get_throughput_per_test(
-                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "1s", args["status"]))
+                    _.build_id, _.name, _.lg_type, args["sampler"], args["request"], args["aggregation"], args["status"]))
                 response_time.append(get_response_time_per_test(
                     _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "pct95", args["status"]))
                 error_rate.append(get_response_time_per_test(
