@@ -41,6 +41,7 @@ class Project(AbstractBaseMixin, Base):
 
     @classmethod
     def apply_full_delete_by_pk(cls, pk: int) -> None:
+        import docker
         import psycopg2
 
         from galloper.processors.minio import MinioClient
@@ -59,22 +60,27 @@ class Project(AbstractBaseMixin, Base):
 
         project = cls.query.get_or_404(pk)
         minio_client = MinioClient(project=project)
+        docker_client = docker.from_env()
         buckets_for_removal = minio_client.list_bucket()
 
         db_session.query(Project).filter_by(id=pk).delete()
         for model_class in (
-            Results, Task, SecurityResults, SecurityReport, SecurityDetails, APIRelease
+            Results, SecurityResults, SecurityReport, SecurityDetails, APIRelease
         ):
             db_session.query(model_class).filter_by(project_id=pk).delete()
 
         
         influx_result_data = []
-        api_reports = APIReport.query.filter_by(project_id=pk).all()
-        for api_report in api_reports:
+        for api_report in APIReport.query.filter_by(project_id=pk).all():
             influx_result_data.append(
                 (api_report.build_id, api_report.name, api_report.lg_type)
             )
             api_report.delete(commit=False)
+
+        task_ids = []
+        for task in Task.query.filter_by(project_id=pk).all():
+            task_ids = task_ids.append(task.task_id)
+            task.delete(commit=False)
 
         try:
             db_session.flush()
@@ -94,6 +100,13 @@ class Project(AbstractBaseMixin, Base):
                 minio_client.remove_bucket(bucket=bucket)
             for influx_item_data in influx_result_data:
                 delete_test_data(*influx_item_data)
+            for task_id in task_ids:
+                try:
+                    volume = docker_client.volumes.get(task_id)
+                except docker.errors.NotFound as docker_exc:
+                    _logger.info(str(docker_exc))
+                else:
+                    volume.remove(force=True)
             _logger.info("Project successfully deleted!")
 
         selected_project_id = SessionProject.get()
