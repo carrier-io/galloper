@@ -12,6 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+from flask_sqlalchemy import BaseQuery
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -24,7 +25,7 @@ engine = create_engine(config.DATABASE_URI, **config.db_engine_config)
 db_session = scoped_session(sessionmaker(bind=engine))
 
 Base = declarative_base()
-Base.query = db_session.query_property()
+Base.query = db_session.query_property(query_cls=BaseQuery)
 
 
 def init_db():

@@ -20,7 +20,7 @@ def get_results(test, int_start_time, int_end_time):
     url = f"{LOKI_HOST}/loki/api/v1/query_range"
     data = {
         "direction": "BACKWARD",
-        "limit": 100000,
+        "limit": 5000,
         "query": '{filename="/tmp/' + test + '.log"}',
         "start": int_start_time,
         "end": int_end_time

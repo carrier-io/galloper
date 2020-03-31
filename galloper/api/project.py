@@ -52,7 +52,7 @@ class ProjectAPI(Resource):
         if get_selected_ or project_id:
             if get_selected_:
                 project_id = SessionProject.get()
-            project = Project.get_object_or_404(pk=project_id)
+            project = Project.query.get_or_404(project_id)
             return project.to_json()
         elif search_:
             projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
@@ -76,11 +76,5 @@ class ProjectAPI(Resource):
         }
 
     def delete(self, project_id: int):
-        project = Project.get_object_or_404(pk=project_id)
-        project.delete()
-        selected_project_id = SessionProject.get()
-
-        if project_id == selected_project_id:
-            SessionProject.pop()
-
+        Project.apply_full_delete_by_pk(pk=project_id)
         return {"message": f"Successfully deleted"}
