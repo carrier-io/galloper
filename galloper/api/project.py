@@ -16,7 +16,6 @@ from typing import Optional, Union
 
 from flask_restful import Resource
 
-from galloper.database.db_manager import db_session
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
