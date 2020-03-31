@@ -73,7 +73,7 @@ class ReportAPI(Resource):
         return len(total) if limit == 'All' else limit
 
     def get(self, project_id: int):
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         reports = []
         args = self._parser_get.parse_args(strict=False)
         limit_ = args.get("limit")
@@ -120,7 +120,7 @@ class ReportAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         report = APIReport(name=args["test_name"],
                            project_id=project.id,
                            environment=args["environment"],
@@ -148,7 +148,7 @@ class ReportAPI(Resource):
 
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         test_data = get_test_details(build_id=args["build_id"], test_name=args["test_name"], lg_type=args["lg_type"])
         report = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.build_id == args["build_id"])
@@ -171,7 +171,7 @@ class ReportAPI(Resource):
 
     def delete(self, project_id: int):
         args = self._parser_delete.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         query_result = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.id.in_(args["id[]"]))
         ).all()
@@ -317,7 +317,7 @@ class SecurityReportAPI(Resource):
 
     def delete(self, project_id: int):
         args = self._parser_delete.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         for each in SecurityReport.query.filter(
             and_(SecurityReport.project_id == project.id, SecurityReport.report_id.in_(args["id[]"]))
         ).order_by(SecurityReport.id.asc()).all():
@@ -330,7 +330,7 @@ class SecurityReportAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
-        project = Project.get_object_or_404(pk=project_id)
+        project = Project.query.get_or_404(project_id)
         report = SecurityResults(scan_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                                  project_id=project.id,
                                  scan_duration=args["scan_time"],

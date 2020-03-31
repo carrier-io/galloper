@@ -45,7 +45,7 @@ def project_required(func):
         project_id = SessionProject.get()
 
         try:
-            project = Project.get_object_or_404(pk=project_id)
+            project = Project.query.get_or_404(project_id)
             return func(project, *args, **kwargs)
         except NotFound:
             ...
