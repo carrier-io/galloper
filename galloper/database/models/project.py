@@ -13,6 +13,7 @@
 #     limitations under the License.
 
 import logging
+from typing import Optional
 
 from sqlalchemy import String, Column, Integer, JSON, Boolean
 
@@ -34,6 +35,12 @@ class Project(AbstractBaseMixin, Base):
     sast_enabled = Column(Boolean, nullable=False, default=False)
     performance_enabled = Column(Boolean, nullable=False, default=False)
 
+    def insert(self) -> None:
+        from galloper.processors.minio import MinioClient
+        super().insert()
+
+        MinioClient(project=self).create_bucket(bucket="reports")
+
     def used_in_session(self):
         selected_id = SessionProject.get()
         return self.id == selected_id
@@ -42,6 +49,12 @@ class Project(AbstractBaseMixin, Base):
         json_data = super().to_json(exclude_fields=exclude_fields)
         json_data["used_in_session"] = self.used_in_session()
         return json_data
+
+    def get_data_retention_limit(self) -> Optional[int]:
+        from galloper.database.models.project_quota import ProjectQuota
+        project_quota = ProjectQuota.query.filter_by(project_id=self.id).first()
+        if project_quota and project_quota.data_retention_limit:
+            return project_quota.data_retention_limit
 
     @classmethod
     def apply_full_delete_by_pk(cls, pk: int) -> None:

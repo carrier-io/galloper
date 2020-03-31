@@ -22,7 +22,6 @@ from galloper.utils.auth import SessionProject
 
 
 class ProjectAPI(Resource):
-
     get_rules = (
         dict(name="offset", type=int, default=None, location="args"),
         dict(name="limit", type=int, default=None, location="args"),
@@ -30,7 +29,10 @@ class ProjectAPI(Resource):
         dict(name="get_selected", type=bool, default=False, location="args")
     )
     post_rules = (
-        dict(name="action", type=str, location="json"),
+        dict(name="name", type=str, location="json"),
+        dict(name="dast_enabled", type=bool, default=None, location="json"),
+        dict(name="sast_enabled", type=bool, default=None, location="json"),
+        dict(name="performance_enabled", type=bool, default=None, location="json")
     )
 
     def __init__(self):
@@ -41,7 +43,7 @@ class ProjectAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: Optional[int] = None) -> Union[Tuple[dict, int], Tuple[list, int]]:
-        args = self._parser_get.parse_args()
+        data = self._parser_post.parse_args()
         get_selected_ = args["get_selected"]
         offset_ = args["offset"]
         limit_ = args["limit"]
@@ -58,8 +60,33 @@ class ProjectAPI(Resource):
             projects = Project.query.limit(limit_).offset(offset_).all()
 
         return [
-            project.to_json() for project in projects
-        ], 200
+                   project.to_json() for project in projects
+               ], 200
+
+    def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
+        data = self._parser_post.parse_args()
+        name_ = data["name"]
+        dast_enabled_ = data["dast_enabled"]
+        sast_enabled_ = data["sast_enabled"]
+        performance_enabled_ = data["performance_enabled"]
+        if project_id:
+            project = Project.query.get_or_404(project_id)
+            project.name = name_
+            project.dast_enabled = dast_enabled_
+            project.sast_enabled = sast_enabled_
+            project.performance_enabled = performance_enabled_
+            project.commit()
+            return {"message": f"Project with id {project.id} was successfully updated"}, 200
+
+        project = Project(
+            name=name_,
+            dast_enabled=dast_enabled_,
+            sast_enabled=sast_enabled_,
+            performance_enabled=performance_enabled_
+        )
+        project.insert()
+
+        return {"message": f"Project was successfully created"}, 200
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
         Project.apply_full_delete_by_pk(pk=project_id)
