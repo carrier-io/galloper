@@ -13,10 +13,8 @@
 #     limitations under the License.
 
 import logging
-from typing import Optional
 
 from sqlalchemy import String, Column, Integer, JSON
-from werkzeug.exceptions import NotFound
 
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base, db_session
