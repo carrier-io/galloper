@@ -14,7 +14,7 @@
 
 import logging
 
-from sqlalchemy import String, Column, Integer, JSON
+from sqlalchemy import String, Column, Integer, JSON, Boolean
 
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base, db_session
@@ -26,7 +26,13 @@ class Project(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=False)
-    secrets_json = Column(JSON, unique=False)
+    project_owner = Column(String(256), unique=False)
+    secrets_json = Column(JSON, unique=False, default={})
+    worker_pool_config_json = Column(JSON, unique=False, default={})
+
+    dast_enabled = Column(Boolean, nullable=False, default=False)
+    sast_enabled = Column(Boolean, nullable=False, default=False)
+    performance_enabled = Column(Boolean, nullable=False, default=False)
 
     def used_in_session(self):
         selected_id = SessionProject.get()

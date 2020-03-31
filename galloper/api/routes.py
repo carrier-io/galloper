@@ -14,14 +14,15 @@
 
 from flask_restful import Api
 
+from galloper.utils.api_utils import add_resource_to_api
 from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
-from .project import ProjectAPI
+from .artifacts import BucketsApi, ArtifactApi
+from .project import ProjectAPI, ProjectSessionAPI
+from .project_quota import ProjectQuotaAPI
 from .report import (ReportAPI, ReportChartsAPI, ReportsCompareAPI,
                      SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI)
-from .artifacts import BucketsApi, ArtifactApi
-from .thresholds import ThresholdsAPI, RequestsAPI
 from .task import TaskActionApi
-from galloper.utils.api_utils import add_resource_to_api
+from .thresholds import ThresholdsAPI, RequestsAPI
 
 
 def initialize_api_routes(api: Api):
@@ -41,6 +42,8 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, FindingsAnalysisAPI, "/security/<int:project_id>/fpa")
 
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
+    add_resource_to_api(api, ProjectSessionAPI, "/project-session", "/project-session/<int:project_id>")
+    add_resource_to_api(api, ProjectQuotaAPI, "/project-quota", "/project-quota/<int:project_id>")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")

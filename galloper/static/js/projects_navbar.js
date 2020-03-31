@@ -7,7 +7,7 @@
     function initProjectDropdown(projectData) {
         if (projectData === undefined) {
             var request = new XMLHttpRequest();
-            request.open('GET', "/api/v1/project?get_selected=true", false)
+            request.open('GET', "/api/v1/project-session", false);
             request.send(null);
             if (request.status === 200) {
                 projectData = JSON.parse(request.responseText);
@@ -23,10 +23,10 @@
     function selectSessionProject(projectData) {
         try {
             var request = new XMLHttpRequest();
-            request.open('POST', `/api/v1/project/${projectData.id}`, false);
-            request.setRequestHeader("Accept", "application/json")
-            request.setRequestHeader("Content-Type", "application/json")
-            request.send(JSON.stringify({action: "select"}))
+            request.open('POST', `/api/v1/project-session/${projectData.id}`, false);
+            request.setRequestHeader("Accept", "application/json");
+            request.setRequestHeader("Content-Type", "application/json");
+            request.send(null);
             if (request.status === 200) {
                 let responseJson = JSON.parse(request.responseText);
                 initProjectDropdown(projectData);
