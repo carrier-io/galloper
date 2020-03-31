@@ -79,7 +79,7 @@ class Project(AbstractBaseMixin, Base):
 
         task_ids = []
         for task in Task.query.filter_by(project_id=pk).all():
-            task_ids = task_ids.append(task.task_id)
+            task_ids.append(task.task_id)
             task.delete(commit=False)
 
         try:
@@ -110,5 +110,5 @@ class Project(AbstractBaseMixin, Base):
             _logger.info("Project successfully deleted!")
 
         selected_project_id = SessionProject.get()
-        if project_id == selected_project_id:
+        if pk == selected_project_id:
             SessionProject.pop()
