@@ -66,8 +66,10 @@ def create_app(config_class: type = Config) -> Flask:
     return app
 
 
+_app = create_app()
+
+
 def main() -> None:
-    _app = create_app()
     config = Config()
     _app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
 
