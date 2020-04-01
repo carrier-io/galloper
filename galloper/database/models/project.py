@@ -25,6 +25,8 @@ from galloper.utils.auth import SessionProject
 class Project(AbstractBaseMixin, Base):
     __tablename__ = "project"
 
+    API_EXCLUDE_FIELDS = ("secrets_json", "worker_pool_config_json")
+
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=False)
     project_owner = Column(String(256), unique=False)

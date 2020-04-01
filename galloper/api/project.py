@@ -25,8 +25,7 @@ class ProjectAPI(Resource):
     get_rules = (
         dict(name="offset", type=int, default=None, location="args"),
         dict(name="limit", type=int, default=None, location="args"),
-        dict(name="search", type=str, default="", location="args"),
-        dict(name="get_selected", type=bool, default=False, location="args")
+        dict(name="search", type=str, default="", location="args")
     )
     post_rules = (
         dict(name="name", type=str, location="json"),
@@ -44,23 +43,20 @@ class ProjectAPI(Resource):
 
     def get(self, project_id: Optional[int] = None) -> Union[Tuple[dict, int], Tuple[list, int]]:
         args = self._parser_get.parse_args()
-        get_selected_ = args["get_selected"]
         offset_ = args["offset"]
         limit_ = args["limit"]
         search_ = args["search"]
 
-        if get_selected_ or project_id:
-            if get_selected_:
-                project_id = SessionProject.get()
+        if project_id:
             project = Project.query.get_or_404(project_id)
-            return project.to_json(), 200
+            return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         elif search_:
             projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
         else:
             projects = Project.query.limit(limit_).offset(offset_).all()
 
         return [
-                   project.to_json() for project in projects
+                   project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects
                ], 200
 
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
@@ -99,7 +95,7 @@ class ProjectSessionAPI(Resource):
         selected_project_id = SessionProject.get()
         if selected_project_id:
             project = Project.query.get_or_404(selected_project_id)
-            return {"id": project.id, "name": project.name}, 200
+            return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         return {"message": "No project selected in session"}, 404
 
     def post(self, project_id: int) -> Tuple[dict, int]:
