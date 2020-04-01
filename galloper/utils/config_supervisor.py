@@ -39,7 +39,7 @@ stopwaitsecs=20
 stopasgroup=true
 
 [program:app]
-command=uwsgi --ini /etc/galloper_uwsgi.ini
+command=uwsgi --ini /etc/uwsgi.ini
 autostart=true
 autorestart=true
 stopsignal=QUIT

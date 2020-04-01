@@ -11,7 +11,7 @@ master = true
 
 def main():
     config = Config()
-    with open('/etc/galloper_uwsgi.ini', 'w') as f:
+    with open('/etc/uwsgi.ini', 'w') as f:
         f.write(uwsgi_conf.format(
             IP=config.APP_HOST,
             port=config.APP_PORT,
