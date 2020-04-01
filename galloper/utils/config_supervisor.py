@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 import argparse
-from galloper.config import Config
 
 interceptor_conf = """[supervisord]
 
@@ -24,7 +23,7 @@ file=/run/supervisord.sock
 serverurl=unix:///run/supervisord.sock
 
 [program:worker]
-command=celery -A galloper.celeryapp worker -l info -c{n_workers} --max-tasks-per-child 1 -f /var/log/worker.log
+command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/worker.log
 autostart=true
 autorestart=true
 stopsignal=QUIT
@@ -40,7 +39,7 @@ stopwaitsecs=20
 stopasgroup=true
 
 [program:app]
-command=uwsgi --http-socket {IP}:{port} --module galloper.app:_app --processes 1 --threads 2 --master
+command=uwsgi --ini /etc/galloper_uwsgi.ini
 autostart=true
 autorestart=true
 stopsignal=QUIT
@@ -56,11 +55,6 @@ def arg_parse():
 
 
 def main():
-    config = Config()
     args = arg_parse()
     with open('/etc/galloper.conf', 'w') as f:
-        f.write(interceptor_conf.format(
-            n_workers=args.procs,
-            IP=config.APP_HOST,
-            port=config.APP_PORT,
-        ))
+        f.write(interceptor_conf % args.procs)
