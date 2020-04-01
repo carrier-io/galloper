@@ -43,7 +43,7 @@ class ProjectAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: Optional[int] = None) -> Union[Tuple[dict, int], Tuple[list, int]]:
-        data = self._parser_post.parse_args()
+        args = self._parser_get.parse_args()
         get_selected_ = args["get_selected"]
         offset_ = args["offset"]
         limit_ = args["limit"]
