@@ -23,9 +23,9 @@ class ProjectQuota(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, unique=False, nullable=False)
-    performance_test_runs = Column(Integer, unique=False)
-    code_repositories = Column(Integer, unique=False)
-    dast_scans = Column(Integer, unique=False)
+    performance_test_runs = Column(Integer, unique=False)  # per month
+    code_repositories = Column(Integer, unique=False)  # total active
+    dast_scans = Column(Integer, unique=False)  # per month
     public_pool_workers = Column(Integer, unique=False)
     storage_space = Column(Integer, unique=False)
     data_retention_limit = Column(Integer, unique=False)

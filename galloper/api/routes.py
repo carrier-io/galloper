@@ -19,8 +19,8 @@ from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
 from .artifacts import BucketsApi, ArtifactApi
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
-from .report import (ReportAPI, ReportChartsAPI, ReportsCompareAPI,
-                     SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI)
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI
+from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI
 
