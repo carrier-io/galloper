@@ -68,7 +68,8 @@ RUN apk add --update \
   rtmpdump \
   x264-dev \
   x265-dev \
-  postgresql-dev
+  postgresql-dev \
+  libffi-dev
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
