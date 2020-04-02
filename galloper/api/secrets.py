@@ -23,7 +23,7 @@ from galloper.utils.api_utils import build_req_parser
 
 class ProjectSecretsApi(Resource):
     get_rules = (
-        dict(name='keys', location='args'),
+        dict(name='keys[]', type=str, action='append', location='args'),
     )
 
     def __init__(self):
@@ -31,16 +31,15 @@ class ProjectSecretsApi(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=True)
-        if not args['keys']:
+        if not args['keys[]']:
             return '{}'
-        secret_keys = args['keys'].split(',')
 
         project = Project.query.get_or_404(project_id)
         vault = self._create_vault_client(project)
 
         secrets = vault.get_secrets()
         return json.dumps(
-            {secret_key: secrets[secret_key] for secret_key in secret_keys}
+            {secret_key: secrets[secret_key] for secret_key in args['keys[]']}
         )
 
     def _create_vault_client(self, project):
