@@ -18,6 +18,7 @@ from io import BytesIO
 from dateutil.relativedelta import relativedelta
 from flask import request, send_file
 from flask_restful import Resource
+from werkzeug.exceptions import Forbidden
 
 from galloper.database.models.project import Project
 from galloper.processors.minio import MinioClient
@@ -48,13 +49,21 @@ class BucketsApi(Resource):
         expiration_value = args["expiration_value"]
 
         project = Project.query.get_or_404(project_id)
+        data_retention_limit = project.get_data_retention_limit()
         minio_client = MinioClient(project=project)
-        created = minio_client.create_bucket(bucket)
-        if created and expiration_value and expiration_measure:
+        days = data_retention_limit or None
+
+        if expiration_value and expiration_measure:
             today_date = datetime.today().date()
             expiration_date = today_date + relativedelta(**{expiration_measure: expiration_value})
             time_delta = expiration_date - today_date
-            minio_client.configure_bucket_lifecycle(bucket=bucket, days=time_delta.days)
+            days = time_delta.days
+            if data_retention_limit and days > data_retention_limit:
+                raise Forbidden(description="The data retention limit allowed in the project has been exceeded")
+
+        created = minio_client.create_bucket(bucket)
+        if created and days:
+            minio_client.configure_bucket_lifecycle(bucket=bucket, days=days)
         return {"message": "Created", "code": 200}
 
     def delete(self, project_id: int, bucket: str):

@@ -14,7 +14,7 @@
 
 import os
 from uuid import uuid4
-
+from werkzeug.exceptions import Forbidden
 from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
 from sqlalchemy import and_
 from werkzeug.utils import secure_filename
@@ -75,6 +75,10 @@ def add_task(project: Project):
             flash("No selected file")
             return ""
         if file and allowed_file(file.filename):
+
+            if not Task.check_task_quota(project_id=project.id):
+                raise Forbidden(description="The number of tasks allowed in the project has been exceeded")
+
             filename = str(uuid4())
             filename = secure_filename(filename)
             file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
