@@ -28,7 +28,6 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.processors.minio import MinioClient
 from galloper.utils.auth import SessionProject
 
 bp = Blueprint("projects", __name__)
@@ -45,7 +44,6 @@ def add_project():
         project = Project(name=request.form["name"])
         project.insert()
         SessionProject.set(project.id)
-        MinioClient(project=project).create_bucket("reports")
         return redirect(url_for("projects.projects"))
 
     return render_template("projects/add_project.html")

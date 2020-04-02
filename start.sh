@@ -1,5 +1,6 @@
 #!/bin/bash
 
+uwsgiconf
 superconf -p $CPU_CORES
 supervisord --configuration /etc/galloper.conf
 sleep 5

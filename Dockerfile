@@ -74,6 +74,7 @@ RUN rm -rf /var/cache/apk/* /tmp/*
 
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
+RUN pip install --upgrade uwsgi
 
 ADD setup.py /tmp/setup.py
 ADD MANIFEST.in /tmp/MANIFEST.in
