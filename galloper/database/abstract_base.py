@@ -30,7 +30,7 @@ class AbstractBaseMixin:
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         return {
             column.name: getattr(self, column.name)
-            for column in self.__table__.columns if column not in exclude_fields
+            for column in self.__table__.columns if column.name not in exclude_fields
         }
 
     @staticmethod

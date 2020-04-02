@@ -35,6 +35,7 @@ def init_db():
     from .models import api_release
     from .models import api_reports
     from .models import project
+    from .models import project_quota
     from .models import security_details
     from .models import security_reports
     from .models import security_results

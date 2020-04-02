@@ -40,7 +40,7 @@ class Config(metaclass=SingletonABC):
             "echo": False
         }
 
-        if self.DATABASE_VENDOR == "postgresql":
+        if self.DATABASE_VENDOR == "postgres":
 
             self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "carrier")
 
