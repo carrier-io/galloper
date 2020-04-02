@@ -4,11 +4,32 @@
     let selectedProjectTitle = document.getElementById("selected-project");
     let selectedProjectId = document.getElementById("selected-project-id");
 
+    let navSecurityReport = document.getElementById("nav-security-report");
+    let navSecurityThreshold = document.getElementById("nav-security-threshold");
+    let navUIReport = document.getElementById("nav-ui-report");
+    let navUIThreshold = document.getElementById("nav-ui-threshold");
+
+    function processNavbarItems(dastEnabled, sastEnabled, performanceEnabled) {
+        if (dastEnabled === true && sastEnabled === true) {
+            navSecurityReport.style.display = "block";
+            navSecurityThreshold.style.display = "block";
+        } else {
+            navSecurityReport.style.display = "none";
+            navSecurityThreshold.style.display = "none";
+        }
+        navUIReport.style.display = performanceEnabled ? "block" : "none";
+        navUIThreshold.style.display = performanceEnabled ? "block" : "none";
+    }
+
     function fillSelectedProject(projectData) {
         if (projectData instanceof Object) {
             selectedProjectId.textContent = projectData.id;
-            selectedProjectTitle.textContent = projectData.name
+            selectedProjectTitle.textContent = projectData.name;
         }
+        sessionStorage.setItem("proj_dast_enabled", projectData.dast_enabled);
+        sessionStorage.setItem("proj_sast_enabled", projectData.sast_enabled);
+        sessionStorage.setItem("proj_performance_enabled", projectData.performance_enabled);
+        processNavbarItems(projectData.dast_enabled, projectData.sast_enabled, projectData.performance_enabled)
     }
 
     function initProjectDropdown(projectData) {
