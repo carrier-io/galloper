@@ -23,6 +23,8 @@ from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI
+from .secrets import ProjectSecretsApi
+from galloper.utils.api_utils import add_resource_to_api
 
 
 def initialize_api_routes(api: Api):
@@ -44,6 +46,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
     add_resource_to_api(api, ProjectSessionAPI, "/project-session", "/project-session/<int:project_id>")
     add_resource_to_api(api, ProjectQuotaAPI, "/project-quota", "/project-quota/<int:project_id>")
+    add_resource_to_api(api, ProjectSecretsApi, "/project/<int:project_id>/secrets")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
