@@ -1,18 +1,23 @@
 from galloper.config import Config
 
-uwsgi_conf = """
+uWSGI_CONF = """
 [uwsgi]
-http-socket = {IP}:{port}
-module = galloper.app:_app
+http-socket = {host}:{port}
+module = galloper.wsgi:app
+
+master = true
 processes = 1
 threads = 1
-master = true
+
+vacuum = true
+die-on-term = true
 """
+
 
 def main():
     config = Config()
-    with open('/etc/uwsgi.ini', 'w') as f:
-        f.write(uwsgi_conf.format(
-            IP=config.APP_HOST,
+    with open("/etc/uwsgi.ini", "w") as f:
+        f.write(uWSGI_CONF.format(
+            host=config.APP_HOST,
             port=config.APP_PORT,
         ))

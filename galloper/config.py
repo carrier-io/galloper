@@ -46,9 +46,9 @@ class Config(metaclass=SingletonABC):
 
             host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
-            database = os.environ.get("POSTGRES_DB", "carrier_pg_db")
-            username = os.environ.get("POSTGRES_USER", "carrier_pg_user")
-            password = os.environ.get("POSTGRES_PASSWORD", "carrier_pg_password")
+            database = os.environ.get("POSTGRES_DB", "carrier")
+            username = os.environ.get("POSTGRES_USER", "carrier")
+            password = os.environ.get("POSTGRES_PASSWORD", "password")
 
             self.DATABASE_URI = "postgresql://{username}:{password}@{host}:{port}/{database}".format(
                 username=username,

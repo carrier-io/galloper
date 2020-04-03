@@ -57,7 +57,9 @@
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
-<script async>
+<script>
+    let selectedProjectId = getSelectedProjectId();
+    console.log(selectedProjectId);
     function refreshProjectsTable() {
         $("#projects-table").bootstrapTable("refresh");
     }
