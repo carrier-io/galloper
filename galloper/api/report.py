@@ -19,7 +19,8 @@ from flask_restful import Resource
 from sqlalchemy import or_, and_
 from werkzeug.exceptions import Forbidden
 
-from galloper.dal.influx_results import get_test_details, delete_test_data
+from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
+    get_baseline, delete_baseline
 from galloper.data_utils.charts_utils import (
     requests_summary, requests_hits, avg_responses, summary_table, get_issues, get_data_from_influx,
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
@@ -250,3 +251,39 @@ class ReportsCompareAPI(Resource):
     def get(self, target: str):
         args = self._parser_get.parse_args(strict=False)
         return self.mapping[target](args)
+
+
+class BaselineAPI(Resource):
+    get_rules = (
+        dict(name="test_name", type=str, location="args"),
+    )
+    post_rules = (
+        dict(name="test_name", type=str, location="json"),
+        dict(name="build_id", type=str, location="json")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
+    def get(self, project_id: int):
+        args = self._parser_get.parse_args(strict=False)
+        test = get_baseline(args['test_name'])
+        test = test[0] if len(test) > 0 else []
+        return {"baseline": test}
+
+    def post(self, project_id: int):
+        args = self._parser_post.parse_args(strict=False)
+        report_id = APIReport.query.filter_by(project_id=project_id, name=args['test_name'],
+                                              build_id=args['build_id']).first().to_json()['id']
+        baseline = get_baseline(args['test_name'])
+        if baseline:
+            delete_baseline(baseline[0][0]['build_id'])
+        test = get_aggregated_test_results(args['test_name'], args['build_id'])
+        for req in test[0]:
+            req['report_id'] = report_id
+            set_baseline(req)
+        return {"message": "baseline is set"}

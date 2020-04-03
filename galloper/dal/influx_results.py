@@ -389,11 +389,13 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, 
 def delete_test_data(build_id, test_name, lg_type):
     query_one = f"DELETE from {test_name} where build_id='{build_id}'"
     query_two = f"DELETE from api_comparison where build_id='{build_id}'"
+    query_three = f"DELETE from api_comparison where build_id='audit_{test_name}_{build_id}'"
     client = get_client(lg_type)
     client.query(query_one)
     client.close()
     client = get_client('comparison')
     client.query(query_two)
+    client.query(query_three)
     client.close()
     return True
 
@@ -443,5 +445,58 @@ def delete_threshold(test, target, scope, aggregation, comparison):
     client.close()
     return True
 
+
+def get_aggregated_test_results(test, build_id):
+    query = f"SELECT * from api_comparison where simulation='{test}' and build_id='{build_id}'"
+    return list(get_client('comparison').query(query))
+
+
+def get_baseline(test):
+    query = f"SELECT * from api_comparison where build_id=~/audit_{test}_/"
+    return list(get_client('comparison').query(query))
+
+
+def delete_baseline(build_id):
+    query = f"DELETE from api_comparison where build_id='{build_id}'"
+    return get_client('comparison').query(query)
+
+
+def set_baseline(request):
+    json_body = [{
+        "measurement": "api_comparison",
+        "tags": {
+            "build_id": f"audit_{request['simulation']}_{request['build_id']}",
+            "duration": request['duration'],
+            "env": request['env'],
+            "method": request['method'],
+            "request_name": request['request_name'],
+            "simulation": request['simulation'],
+            "test_type": request['test_type'],
+            "users": request['users']
+        },
+        "time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "fields": {
+            "1xx": int(request['1xx']),
+            "2xx": int(request['2xx']),
+            "3xx": int(request['3xx']),
+            "4xx": int(request['4xx']),
+            "5xx": int(request['5xx']),
+            "NaN": int(request['NaN']),
+            "ko": int(request['ko']),
+            "ok": int(request['ok']),
+            "pct50": int(request['pct50']),
+            "pct75": int(request['pct75']),
+            "pct90": int(request['pct90']),
+            "pct95": int(request['pct95']),
+            "pct99": int(request['pct99']),
+            "total": int(request['total']),
+            "max": float(request['max']),
+            "mean": float(request['mean']),
+            "min": float(request['min']),
+            "throughput": float(request['throughput']),
+            "report_id": int(request['report_id'])
+        }
+    }]
+    return get_client('comparison').write_points(json_body)
 # print(get_build_data('build_22176355-0b33-4c06-b828-0b4eaee64e7b', 'Flood', 'jmeter', '2020-03-25T18:22:33.641Z',
 #                      '2020-03-25T18:23:35.484Z', 'REQUEST', 'ok'))
