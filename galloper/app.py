@@ -22,50 +22,52 @@ from galloper.database.db_manager import init_db, db_session
 from galloper.api.routes import initialize_api_routes
 
 
-def register_blueprints(app: Flask) -> None:
+def register_blueprints(flask_app: Flask) -> None:
     from galloper.routes import tasks, observer, artifacts, report, thresholds, projects
-    app.register_blueprint(projects.bp)
-    app.register_blueprint(tasks.bp)
-    app.register_blueprint(observer.bp)
-    app.register_blueprint(artifacts.bp)
-    app.register_blueprint(report.bp)
-    app.register_blueprint(thresholds.bp)
+    flask_app.register_blueprint(projects.bp)
+    flask_app.register_blueprint(tasks.bp)
+    flask_app.register_blueprint(observer.bp)
+    flask_app.register_blueprint(artifacts.bp)
+    flask_app.register_blueprint(report.bp)
+    flask_app.register_blueprint(thresholds.bp)
 
 
-def register_api(app: Flask) -> None:
-    api = Api(app, prefix="/api/v1", catch_all_404s=True)
+def register_api(flask_app: Flask) -> None:
+    api = Api(flask_app, prefix="/api/v1", catch_all_404s=True)
     initialize_api_routes(api=api)
 
 
 def create_app(config_class: type = Config) -> Flask:
-    app = Flask(__name__)
-    app.config.from_object(config_class())
+    flask_app = Flask(__name__)
+    flask_app.config.from_object(config_class())
     init_db()
 
-    @app.teardown_appcontext
+    @flask_app.teardown_appcontext
     def shutdown_session(exception=None):
         db_session.remove()
 
-    @app.template_filter("ctime")
+    @flask_app.template_filter("ctime")
     def convert_time(ts):
         try:
             return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
         except:
             return "Not Executed"
 
-    @app.template_filter("is_zero")
+    @flask_app.template_filter("is_zero")
     def return_zero(val):
         try:
             return round(val[0]/val[1], 2)
         except:
             return 0
 
-    register_blueprints(app=app)
-    register_api(app=app)
-    return app
+    register_blueprints(flask_app=flask_app)
+    register_api(flask_app=flask_app)
+    return flask_app
+
+
+app = create_app()
 
 
 if __name__ == "__main__":
     config = Config()
-    app = create_app()
     app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
