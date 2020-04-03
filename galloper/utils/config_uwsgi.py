@@ -3,11 +3,12 @@ from galloper.config import Config
 uwsgi_conf = """
 [uwsgi]
 http-socket = {IP}:{port}
-module = galloper.app:_app
+module = galloper.app:app
 processes = 1
 threads = 1
 master = true
 """
+
 
 def main():
     config = Config()

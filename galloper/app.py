@@ -62,17 +62,10 @@ def create_app(config_class: type = Config) -> Flask:
 
     register_blueprints(app=app)
     register_api(app=app)
-    Config()
     return app
 
 
-_app = create_app()
-
-
-def main() -> None:
-    config = Config()
-    _app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
-
-
 if __name__ == "__main__":
-    main()
+    config = Config()
+    app = create_app()
+    app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
