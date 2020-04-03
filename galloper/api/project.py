@@ -17,6 +17,7 @@ from typing import Optional, Union, Tuple
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
+from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
 
@@ -29,9 +30,11 @@ class ProjectAPI(Resource):
     )
     post_rules = (
         dict(name="name", type=str, location="json"),
-        dict(name="dast_enabled", type=bool, default=None, location="json"),
-        dict(name="sast_enabled", type=bool, default=None, location="json"),
-        dict(name="performance_enabled", type=bool, default=None, location="json")
+        dict(name="owner", type=str, default=None, location="json"),
+        dict(name="dast_enabled", type=str, default=None, location="json"),
+        dict(name="sast_enabled", type=str, default=None, location="json"),
+        dict(name="performance_enabled", type=str, default=None, location="json"),
+        dict(name="package", type=str, default="Basic", location="json")
     )
 
     def __init__(self):
@@ -62,12 +65,14 @@ class ProjectAPI(Resource):
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         data = self._parser_post.parse_args()
         name_ = data["name"]
-        dast_enabled_ = data["dast_enabled"]
-        sast_enabled_ = data["sast_enabled"]
-        performance_enabled_ = data["performance_enabled"]
+        owner_ = data["owner"]
+        dast_enabled_ = False if data["dast_enabled"] == "disabled" else True
+        sast_enabled_ = False if data["sast_enabled"] == "disabled" else True
+        performance_enabled_ = False if data["performance_enabled"] == "disabled" else True
         if project_id:
             project = Project.query.get_or_404(project_id)
             project.name = name_
+            project.project_owner = owner_
             project.dast_enabled = dast_enabled_
             project.sast_enabled = sast_enabled_
             project.performance_enabled = performance_enabled_
@@ -77,12 +82,30 @@ class ProjectAPI(Resource):
         project = Project(
             name=name_,
             dast_enabled=dast_enabled_,
+            project_owner=owner_,
             sast_enabled=sast_enabled_,
             performance_enabled=performance_enabled_
         )
         project.insert()
-
+        SessionProject.set(project.id)  # Looks weird, sorry :D
+        if hasattr(project_quota, data["package"].lower()):
+            getattr(project_quota, data["package"].lower())(project.id)
         return {"message": f"Project was successfully created"}, 200
+
+    def put(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
+        data = self._parser_post.parse_args()
+        if not project_id:
+            return {"message": "Specify project id"}, 400
+        project = Project.query.get_or_404(project_id)
+        project.name = data["name"]
+        project.project_owner = data["owner"]
+        project.dast_enabled = False if data["dast_enabled"] == "disabled" else True
+        project.sast_enabled = False if data["sast_enabled"] == "disabled" else True
+        project.performance_enabled = False if data["performance_enabled"] == "disabled" else True
+        project.commit()
+        if hasattr(project_quota, data["package"].lower()):
+            getattr(project_quota, data["package"].lower())(project.id)
+        return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS)
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
         Project.apply_full_delete_by_pk(pk=project_id)
@@ -90,11 +113,11 @@ class ProjectAPI(Resource):
 
 
 class ProjectSessionAPI(Resource):
-
-    def get(self) -> Tuple[dict, int]:
-        selected_project_id = SessionProject.get()
-        if selected_project_id:
-            project = Project.query.get_or_404(selected_project_id)
+    def get(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
+        if not project_id:
+            project_id = SessionProject.get()
+        if project_id:
+            project = Project.query.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         return {"message": "No project selected in session"}, 404
 

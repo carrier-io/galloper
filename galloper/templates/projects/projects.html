@@ -43,10 +43,9 @@
                             <th data-checkbox="true"></th>
                             <th data-visible="false" data-field="id">Id</th>
                             <th data-sortable="false" data-field="name">Name</th>
-                            <th data-sortable="false" data-field="used_in_session">Selected</th>
-                            <th data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">
-                                Item Operate
-                            </th>
+                            <th data-sortable="false" data-formatter="checkFormatter">Services</th>
+                            <th data-sortable="false">Stats</th>
+                            <th data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">Actions</th>
                         </tr>
                         </thead>
                     </table>
@@ -58,22 +57,38 @@
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script>
-    let selectedProjectId = getSelectedProjectId();
-    console.log(selectedProjectId);
     function refreshProjectsTable() {
         $("#projects-table").bootstrapTable("refresh");
     }
 
+    function checkFormatter(value, row, index) {
+        var return_string = ''
+        var arr = ['sast_enabled', 'dast_enabled', 'performance_enabled']
+        arr.forEach(item => {
+            if ( row[item] ) {
+                return_string += `<span class="badge badge-success mr-1">${item.split("_")[0]}</span>`
+            } else {
+                return_string += `<span class="badge badge-danger mr-1">${item.split("_")[0]}</span>`
+            }
+        })
+        return return_string
+    }
+
     function operateFormatter(value, row, index) {
         return [
-            '<a class="project-select ml10" href="javascript:void(0)" title="Select"><i class="fa fa-check"></i></a>',
+            '<a class="project-select mr-2" href="javascript:void(0)" title="Select"><i class="fa fa-check"></i></a>',
+            '<a class="project-settings mr-2" href="javascript:void(0)" title="Settings"><i class="fa fa-cog"></i></a>',
             '<a class="project-remove" href="javascript:void(0)" title="Remove"><i class="fa fa-trash"></i></a>'
         ].join('');
     }
 
     operateEvents = {
         'click .project-select': async function (e, value, row, index) {
-            await selectSessionProject(row);
+            selectSessionProject(row);
+        },
+        'click .project-settings': function (e, value, row, index) {
+            selectSessionProject(row);
+            window.location.href="/project/configure";
         },
         'click .project-remove': async function (e, value, row, index) {
             try {

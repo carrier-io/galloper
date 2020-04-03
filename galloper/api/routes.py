@@ -43,7 +43,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
     add_resource_to_api(api, ProjectSessionAPI, "/project-session", "/project-session/<int:project_id>")
-    add_resource_to_api(api, ProjectQuotaAPI, "/project-quota", "/project-quota/<int:project_id>")
+    add_resource_to_api(api, ProjectQuotaAPI, "/quota", "/quota/<int:project_id>")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")

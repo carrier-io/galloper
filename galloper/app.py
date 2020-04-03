@@ -68,6 +68,10 @@ def create_app(config_class: type = Config) -> Flask:
 app = create_app()
 
 
-if __name__ == "__main__":
+def main():
     config = Config()
     app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -5753,6 +5753,17 @@ input[type='button'].btn-block
     background-color: #fff;
     background-clip: border-box;
 }
+
+.card-shadow {
+    box-shadow: 0 0 2rem 0 rgba(136,152,170,.15);
+}
+
+.card-shadow-active {
+    box-shadow: 0 0 2rem 0 rgba(102,187,106,.25);
+    border: 1px solid rgba(102,187,106,.4);
+}
+
+
 .card > hr
 {
     margin-right: 0;

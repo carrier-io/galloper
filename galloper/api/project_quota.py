@@ -59,14 +59,10 @@ class ProjectQuotaAPI(Resource):
         data = self._parser_post.parse_args()
         project = Project.query.get_or_404(project_id)
         project_quota = ProjectQuota(
-            project_id=project.id,
-            performance_test_runs=data["performance_test_runs"],
-            code_repositories=data["code_repositories"],
-            dast_scans=data["dast_scans"],
-            public_pool_workers=data["public_pool_workers"],
-            storage_space=data["storage_space"],
-            data_retention_limit=data["data_retention_limit"],
-            tasks_limit=data["tasks_limit"]
+            project_id=project.id, performance_test_runs=data["performance_test_runs"],
+            code_repositories=data["code_repositories"], dast_scans=data["dast_scans"],
+            public_pool_workers=data["public_pool_workers"], storage_space=data["storage_space"],
+            data_retention_limit=data["data_retention_limit"], tasks_limit=data["tasks_limit"]
         )
         project_quota.insert()
         return {"message": f"ProjectQuota was successfully created"}, 201

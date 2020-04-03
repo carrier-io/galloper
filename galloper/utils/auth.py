@@ -50,6 +50,6 @@ def project_required(func):
         except NotFound:
             ...
 
-        return redirect(url_for("projects.add_project"))
+        return redirect(url_for("projects.add"))
 
     return decorated_function
