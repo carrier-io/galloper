@@ -6,8 +6,8 @@ http-socket = {host}:{port}
 module = galloper.wsgi:app
 
 master = true
-processes = 1
-threads = 1
+processes = 2
+threads = 4
 
 vacuum = true
 die-on-term = true

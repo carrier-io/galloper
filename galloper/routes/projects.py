@@ -28,27 +28,27 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.utils.auth import SessionProject
+from galloper.utils.auth import project_required
 
 bp = Blueprint("projects", __name__)
 
 
 @bp.route("/projects", methods=["GET"])
-def projects():
+def list():
     return render_template("projects/projects.html")
 
 
 @bp.route("/project/add", methods=["GET", "POST"])
-def add_project():
-    if request.method == "POST":
-        project = Project(name=request.form["name"])
-        project.insert()
-        SessionProject.set(project.id)
-        return redirect(url_for("projects.projects"))
-
+def add():
     return render_template("projects/add_project.html")
+
+
+@bp.route("/project/configure", methods=["GET", "POST"])
+@project_required
+def configure(project: Project):
+    return render_template("projects/configure.html", project=project)
 
 
 @bp.route("/", methods=["GET"])
 def index():
-    return redirect(url_for("projects.projects"))
+    return redirect(url_for("projects.list"))
