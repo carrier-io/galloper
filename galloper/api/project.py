@@ -84,7 +84,8 @@ class ProjectAPI(Resource):
             dast_enabled=dast_enabled_,
             project_owner=owner_,
             sast_enabled=sast_enabled_,
-            performance_enabled=performance_enabled_
+            performance_enabled=performance_enabled_,
+            package=data["package"].lower()
         )
         project.insert()
         SessionProject.set(project.id)  # Looks weird, sorry :D
@@ -102,6 +103,7 @@ class ProjectAPI(Resource):
         project.dast_enabled = False if data["dast_enabled"] == "disabled" else True
         project.sast_enabled = False if data["sast_enabled"] == "disabled" else True
         project.performance_enabled = False if data["performance_enabled"] == "disabled" else True
+        project.package = data["package"]
         project.commit()
         if hasattr(project_quota, data["package"].lower()):
             getattr(project_quota, data["package"].lower())(project.id)
