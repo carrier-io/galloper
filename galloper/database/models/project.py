@@ -32,7 +32,7 @@ class Project(AbstractBaseMixin, Base):
     project_owner = Column(String(256), unique=False)
     secrets_json = Column(JSON, unique=False, default={})
     worker_pool_config_json = Column(JSON, unique=False, default={})
-
+    package = Column(String, nullable=False, default="basic")
     dast_enabled = Column(Boolean, nullable=False, default=False)
     sast_enabled = Column(Boolean, nullable=False, default=False)
     performance_enabled = Column(Boolean, nullable=False, default=False)

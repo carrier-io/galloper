@@ -47,7 +47,6 @@ class ProjectQuota(AbstractBaseMixin, Base):
         self.commit()
 
 
-
 def _update_quota(name, project_id, performance_test_runs, sast_scans, dast_scans,
                   public_pool_workers, storage_space, data_retention_limit, tasks_limit,
                   tasks_executions):
