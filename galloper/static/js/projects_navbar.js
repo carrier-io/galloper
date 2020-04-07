@@ -40,6 +40,9 @@
             if (request.status === 200) {
                 projectData = JSON.parse(request.responseText);
             }
+            if (request.status === 404) {
+                fillDropdown();
+            }
         }
         fillSelectedProject(projectData);
     }
@@ -65,7 +68,6 @@
             projectsDropdownItems.removeChild(projectsDropdownItems.firstChild);
         }
         try {
-
             let request = new XMLHttpRequest();
             request.open("GET", `/api/v1/project`, false);  // `false` makes the request synchronous
             request.send();

@@ -22,6 +22,10 @@
                                   {% endfor %}
                               </select>
                           </li>
+                          <li class="nav-item mr-2 mr-md-0">
+                              <select class="selectpicker show-tick form-control form-control-md" id="envName" onchange="renderTable()">
+                              </select>
+                          </li>
                           <li class="nav-item mr-2 mr-md-0 ">
                               <button id="DR" data-target="#addThresholdsModal" data-toggle="modal" class="btn btn-primary btn-sm mt-1">
                                   <span class="d-none d-md-block">Add Threshold</span>
@@ -155,12 +159,21 @@
 </html>
 
 <script>
-    $("#thresholds").bootstrapTable('refreshOptions', {url: "/api/thresholds?name="+$("#testName").val()})
+    function renderEnvPicker() {
+        let selectedProjectId = getSelectedProjectId();
+        $.get(`/api/v1/environment/${selectedProjectId}`,
+          { name: $("#testName").val() },
+          function(data) {
+            data.forEach(item => {
+                $("#envName").append(`<option value="${item}">${item}</option>`);
+            });
+            $("#envName").selectpicker('refresh');
+          }
+    }
     function renderTable() {
-        $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val());
+        $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val()+"&environment="+$("#envName").val());
         $("#thresholds").bootstrapTable('refresh');
     }
-    renderTable();
 
     function editAndDelete(value, row, index) {
         var id = row['time'];
@@ -217,6 +230,7 @@
             type: "POST",
             data: JSON.stringify({
                 test: $("#testName").val(),
+                environment: $("#envName").val(),
                 scope: $("#scope").val(),
                 target: $("#target").val(),
                 aggregation: $("#aggregation").val(),
@@ -237,6 +251,7 @@
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
+            environment: $("#envName").val(),
             scope: data['scope'],
             target: data['target'],
             aggregation: data['aggregation'],
@@ -259,6 +274,7 @@
     }
 
     $(document).ready(function() {
+        renderEnvPicker();
         renderTable();
     });
 </script>
