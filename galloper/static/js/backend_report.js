@@ -330,9 +330,17 @@ function getBaseline() {
         test_name: test_name,
       }, function( data ) {
         if (data['baseline'].length != 0) {
-            var report_id = data['baseline'][0]['report_id']
-            var url = window.location.origin + "/report/backend?report_id=" + report_id;
-            window.location.href = url;
+            var baseline_id = data['baseline'][0]['report_id']
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            var report_id = urlParams.get('report_id');
+            if (report_id == baseline_id) {
+                $("#BLI").prop('value', 'Current test is Baseline');
+            } else {
+                var url = window.location.origin + "/report/compare?id[]=" + baseline_id + "&id[]=" + report_id;
+                window.location.href = url;
+            }
+
         } else {
             $("#BLI").prop('value', 'Baseline is not set yet');
         }

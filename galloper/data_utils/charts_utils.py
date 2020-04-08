@@ -69,16 +69,16 @@ def get_issues(args):
 
 
 def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                scope, metric):
+                                scope, metric, status):
     data = None
     axe = 'count'
     if metric == "Throughput":
         timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                      scope=scope)
+                                      scope=scope, status=status)
         data = data['responses']
     elif metric == "Hits":
         timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                       scope=scope)
+                                       scope=scope, status=status)
         data = data['hits']
     elif metric == "Errors":
         timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
@@ -86,13 +86,13 @@ def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_ti
         data = data['errors']
     elif metric in ["Min", "Median", "Max", "pct90", "pct95", "pct99"]:
         timestamps, data, _ = get_backend_requests(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                   sampler, scope=scope, aggr=metric)
+                                                   sampler, scope=scope, aggr=metric, status=status)
         data = data['response']
         axe = 'time'
 
     elif "xx" in metric:
         timestamps, data, _ = get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggregation,
-                                                 sampler, scope=scope, aggr=metric)
+                                                 sampler, scope=scope, aggr=metric, status=status)
         data = data['rcodes']
     return data, axe
 
@@ -136,6 +136,7 @@ def prepare_comparison_responses(args):
         aggregation = args.get('aggregator')
     metric = args.get('metric', '')
     scope = args.get('scope', '')
+    status = args.get("status", 'all')
     timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
                                           start_time, end_time, aggregation)
     test_start_time = "{}_{}".format(tests_meta[longest_test]['start_time'].replace("T", " ").split(".")[0], metric)
