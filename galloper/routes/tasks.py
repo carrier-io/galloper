@@ -26,6 +26,7 @@ from galloper.database.models.project import Project
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
 from galloper.utils.auth import project_required
+from galloper.utils.vault import create_vault_client
 
 bp = Blueprint("tasks", __name__)
 
@@ -45,6 +46,24 @@ def call_lambda(task_id: str):
                 and_(Task.task_id == task_id)
             ).first().to_json()
             event = request.get_json()
+
+            # Retrieving secrets from vault
+            project = Project.query.get(task['project_id'])
+            try:
+                vault = create_vault_client(project)
+                event = vault.expand_secrets(event)
+                task['env_vars'] = vault.expand_secrets(task['env_vars'])
+            except (ValueError, KeyError):
+                # Either VAULT_URL is not set, or access credentials not found
+                # for project, this means we do not want to connect to Vault
+                # TODO: proper log this, may be we do want, but missed something
+                pass
+            except AssertionError:
+                # We do have VAULT_URL and credentials, but either Vault is sealed
+                # or we are not authenticated
+                # TODO: return some suitable error
+                return "Forbidden", 403
+
             app = run.connect_to_celery(1)
             celery_task = app.signature("tasks.execute",
                                         kwargs={"task": task, "event": event})
