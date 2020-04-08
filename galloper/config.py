@@ -25,6 +25,7 @@ class Config(metaclass=SingletonABC):
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
     DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "sqlite")
     DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
+    VAULT_URL: str = os.environ.get("VAULT_URL")
     UPLOAD_FOLDER: str = os.environ.get("TASKS_UPLOAD_FOLDER", "/tmp/tasks")
     DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 

@@ -18,7 +18,7 @@ import os
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
-from galloper.utils.vault import VaultClient
+from galloper.utils.vault import create_vault_client
 from galloper.utils.api_utils import build_req_parser
 
 class ProjectSecretsApi(Resource):
@@ -35,23 +35,10 @@ class ProjectSecretsApi(Resource):
             return '{}'
 
         project = Project.query.get_or_404(project_id)
-        vault = self._create_vault_client(project)
+        vault = create_vault_client(project)
 
         secrets = vault.get_secrets()
         return json.dumps(
             {secret_key: secrets[secret_key] for secret_key in args['keys[]']}
         )
 
-    def _create_vault_client(self, project):
-        vault_config = dict(
-            url=os.environ.get('VAULT_URL'),
-            auth_token=project.secrets_json['vault_token'],
-            secrets_path=f"carrier_{project.id}_secrets",
-            secrets_mount_point='carrier_kv',
-            # auth_role_id=project.vault_role_id,
-            # auth_secret_id=project.vault_secret_id,
-            # namespace=project.vault_namespace,
-            # secrets_path=project.vault_path,
-            # secrets_path=project.vault_mount_point,
-        )
-        return VaultClient(vault_config)
