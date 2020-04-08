@@ -172,6 +172,7 @@ class ReleaseApiSaturation(Resource):
             return {
                 "message": "exception",
                 "error_rate": error_rate,
+                "users": users,
                 "global_errors": global_error_rate,
                 "code": 1
             }

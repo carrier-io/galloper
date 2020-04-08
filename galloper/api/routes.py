@@ -23,6 +23,7 @@ from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI
+from .statistic import StatisticAPI
 
 
 def initialize_api_routes(api: Api):
@@ -51,3 +52,4 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
+    add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")

@@ -41,5 +41,6 @@ def init_db():
     from .models import security_results
     from .models import task
     from .models import task_results
+    from .models import statistic
 
     Base.metadata.create_all(bind=engine)

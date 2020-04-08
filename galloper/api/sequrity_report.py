@@ -23,6 +23,8 @@ from galloper.database.models.project import Project
 from galloper.database.models.security_details import SecurityDetails
 from galloper.database.models.security_reports import SecurityReport
 from galloper.database.models.security_results import SecurityResults
+from galloper.database.models.statistic import Statistic
+from galloper.database.db_manager import db_session
 from galloper.utils.api_utils import build_req_parser
 
 
@@ -119,6 +121,14 @@ class SecurityReportAPI(Resource):
                                  info_findings=args["info_findings"],
                                  environment=args["environment"])
         report.insert()
+
+        statistic = Statistic.query.filter_by(project_id=project_id).first()
+        if args["scan_type"].lower() == 'sast':
+            setattr(statistic, 'sast_scans', statistic.sast_scans + 1)
+        elif args["scan_type"].lower() == 'dast':
+            setattr(statistic, 'dast_scans', statistic.dast_scans + 1)
+        db_session.commit()
+
         return {"id": report.id}
 
 

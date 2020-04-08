@@ -17,9 +17,12 @@ from typing import Optional, Union, Tuple
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
+from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
+
+from datetime import datetime
 
 
 class ProjectAPI(Resource):
@@ -91,6 +94,18 @@ class ProjectAPI(Resource):
         SessionProject.set(project.id)  # Looks weird, sorry :D
         if hasattr(project_quota, data["package"].lower()):
             getattr(project_quota, data["package"].lower())(project.id)
+
+        statistic = Statistic(
+            project_id=project.id,
+            start_time=str(datetime.utcnow()),
+            performance_test_runs=0,
+            sast_scans=0,
+            dast_scans=0,
+            ui_performance_test_runs=0,
+            tasks_executions=0
+        )
+        statistic.insert()
+
         return {"message": f"Project was successfully created"}, 200
 
     def put(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
