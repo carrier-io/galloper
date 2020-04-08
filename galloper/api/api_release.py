@@ -159,7 +159,7 @@ class ReleaseApiSaturation(Resource):
                 error_rate.append(get_response_time_per_test(
                     _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "errors"))
             if arrays.non_decreasing(throughput):
-                return {"message": "proceed", "error_rate": int(global_error_rate[-1]), "code": 0}
+                return {"message": "proceed", "users": users, "error_rate": int(global_error_rate[-1]), "code": 0}
             else:
                 return {
                     "message": "saturation",
