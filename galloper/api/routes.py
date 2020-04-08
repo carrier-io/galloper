@@ -22,7 +22,7 @@ from .project_quota import ProjectQuotaAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
-from .thresholds import ThresholdsAPI, RequestsAPI
+from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
 
 
@@ -33,6 +33,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, ThresholdsAPI, "/thresholds")
     add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>")
+    add_resource_to_api(api, EnvironmentsAPI, "/environment/<int:project_id>")
 
     add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>")
     add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>")

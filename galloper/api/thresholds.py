@@ -48,7 +48,7 @@ class ThresholdsAPI(Resource):
 
     def get(self):
         args = self._parser_get.parse_args(strict=False)
-        return get_threholds(test_name=args.get("name"))
+        return get_threholds(test_name=args.get("name"), environment=args.get("environment"))
 
     def post(self):
         args = self._parser_post.parse_args(strict=False)
@@ -66,6 +66,7 @@ class ThresholdsAPI(Resource):
         args = self._parser_delete.parse_args(strict=False)
         delete_threshold(
             test=args["test"],
+            environment=args.get("environment"),
             target=args["target"],
             scope=args["scope"],
             aggregation=args["aggregation"],
@@ -97,3 +98,24 @@ class RequestsAPI(Resource):
         for each in query_result:
             requests_data.update(set(each.requests.split(";")))
         return list(requests_data)
+
+
+class EnvironmentsAPI(Resource):
+    get_rules = (
+        dict(name="name", type=str, location="args"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+
+    def get(self, project_id: int):
+        args = self._parser_get.parse_args(strict=False)
+        project = Project.query.get_or_404(project_id)
+        query_result = APIReport.query.with_entities(APIReport.environment).distinct().filter(
+            and_(APIReport.name == args.get("name"),
+                 APIReport.project_id == project.id)
+        ).order_by(APIReport.id.asc()).all()
+        return [each.environment for each in query_result]

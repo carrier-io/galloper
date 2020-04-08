@@ -49,6 +49,11 @@ def configure(project: Project):
     return render_template("projects/configure.html", project=project)
 
 
+@bp.route("/token", methods=["GET"])
+def display_token():
+    return render_template("projects/token.html", id=request.args.get("id", "Nothing"))
+
+
 @bp.route("/", methods=["GET"])
 def index():
     return redirect(url_for("projects.list"))

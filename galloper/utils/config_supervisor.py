@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 import argparse
+from os import environ
 
 interceptor_conf = """[supervisord]
 
@@ -38,14 +39,25 @@ stopsignal=QUIT
 stopwaitsecs=20
 stopasgroup=true
 
-[program:app]
+
+"""
+
+prod = """[program:app]
 command=uwsgi --wsgi-disable-file-wrapper --ini /etc/uwsgi.ini
 autostart=true
 autorestart=true
 stopsignal=QUIT
 stopwaitsecs=20
-stopasgroup=true
-"""
+stopasgroup=true"""
+
+
+dev = """[program:app]
+command=app
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stopwaitsecs=20
+stopasgroup=true"""
 
 
 def arg_parse():
@@ -56,5 +68,6 @@ def arg_parse():
 
 def main():
     args = arg_parse()
+    ini_file = interceptor_conf + (prod if environ.get("env", "prod") == "prod" else dev)
     with open('/etc/galloper.conf', 'w') as f:
-        f.write(interceptor_conf % args.procs)
+        f.write(ini_file % args.procs)
