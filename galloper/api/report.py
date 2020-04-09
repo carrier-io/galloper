@@ -28,7 +28,6 @@ from galloper.data_utils.charts_utils import (
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
-from galloper.database.db_manager import db_session
 from galloper.utils.api_utils import build_req_parser
 
 
@@ -147,8 +146,8 @@ class ReportAPI(Resource):
                            release_id=args.get("release_id"))
         report.insert()
         statistic = Statistic.query.filter_by(project_id=project_id).first()
-        setattr(statistic, 'performance_test_runs', statistic.performance_test_runs + 1)
-        db_session.commit()
+        setattr(statistic, 'performance_test_runs', Statistic.performance_test_runs + 1)
+        statistic.commit()
         return {"message": "created"}
 
     def put(self, project_id: int):
