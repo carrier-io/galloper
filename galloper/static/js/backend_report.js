@@ -305,6 +305,50 @@ function fillErrorTable() {
     $("#errors").bootstrapTable('refreshOptions', {url: `/api/v1/chart/errors/table?test_name=${test_name}&start_time=${start_time}&end_time=${end_time}&low_value=${low_value}&high_value=${high_value}&status=${statusType}`})
 }
 
+
+function setBaseline() {
+    let selectedProjectId = getSelectedProjectId();
+    var data = {
+        test_name: test_name,
+        build_id: build_id
+    };
+
+    $.ajax({
+            url: `/api/v1/baseline/${selectedProjectId}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data)
+        });
+}
+
+
+function getBaseline() {
+    let selectedProjectId = getSelectedProjectId();
+    $.get(
+      `/api/v1/baseline/${selectedProjectId}`,
+      {
+        test_name: test_name,
+      }, function( data ) {
+        if (data['baseline'].length != 0) {
+            var baseline_id = data['baseline'][0]['report_id']
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            var report_id = urlParams.get('report_id');
+            if (report_id == baseline_id) {
+                $("#BLI").prop('value', 'Current test is Baseline');
+            } else {
+                var url = window.location.origin + "/report/compare?id[]=" + baseline_id + "&id[]=" + report_id;
+                window.location.href = url;
+            }
+
+        } else {
+            $("#BLI").prop('value', 'Baseline is not set yet');
+        }
+      }
+     );
+}
+
+
 $(document).ready(function() {
     setParams();
     loadRequestData('/api/v1/chart/requests/summary', "Response time, ms");

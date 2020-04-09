@@ -19,10 +19,11 @@ from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
 from .artifacts import BucketsApi, ArtifactApi
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
-from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
+from .statistic import StatisticAPI
 
 
 def initialize_api_routes(api: Api):
@@ -50,3 +51,6 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
 
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
+
+    add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
+    add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")

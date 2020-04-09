@@ -30,6 +30,7 @@ from galloper.constants import (REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
                                 UNZIP_DOCKERFILE, UNZIP_DOCKER_COMPOSE, APP_HOST, NAME_CONTAINER_MAPPING)
 from galloper.database.db_manager import db_session
 from galloper.database.models.task import Task
+from galloper.database.models.statistic import Statistic
 
 app = Celery('Galloper',
              broker=f'redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
@@ -102,6 +103,9 @@ def zip_to_volume(self, task_id, file_path, *args, **kwargs):
 @app.task(name="tasks.execute", bind=True, acks_late=True, base=AbortableTask)
 def execute_lambda(self, task, event, *args, **kwargs):
     task = db_session.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
+    statistic = db_session.query(Statistic).filter(Statistic.project_id == task['project_id']).first()
+    setattr(statistic, 'tasks_executions', Statistic.tasks_executions + 1)
+    statistic.commit()
     res = run_lambda(task, event)
     if task['callback']:
         event['result'] = res

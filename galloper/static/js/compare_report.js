@@ -48,7 +48,7 @@ function getPerTestData() {
 }
 
 
-function getDataForAnalysis(metric, request_name) {
+function getDataForAnalysis(metric, request_name, status) {
 $.get(
   '/api/v1/compare/data',
   {
@@ -56,7 +56,8 @@ $.get(
     metric: metric,
     id: build_ids,
     low_value: $("#input-slider-range-value-low").html(),
-    high_value: $("#input-slider-range-value-high").html()
+    high_value: $("#input-slider-range-value-high").html(),
+    status: status
   },
   function( data ) {
     if (analyticsLine.data.labels.length == 0 || analyticsLine.data.labels.length != data.labels.length)
@@ -94,11 +95,25 @@ function findAndRemoveDataSet(dataset_name){
 }
 
 function getData(scope, request_name) {
+    status = $("#_status").val();
     if (! $(`#${request_name}_${scope}`).is(":checked")) {
         findAndRemoveDataSet(`${request_name}_${scope}`);
     } else {
-        getDataForAnalysis(scope, request_name)
+        getDataForAnalysis(scope, request_name, status)
     }
+}
+
+
+function updateComparisonChart() {
+    status = $("#_status").val();
+    metrics = ["Throughput", "Hits", "Max", "pct95", "Median", "Min"];
+    for (var i=0; i<metrics.length; i++) {
+        if (document.getElementById("All_"+metrics[i]).checked) {
+            findAndRemoveDataSet(`All_${metrics[i]}`);
+            getDataForAnalysis(metrics[i], "All", status);
+    }
+    }
+
 }
 
 
