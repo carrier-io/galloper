@@ -3,9 +3,8 @@
 {% include 'common/page_nav.html' %}
 <div class="row">
 <div class="col-xl-12 mb-6 mb-xl-0">
-  <div class="card bg-gradient-white shadow">
-      <div class="card bg-gradient-white shadow">
-          <div class="card-header bg-transparent">
+  <div class="card shadow">
+          <div class="card-header white border-0">
               <div class="row align-items-center">
                   <div class="col">
                       <h2 class="text-gray mb-0">Configure Thresholds</h2>
@@ -13,7 +12,7 @@
                   <div class="col">
                       <ul id="chart-control" class="nav nav-pills justify-content-end">
                           <li class="nav-item mr-2 mr-md-0 mt-2">
-                              <span>Test</span>
+                              <span>Test:</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
                               <select class="selectpicker show-tick form-control form-control-md" id="testName" onchange="renderTable()">
@@ -21,6 +20,9 @@
                                     <option>{{ test }}</option>
                                   {% endfor %}
                               </select>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0 mt-2">
+                              <span>Env:</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
                               <select class="selectpicker show-tick form-control form-control-md" id="envName" onchange="renderTable()">
@@ -35,8 +37,8 @@
                   </div>
               </div>
           </div>
-          <div class="card-body" id="preset">
-              <table
+          <div class="table-responsive">
+              <table class="table align-items-center table-flush"
                   id="thresholds"
                   data-toggle="table"
                   data-url=""
@@ -44,20 +46,22 @@
                   data-page-list=[10,20,50,100]
                   data-pagination="true"
                   data-unique-id="time">
-                  <thead>
+                  <thead class="thead-light">
                     <tr>
-                      <th data-checkbox="true"></th>
+                      <th scope="col" data-checkbox="true"></th>
                       <th data-visible="false" data-field="time">time</th>
-                      <th data-sortable="true" data-field="scope">Scope</th>
-                      <th data-sortable="true" data-field="target">Target</th>
-                      <th data-sortable="true" data-field="aggregation">Metric</th>
-                      <th data-sortable="true" data-field="comparison">Aggregation Rule</th>
-                      <th data-sortable="true" data-field="yellow">Yellow Threshold</th>
-                      <th data-sortable="true" data-field="red">Red Threshold</th>
-                      <th data-formatter="editAndDelete">Actions</th>
+                      <th scope="col" data-sortable="true" data-field="scope">Scope</th>
+                      <th scope="col" data-sortable="true" data-field="target">Target</th>
+                      <th scope="col" data-sortable="true" data-field="aggregation">Metric</th>
+                      <th scope="col" data-sortable="true" data-field="comparison">Aggregation Rule</th>
+                      <th scope="col" data-sortable="true" data-field="yellow">Yellow Threshold</th>
+                      <th scope="col" data-sortable="true" data-field="red">Red Threshold</th>
+                      <th scope="col" data-formatter="editAndDelete">Actions</th>
                     </tr>
                   </thead>
                 </table>
+          </div>
+          <div class="card-footer py-4 border-0">
           </div>
       </div>
   </div>

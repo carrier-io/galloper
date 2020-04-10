@@ -1949,7 +1949,10 @@ pre code
 
 .table-bordered
 {
-    border: 1px solid #e9ecef;
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
 }
 .table-bordered th,
 .table-bordered td
@@ -22202,4 +22205,8 @@ input#menu[type="checkbox"] {
 
 .modal {
     font-size: 0.8rem;
+}
+
+.pagination-info {
+    padding-left: 20px;
 }
