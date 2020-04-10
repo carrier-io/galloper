@@ -3,80 +3,79 @@
 {% include 'common/page_nav.html' %}
 <div class="row">
     <div class="col-xl-12 mb-6 mb-xl-0">
-        <div class="card bg-gradient-white shadow">
-            <div class="card bg-gradient-white shadow">
-                <div class="card-header bg-transparent">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <!--                          <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>-->
-                            <h2 class="text-gray mb-0">Backend Performance Reports</h2>
-                        </div>
-                        <div class="col">
-                            <ul id="chart-control" class="nav nav-pills justify-content-end">
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="CR" data-target="#addRelease" data-toggle="modal"
-                                            class="btn btn-primary btn-sm">
-                                        <span class="d-none d-md-block">Create Release</span>
-                                    </button>
-                                </li>
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="AR" data-target="#assignToRelease" data-toggle="modal"
-                                            class="btn btn-primary btn-sm" disabled>
-                                        <span class="d-none d-md-block">Assign to Release</span>
-                                    </button>
-                                </li>
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
-                                        <span class="d-none d-md-block">Delete</span>
-                                    </button>
-                                </li>
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
-                                        <span class="d-none d-md-block">Compare</span>
-                                        <span class="d-md-none">C</span>
-                                    </button>
-                                </li>
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
-                                        <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
-                                    </button>
-                                </li>
-                                <li class="nav-item mr-2 mr-md-0">
-                                    <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
-                                        <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
+        <div class="card shadow">
+            <div class="card-header bg-transparent border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="text-gray mb-0">Backend Performance Reports</h2>
+                    </div>
+                    <div class="col">
+                        <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="CR" data-target="#addRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm">
+                                    <span class="d-none d-md-block">Create Release</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="AR" data-target="#assignToRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Assign to Release</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Delete</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Compare</span>
+                                    <span class="d-md-none">C</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
+                                </button>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                <div class="card-body" id="preset">
-                    <table
-                            id="results"
-                            data-toggle="table"
-                            data-page-size=10
-                            data-page-list=[10,20,50,100,200,All]
-                            data-side-pagination="server"
-                            data-pagination="true"
-                            data-filter-control="true">
-                        <thead>
-                        <tr>
-                            <th data-checkbox="true"></th>
-                            <th data-visible="false" data-field="id">index</th>
-                            <th data-sortable="true" data-field="start_time">Start</th>
-                            <th data-sortable="true" data-field="name" data-formatter=createLinkToReport data-filter-control="input">Name</th>
-                            <th data-sortable="true" data-field="duration" data-filter-control="input">Duration</th>
-                            <th data-sortable="true" data-field="vusers" data-filter-control="input">vUsers</th>
-                            <th data-sortable="true" data-field="environment" data-filter-control="input">Env</th>
-                            <th data-sortable="true" data-field="type" data-filter-control="select">Test Type</th>
-                            <th data-sortable="true" data-field="throughput" data-filter-control="input">TPS</th>
-                            <th data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
-                            <th data-sortable="true" data-field="release_id" data-filter-control="input">Release ID</th>
-                            <th data-field="lg_type" data-formatter=lgFormatter>Runner</th>
-                        </tr>
-                        </thead>
-                    </table>
-                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush"
+                        id="results"
+                        data-toggle="table"
+                        data-page-size=10
+                        data-page-list=[10,20,50,100,200,All]
+                        data-side-pagination="server"
+                        data-pagination="true"
+                        data-filter-control="true">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col" data-checkbox="true"></th>
+                        <th data-visible="false" data-field="id">index</th>
+                        <th scope="col" data-sortable="true" data-field="start_time">Start</th>
+                        <th scope="col" data-sortable="true" data-field="name" data-formatter=createLinkToReport data-filter-control="input">Name</th>
+                        <th scope="col" data-sortable="true" data-field="duration" data-filter-control="input">Duration</th>
+                        <th scope="col" data-sortable="true" data-field="vusers" data-filter-control="input">vUsers</th>
+                        <th scope="col" data-sortable="true" data-field="environment" data-filter-control="input">Env</th>
+                        <th scope="col" data-sortable="true" data-field="type" data-filter-control="select">Test Type</th>
+                        <th scope="col" data-sortable="true" data-field="throughput" data-filter-control="input">TPS</th>
+                        <th scope="col" data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
+                        <th scope="col" data-sortable="true" data-field="release_id" data-filter-control="input">Release ID</th>
+                        <th scope="col" data-field="lg_type" data-formatter=lgFormatter>Runner</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="card-footer py-4  border-0">
             </div>
         </div>
     </div>
