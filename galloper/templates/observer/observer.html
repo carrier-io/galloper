@@ -1,0 +1,85 @@
+{% include 'common/head.html' %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/alyssaxuu/flowy/flowy.min.css">
+<link type="text/css" href="{{ url_for('static', filename='css/observer.css') }}" rel="stylesheet">
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+    <div class="col">
+        <div class="card shadow">
+            <div class="card-header bg-white border-0">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h3 class="mb-0">Observer</h3>
+                        <br />
+                    </div>
+                    <div class="col-4 text-right">
+                        <a href="#" class="btn btn-sm btn-primary">Execute</a>
+                        <a href="/" class="btn btn-sm btn-primary">View Code</a>
+                        <a href="/" class="btn btn-sm btn-primary">Save</a>
+                        <a href="/" class="btn btn-sm btn-primary">Cancel</a>
+                    </div>
+                </div>
+
+<!--                <div class="alert alert-success alert-dismissible fade {{ hidden | default('') }}" role="alert">-->
+<!--                        <span class="alert-inner&#45;&#45;icon"><i class="ni ni-like-2"></i></span>-->
+<!--                        <span class="alert-inner&#45;&#45;text"><strong>Success!</strong> Report can be found <a href="{{ message | urlencode }}" target="_blank">here</a></span>-->
+<!--                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+<!--                            <span aria-hidden="true">&times;</span>-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                <form role="form" action="/observer/test" method="POST">-->
+<!--                    <div class="row">-->
+<!--                        <div class="form-group col-8">-->
+<!--                            <input type="text" class="form-control" name="url" placeholder="Type URL of a page to test">-->
+<!--                            <input type="text" class="form-control" name="remote_address" value="observer-chrome:4444" hidden>-->
+<!--                            <input type="text" class="form-control" name="perfui_listener" value="observer-chrome:9999" hidden>-->
+<!--                        </div>-->
+<!--                        <div class="form-group col-4">-->
+<!--                            <button type="submit" class="btn btn-primary">Test</button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </form>-->
+            </div>
+            <div class="card-body card-body-observer">
+                <div class="row h-100">
+                    <div class="col-3">
+                        <div class="subnav">
+                            <div id="triggers" class="tabmenuitem navactive side">Web UI</div>
+                            <div id="actions" class="tabmenuitem navdisabled side">Web API</div>
+                        </div>
+                        <div id="blocklist">
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div id="propwrap">
+                            <div id="properties">
+                                <div id="close"><i class="fas fa-times"></i></div>
+                                <p id="header2">Properties</p>
+                                <div id="propswitch">
+                                    <div id="dataprop" class="tabmenuitem">Attributes</div>
+                                    <div id="alertprop" class="tabmenuitem">Data</div>
+                                </div>
+                                <div id="proplist">
+                                    <p class="inputlabel">Select database</p>
+                                    <div class="dropme">Database 1 <img src="assets/dropdown.svg"></div>
+                                    <p class="inputlabel">Check properties</p>
+                                    <div class="dropme">All<img src="assets/dropdown.svg"></div>
+                                    <div class="checkus"><img src="assets/checkon.svg"><p>Log on successful performance</p></div>
+                                    <div class="checkus"><img src="assets/checkoff.svg"><p>Give priority to this block</p></div>
+                                </div>
+                                <div id="divisionthing"></div>
+                                <div id="removeblock">Delete blocks</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="canvas" class="chart-area"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'common/foot.html' %}
+<script src="{{ url_for('static', filename='vendor/flowy/flowy.js') }}"></script>
+<script src="{{ url_for('static', filename='js/observer.js') }}"></script>
+</body>
+</html>
