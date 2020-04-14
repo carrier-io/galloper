@@ -24,6 +24,7 @@ from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
+from .ui_perf import UIReportsAPI
 
 
 def initialize_api_routes(api: Api):
@@ -54,3 +55,5 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")
+
+    add_resource_to_api(api, UIReportsAPI, "/ui-perf/<int:project_id>/<int:report_id>", "/ui-perf/<int:project_id>")
