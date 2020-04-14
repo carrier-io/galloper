@@ -38,6 +38,11 @@ def index():
     return render_template("observer/test.html", message=message, hidden=hidden)
 
 
+@bp.route("/observer/ui", methods=["GET"])
+def ui():
+    return render_template("observer/observer.html")
+
+
 @bp.route("/observer/analyze/async", methods=["GET", "POST"])
 def analyze_async():
     pass
