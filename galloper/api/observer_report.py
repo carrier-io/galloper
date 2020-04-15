@@ -17,7 +17,9 @@ class UIReportsAPI(Resource):
     put_rules = (
         dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
-        dict(name="visited_pages", type=int, location="json")
+        dict(name="visited_pages", type=int, location="json"),
+        dict(name="thresholds_total", type=int, location="json"),
+        dict(name="thresholds_failed", type=int, location="json")
     )
 
     def __init__(self):
@@ -52,6 +54,8 @@ class UIReportsAPI(Resource):
         report.is_active = False
         report.stop_time = args["time"]
         report.visited_pages = args["visited_pages"]
+        report.thresholds_total = args["thresholds_total"],
+        report.thresholds_failed = args["thresholds_failed"]
         report.commit()
 
         return report.to_json()
