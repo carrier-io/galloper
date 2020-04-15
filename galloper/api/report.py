@@ -327,7 +327,7 @@ class TestSaturation(Resource):
         str_current_time = datetime.fromtimestamp(current_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         duration_till_now = current_time - start_time
         if duration_till_now < args['wait_till']:
-            return {"message": "not enough results"}, 200
+            return {"message": "not enough results", "code": 0}
         _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
                              args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
         tps = []
