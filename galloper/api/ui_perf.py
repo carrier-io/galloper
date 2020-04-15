@@ -12,6 +12,7 @@ class UIReportsAPI(Resource):
     )
 
     put_rules = (
+        dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
     )
 
@@ -21,9 +22,6 @@ class UIReportsAPI(Resource):
     def __init_req_parsers(self):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
-
-    def get(self):
-        return {'task': 'Hello world'}
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args()
@@ -40,10 +38,10 @@ class UIReportsAPI(Resource):
 
         return report.to_json()
 
-    def put(self, project_id: int, report_id: int):
+    def put(self, project_id: int):
         args = self._parser_put.parse_args()
 
-        report = UIReport.query.filter_by(project_id=project_id, id=report_id).first_or_404()
+        report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
         report.is_active = False
         report.stop_time = args["time"]
         report.commit()
