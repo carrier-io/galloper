@@ -8,12 +8,16 @@ from galloper.utils.api_utils import build_req_parser
 class UIReportsAPI(Resource):
     post_rules = (
         dict(name="test_name", type=str, location="json"),
-        dict(name="time", type=str, location="json")
+        dict(name="time", type=str, location="json"),
+        dict(name="browser_name", type=str, location="json"),
+        dict(name="env", type=str, location="json"),
+        dict(name="base_url", type=str, location="json")
     )
 
     put_rules = (
         dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
+        dict(name="visited_pages", type=int, location="json")
     )
 
     def __init__(self):
@@ -31,7 +35,10 @@ class UIReportsAPI(Resource):
             test_name=args["test_name"],
             project_id=project.id,
             start_time=args["time"],
-            is_active=True
+            is_active=True,
+            browser=args["browser_name"],
+            env=args["env"],
+            base_url=args["base_url"]
         )
 
         report.insert()
@@ -44,6 +51,7 @@ class UIReportsAPI(Resource):
         report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
         report.is_active = False
         report.stop_time = args["time"]
+        report.visited_pages = args["visited_pages"]
         report.commit()
 
         return report.to_json()
