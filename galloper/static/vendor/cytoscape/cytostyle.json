@@ -1,0 +1,25 @@
+[
+    {
+        "selector": "node",
+        "css": {
+            "width": 20,
+            "height": 20,
+            "content": "data(name)",
+            "font-size": "12px",
+            "text-halign": "center",
+            "text-wrap": "ellipsis",
+            "text-max-width": 120
+        }
+    },
+    {
+        "selector": "edge",
+        "css": {
+            "width": 2,
+            "opacity": 0.5,
+            "content": "data(time)",
+            "curve-style": "bezier",
+            "target-arrow-shape": "triangle",
+            "font-size": "10px"
+        }
+    }
+]

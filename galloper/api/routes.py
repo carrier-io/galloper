@@ -21,6 +21,7 @@ from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
+from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
@@ -55,3 +56,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")
+
+    add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
+    add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",
+                        "/visual/<int:project_id>/<int:report_id>/<string:action>")
