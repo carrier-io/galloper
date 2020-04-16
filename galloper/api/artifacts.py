@@ -59,7 +59,7 @@ class BucketsApi(Resource):
             expiration_date = today_date + relativedelta(**{expiration_measure: expiration_value})
             time_delta = expiration_date - today_date
             days = time_delta.days
-            if data_retention_limit and days > data_retention_limit:
+            if data_retention_limit != -1 and days > data_retention_limit:
                 raise Forbidden(description="The data retention limit allowed in the project has been exceeded")
 
         created = minio_client.create_bucket(bucket)
@@ -99,7 +99,7 @@ class ArtifactApi(Resource):
             file_size = f.tell()
             storage_space_quota = project.get_storage_space_quota()
             statistic = Statistic.query.filter_by(project_id=project_id).first().to_json()
-            if statistic['storage_space'] + file_size > storage_space_quota * 1000000:
+            if storage_space_quota != -1 and statistic['storage_space'] + file_size > storage_space_quota * 1000000:
                 raise Forbidden(description="The storage space limit allowed in the project has been exceeded")
             MinioClient(project=project).upload_file(bucket, content, name)
         return {"message": "Done", "code": 200}
