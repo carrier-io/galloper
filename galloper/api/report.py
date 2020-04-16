@@ -14,13 +14,14 @@
 
 import operator
 from json import loads
+from datetime import datetime, timezone
 
 from flask_restful import Resource
 from sqlalchemy import or_, and_
 from werkzeug.exceptions import Forbidden
 
 from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
-    get_baseline, delete_baseline
+    get_baseline, delete_baseline, get_tps, get_errors, get_backend_requests, get_response_time_per_test
 from galloper.data_utils.charts_utils import (
     requests_summary, requests_hits, avg_responses, summary_table, get_issues, get_data_from_influx,
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
@@ -29,7 +30,8 @@ from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.utils.api_utils import build_req_parser
-
+from galloper.constants import str_to_timestamp
+from galloper.data_utils import arrays
 
 class ReportAPI(Resource):
     get_rules = (
@@ -148,7 +150,7 @@ class ReportAPI(Resource):
         statistic = Statistic.query.filter_by(project_id=project_id).first()
         setattr(statistic, 'performance_test_runs', Statistic.performance_test_runs + 1)
         statistic.commit()
-        return {"message": "created"}
+        return report.to_json()
 
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
@@ -291,3 +293,66 @@ class BaselineAPI(Resource):
             req['report_id'] = report_id
             set_baseline(req)
         return {"message": "baseline is set"}
+
+
+class TestSaturation(Resource):
+    _rules = (
+        dict(name="test_id", type=int, location="args"),
+        dict(name="project_id", type=int, location="args"),
+        dict(name="wait_till", type=int, default=600, location="args"),
+        dict(name='sampler', type=str, location="args", required=True),
+        dict(name='request', type=str, location="args", required=True),
+        dict(name='max_errors', type=float, default=1.0, location="args"),
+        dict(name='aggregation', type=str, default="1m", location="args"),
+        dict(name='status', type=str, default='ok', location="args"),
+        dict(name="calculation", type=str, default="pct95", location="args"),
+        dict(name="deviation", type=float, default=0.05, location="args")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self._rules)
+
+    def get(self):
+        args = self._parser_get.parse_args(strict=False)
+        project = Project.query.get_or_404(args["project_id"])
+        report = APIReport.query.filter(
+            and_(APIReport.id == args['test_id'], APIReport.project_id == project.id)
+        ).first()
+        start_time = str_to_timestamp(report.start_time)
+        current_time = datetime.utcnow().timestamp()
+        str_start_time = datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        str_current_time = datetime.fromtimestamp(current_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        duration_till_now = current_time - start_time
+        if duration_till_now < args['wait_till']:
+            return {"message": "not enough results", "code": 0}
+        _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
+                             args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
+        tps = []
+        for each in data['responses'].values():
+            if each:
+                tps.append(each)
+        _, data, _ = get_errors(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
+                                args["aggregation"], args["sampler"], scope=args["request"])
+        errors = []
+        for each in data['errors'].values():
+            if each:
+                errors.append(each)
+        total = int(get_response_time_per_test(report.build_id, report.name, report.lg_type, args["sampler"],
+                                               args["request"], "total"))
+        error_rate = float(sum(errors))/float(total)
+        if arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and error_rate <= args["max_errors"]:
+            return {"message": "proceed", "throughput": max(tps), "errors_rate": error_rate, "code": 0}
+        else:
+            return {
+                "message": "saturation",
+                "throughput": max(tps),
+                "errors": error_rate,
+                "code": 1
+            }
+
+
+
+
