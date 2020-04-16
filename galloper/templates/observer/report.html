@@ -1,0 +1,272 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+        <div class="card shadow">
+            <div class="card-header bg-transparent border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="text-gray mb-0">UI Performance Reports</h2>
+                    </div>
+                    <div class="col">
+                        <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="CR" data-target="#addRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm">
+                                    <span class="d-none d-md-block">Create Release</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="AR" data-target="#assignToRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Assign to Release</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Delete</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Compare</span>
+                                    <span class="d-md-none">C</span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush"
+                        id="results"
+                        data-toggle="table"
+                        data-page-size=10
+                        data-page-list=[10,20,50,100,200,All]
+                        data-side-pagination="server"
+                        data-pagination="true"
+                        data-filter-control="true">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col" data-checkbox="true"></th>
+                        <th data-visible="false" data-field="id">index</th>
+                        <th scope="col" data-sortable="true" data-field="start_time">Start</th>
+                        <th scope="col" data-sortable="true" data-field="name" data-formatter=createLinkToReport data-filter-control="input">Name</th>
+                        <th scope="col" data-sortable="true" data-field="duration" data-filter-control="input">Duration</th>
+                        <th scope="col" data-sortable="true" data-field="environment" data-filter-control="input">Env</th>
+                        <th scope="col" data-sortable="true" data-field="avg_page_load" data-filter-control="input">Avg. Page Time</th>
+                        <th scope="col" data-sortable="true" data-field="avg_step_duration" data-filter-control="input">Avg. Step Time</th>
+                        <th scope="col" data-sortable="true" data-field="thresholds_missed" data-filter-control="input" data-formatter="percentFormatter">Failed checks</th>
+                        <th scope="col" data-sortable="true" data-field="release_id" data-filter-control="input">Release ID</th>
+                        <th scope="col" data-field="browser" data-formatter=browserFormatter>Browser</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="card-footer py-4  border-0">
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'common/foot.html' %}
+<!-- Modal -->
+<div class="modal fade" id="addRelease" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal_title">Add New Release</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table cellspacing="0" cellpadding="0"
+                       style="border: none; border-collapse:separate;  border-spacing: 0 1em;">
+                    <tr>
+                        <td>
+                            <span> Release Name: </span>
+                        </td>
+                        <td class="pl-3">
+                            <input id="release_name" placeholder="Release Name" class="form-control form-control-sm">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close">Close
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="submit" onclick="createRelease()">Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="assignToRelease" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Choose Release</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select id="releases" class="selectpicker show-tick form-control form-control-sm"></select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close">Close
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="assignToRelease()">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+<script>
+    function createLinkToReport(value, row, index) {
+        return '<a href="/visual/report?report_id=' + row['id'] + '">' + value + '</a>'
+    }
+
+    function percentFormatter(value, row, index) {
+        return value + '&nbsp;%'
+    }
+
+    function filters() {
+        $("#results").bootstrapTable('clearFilterControl');
+        if ($(".filter-control input").css("visibility")==="visible") {
+             $(".filter-control input").css("visibility", "hidden")
+             $(".filter-control select").css("visibility", "hidden")
+             $(".fht-cell").css("display", "none")
+        } else {
+            $(".filter-control input").css("visibility", "visible")
+             $(".filter-control select").css("visibility", "visible")
+             $(".fht-cell").css("display", "block")
+        }
+    }
+
+    $("#assignToRelease").on("show.bs.modal", function () {
+        let selectedProjectId = getSelectedProjectId();
+        $.get(`/api/v1/releases/${selectedProjectId}`,
+                function (data) {
+                    $("#releases option").each(function () {
+                        $(this).remove();
+                    });
+                    data.forEach(item => {
+                        $("#releases").append(`<option value="${item['id']}">${item['id']} : ${item['release_name']}</option>`);
+                    });
+                    $("#releases").selectpicker('refresh');
+                })
+    });
+
+    function createRelease() {
+        let data = {
+            release_name: $("#release_name").val()
+        };
+        let selectedProjectId = getSelectedProjectId();
+        $.ajax({
+            url: `/api/v1/releases/${selectedProjectId}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (result) {
+                $("#addRelease").modal('hide');
+            }
+        });
+    }
+
+    function assignToRelease() {
+        var reports = [];
+        $("#results").bootstrapTable('getSelections').forEach(item => {
+            reports.push(item["id"]);
+        });
+        var data = {
+            release_id: $("#releases").val(),
+            visual: reports
+        };
+        let selectedProjectId = getSelectedProjectId();
+        $.ajax({
+            url: `/api/v1/releases/${selectedProjectId}`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (result) {
+                $("#assignToRelease").modal('hide');
+                $("#results").bootstrapTable('refresh');
+            }
+        });
+    }
+
+    function refreshTable() {
+        let selectedProjectId = getSelectedProjectId();
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/visual/${selectedProjectId}`});
+    }
+
+    $(document).ready(function() {
+        refreshTable();
+        filters();
+    });
+
+    function browserFormatter(value, row, index) {
+        if (value === "chrome") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/chrome.png')}}\" width=\"25\">"
+        } else if (value === "firefox") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/firefox.png') }}\" width=\"25\">"
+        } else {
+            return value
+        }
+    }
+
+    $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function () {
+        console.log("here");
+        if ($("#results").bootstrapTable('getSelections').length == 0) {
+            $("#DR").prop("disabled", true);
+            $("#RT").prop("disabled", true);
+            $("#AR").prop("disabled", true);
+        } else {
+            $("#DR").removeAttr("disabled");
+            $("#RT").removeAttr("disabled");
+            $("#AR").removeAttr("disabled");
+        }
+    });
+
+    function runComparison() {
+        var reports = "/visual/compare?";
+        $("#results").bootstrapTable('getSelections').forEach(item => {
+            reports += "id[]=" + item["id"] + "&";
+        });
+        window.location.href = reports.substring(0, reports.length - 1);
+    }
+
+    function deleteReports() {
+        var project_id = $("#selected-project-id").text();
+        var reports = `/api/v1/visual/${project_id}?`;
+        $("#results").bootstrapTable('getSelections').forEach(item => {
+            reports += "id[]=" + item["id"] + "&"
+        });
+        $.ajax({
+            url: reports.substring(0, reports.length - 1),
+            type: 'DELETE',
+            success: function (result) {
+                $("#results").bootstrapTable('refresh');
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

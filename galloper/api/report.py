@@ -33,6 +33,7 @@ from galloper.utils.api_utils import build_req_parser
 from galloper.constants import str_to_timestamp
 from galloper.data_utils import arrays
 
+
 class ReportAPI(Resource):
     get_rules = (
         dict(name="offset", type=int, default=0, location="args"),
