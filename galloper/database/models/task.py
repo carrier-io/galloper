@@ -14,9 +14,9 @@
 
 from uuid import uuid4
 
-from sqlalchemy import Column, Integer, String, Text, func
+from sqlalchemy import Column, Integer, String, Text
 
-from galloper.database.db_manager import Base, db_session
+from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 
 
@@ -39,16 +39,6 @@ class Task(AbstractBaseMixin, Base):
     func_args = Column(Text, unique=False, nullable=True)
     env_vars = Column(Text, unique=False, nullable=True)
     callback = Column(String(128), unique=False, nullable=True)
-
-    @classmethod
-    def check_task_quota(cls, project_id: int) -> bool:
-        from galloper.database.models.project_quota import ProjectQuota
-        project_quota = ProjectQuota.query.filter_by(project_id=project_id).first()
-        if project_quota:
-            existed_count = db_session.query(cls).filter_by(project_id=project_id).with_entities(func.count()).scalar()
-            if project_quota.tasks_limit and existed_count >= project_quota.tasks_limit:
-                return False
-        return True
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         json_dict = super().to_json(exclude_fields=exclude_fields or ("schedule", "callback"))

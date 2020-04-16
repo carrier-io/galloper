@@ -31,6 +31,8 @@ from galloper.constants import (REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
 from galloper.database.db_manager import db_session
 from galloper.database.models.task import Task
 from galloper.database.models.statistic import Statistic
+from galloper.database.models.project_quota import ProjectQuota
+from werkzeug.exceptions import Forbidden
 
 app = Celery('Galloper',
              broker=f'redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
@@ -103,6 +105,16 @@ def zip_to_volume(self, task_id, file_path, *args, **kwargs):
 @app.task(name="tasks.execute", bind=True, acks_late=True, base=AbortableTask)
 def execute_lambda(self, task, event, *args, **kwargs):
     task = db_session.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
+    if not ProjectQuota.check_quota(project_id=task['project_id'], quota='tasks_executions'):
+        data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': 'Forbidden',
+                'stderr': "The number of task executions allowed in the project has been exceeded"}
+
+        headers = {
+            "Content-Type": "application/json",
+            "Token": task['token']
+        }
+        post(f'{APP_HOST}/api/v1/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
+        raise Forbidden(description="The number of task executions allowed in the project has been exceeded")
     statistic = db_session.query(Statistic).filter(Statistic.project_id == task['project_id']).first()
     setattr(statistic, 'tasks_executions', Statistic.tasks_executions + 1)
     statistic.commit()

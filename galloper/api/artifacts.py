@@ -21,6 +21,7 @@ from flask_restful import Resource
 from werkzeug.exceptions import Forbidden
 
 from galloper.database.models.project import Project
+from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
 from galloper.utils.api_utils import build_req_parser
 
@@ -92,7 +93,15 @@ class ArtifactApi(Resource):
         project = Project.query.get_or_404(project_id)
         if "file" in request.files:
             f = request.files["file"]
-            MinioClient(project=project).upload_file(bucket, f.read(), f.filename)
+            name = f.filename
+            content = f.read()
+            f.seek(0, 2)
+            file_size = f.tell()
+            storage_space_quota = project.get_storage_space_quota()
+            statistic = Statistic.query.filter_by(project_id=project_id).first().to_json()
+            if statistic['storage_space'] + file_size > storage_space_quota * 1000000:
+                raise Forbidden(description="The storage space limit allowed in the project has been exceeded")
+            MinioClient(project=project).upload_file(bucket, content, name)
         return {"message": "Done", "code": 200}
 
     def delete(self, project_id: int, bucket: str, filename: str):
