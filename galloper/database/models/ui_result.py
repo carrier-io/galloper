@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, JSON
 
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base
@@ -21,3 +21,4 @@ class UIResult(AbstractBaseMixin, Base):
     time_to_first_paint = Column(Integer, unique=False)
     dom_content_loading = Column(Integer, unique=False)
     dom_processing = Column(Integer, unique=False)
+    locators = Column(JSON, unique=False, default={})

@@ -10,6 +10,11 @@ class UIResultsAPI(Resource):
         dict(name="bucket_name", type=str, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
+        dict(name="locators", type=list, location="json")
+    )
+
+    put_rules = (
+        dict(name="locators", type=list, location="json"),
     )
 
     def __init__(self):
@@ -17,7 +22,7 @@ class UIResultsAPI(Resource):
 
     def __init_req_parsers(self):
         self._parser_post = build_req_parser(rules=self.post_rules)
-        # self._parser_put = build_req_parser(rules=self.put_rules)
+        self._parser_put = build_req_parser(rules=self.put_rules)
 
     def post(self, project_id: int, report_id: int):
         # html
@@ -40,9 +45,18 @@ class UIResultsAPI(Resource):
             time_to_first_byte=metrics["time_to_first_byte"],
             time_to_first_paint=metrics["time_to_first_paint"],
             dom_content_loading=metrics["dom_content_loading"],
-            dom_processing=metrics["dom_processing"]
+            dom_processing=metrics["dom_processing"],
+            locators=args["locators"]
         )
 
         result.insert()
-
         return result.to_json()
+
+    def put(self, project_id: int, report_id: int):
+        args = self._parser_put.parse_args()
+        results = UIResult.query.filter_by(project_id=project_id, id=report_id).first_or_404()
+        results.locators = args["locators"]
+
+        results.commit()
+
+        return results.to_json()
