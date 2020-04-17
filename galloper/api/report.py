@@ -304,7 +304,7 @@ class TestSaturation(Resource):
         dict(name="wait_till", type=int, default=600, location="args"),
         dict(name='sampler', type=str, location="args", required=True),
         dict(name='request', type=str, location="args", required=True),
-        dict(name='max_errors', type=float, default=1.0, location="args"),
+        dict(name='max_errors', type=float, default=100.0, location="args"),
         dict(name='aggregation', type=str, default="1m", location="args"),
         dict(name='status', type=str, default='ok', location="args"),
         dict(name="calculation", type=str, default="pct95", location="args"),
@@ -344,14 +344,14 @@ class TestSaturation(Resource):
                 errors.append(each)
         total = int(get_response_time_per_test(report.build_id, report.name, report.lg_type, args["sampler"],
                                                args["request"], "total"))
-        error_rate = float(sum(errors))/float(total)
+        error_rate = float(sum(errors))/float(total) * 100
         if arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and error_rate <= args["max_errors"]:
             return {"message": "proceed", "throughput": max(tps), "errors_rate": error_rate, "code": 0}
         else:
             return {
                 "message": "saturation",
-                "throughput": max(tps),
-                "errors": error_rate,
+                "throughput": round(max(tps), 2),
+                "errors": round(error_rate, 2),
                 "code": 1
             }
 
