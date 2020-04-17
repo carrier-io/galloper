@@ -29,6 +29,7 @@ from galloper.data_utils.charts_utils import (
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
+from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser
 from galloper.constants import str_to_timestamp
 from galloper.data_utils import arrays
@@ -123,8 +124,8 @@ class ReportAPI(Resource):
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
         project = Project.query.get_or_404(project_id)
-        if not project.performance_enabled:
-            raise Forbidden(description="Performance tests are not allowed for this project")
+        if not ProjectQuota.check_quota(project_id=project_id, quota='performance_test_runs'):
+            return {"Forbidden": "The number of performance test runs allowed in the project has been exceeded"}
         report = APIReport(name=args["test_name"],
                            project_id=project.id,
                            environment=args["environment"],

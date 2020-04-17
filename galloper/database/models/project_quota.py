@@ -14,6 +14,7 @@
 
 from sqlalchemy import Column, Integer, String
 
+from galloper.database.models.statistic import Statistic
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base
 
@@ -45,6 +46,23 @@ class ProjectQuota(AbstractBaseMixin, Base):
         self.tasks_limit = tasks_limit
         self.tasks_executions = tasks_executions
         self.commit()
+
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        json_dict = super().to_json()
+        json_dict['tasks_count'] = json_dict.pop('tasks_limit')
+
+        return json_dict
+
+    @classmethod
+    def check_quota(cls, project_id: int, quota: str) -> bool:
+        project_quota = ProjectQuota.query.filter_by(project_id=project_id).first().to_json()
+        if project_quota:
+            if project_quota[quota] == -1:
+                return True
+            statistic = Statistic.query.filter_by(project_id=project_id).first().to_json()
+            if statistic[quota] >= project_quota[quota]:
+                return False
+        return True
 
 
 def _update_quota(name, project_id, performance_test_runs, sast_scans, dast_scans,
@@ -115,3 +133,17 @@ def enterprise(project_id):
                          data_retention_limit=-1,
                          tasks_limit=-1,
                          tasks_executions=-1)
+
+
+def custom(project_id, performance_test_runs, sast_scans, dast_scans, public_pool_workers, storage_space,
+           data_retention_limit, tasks_limit, tasks_executions):
+    return _update_quota(name="custom",
+                         project_id=project_id,
+                         performance_test_runs=performance_test_runs,
+                         sast_scans=sast_scans,
+                         dast_scans=dast_scans,
+                         public_pool_workers=public_pool_workers,
+                         storage_space=storage_space,
+                         data_retention_limit=data_retention_limit,
+                         tasks_limit=tasks_limit,
+                         tasks_executions=tasks_executions)

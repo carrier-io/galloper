@@ -24,6 +24,7 @@ from galloper.database.models.security_details import SecurityDetails
 from galloper.database.models.security_reports import SecurityReport
 from galloper.database.models.security_results import SecurityResults
 from galloper.database.models.statistic import Statistic
+from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser
 
 
@@ -105,7 +106,13 @@ class SecurityReportAPI(Resource):
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
         project = Project.query.get_or_404(project_id)
-        # TODO DAST scans limit check
+        # TODO move sast/dast quota checks to a new endpoint, which will be triggered before the scan
+        if args["scan_type"].lower() == 'sast':
+            if not ProjectQuota.check_quota(project_id=project_id, quota='sast_scans'):
+                return {"Forbidden": "The number of sast scans allowed in the project has been exceeded"}
+        elif args["scan_type"].lower() == 'dast':
+            if not ProjectQuota.check_quota(project_id=project_id, quota='dast_scans'):
+                return {"Forbidden": "The number of dast scans allowed in the project has been exceeded"}
         report = SecurityResults(scan_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                                  project_id=project.id,
                                  scan_duration=args["scan_time"],

@@ -24,6 +24,7 @@ from control_tower import run
 
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
+from galloper.database.models.project_quota import ProjectQuota
 from galloper.database.models.task_results import Results
 from galloper.utils.auth import project_required
 
@@ -76,7 +77,7 @@ def add_task(project: Project):
             return ""
         if file and allowed_file(file.filename):
 
-            if not Task.check_task_quota(project_id=project.id):
+            if not ProjectQuota.check_quota(project_id=project.id, quota='tasks_count'):
                 raise Forbidden(description="The number of tasks allowed in the project has been exceeded")
 
             filename = str(uuid4())
