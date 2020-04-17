@@ -11,6 +11,7 @@ class UIReport(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     start_time = Column(String(128), unique=False)
     stop_time = Column(String(128), unique=False)
+    duration = Column(Integer, unique=False, nullable=True)
     is_active = Column(Boolean, unique=False)
     browser = Column(String(128), unique=False)
     env = Column(String(128), unique=False, nullable=True)

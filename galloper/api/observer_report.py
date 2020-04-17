@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
@@ -56,6 +58,12 @@ class UIReportsAPI(Resource):
         report.visited_pages = args["visited_pages"]
         report.thresholds_total = args["thresholds_total"],
         report.thresholds_failed = args["thresholds_failed"]
+        report.duration = self.__diffdates(report.start_time, args["time"]).seconds
         report.commit()
 
         return report.to_json()
+
+    def __diffdates(self, d1, d2):
+        # Date format: %Y-%m-%d %H:%M:%S
+        date_format = '%Y-%m-%d %H:%M:%S'
+        return datetime.strptime(d2, date_format) - datetime.strptime(d1, date_format)
