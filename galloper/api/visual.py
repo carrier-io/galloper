@@ -9,6 +9,7 @@ from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.constants import str_to_timestamp
 from galloper.database.models.ui_report import UIReport
+from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
 from uuid import uuid4
 
@@ -47,12 +48,19 @@ class VisualReportAPI(Resource):
         res = []
 
         for report in reports:
+            results = UIResult.query.filter_by(report_id=report.id).all()
+
+            totals = list(map(lambda x: x.total, results))
+
+            avg_page_load = sum(totals) / len(totals)
+
             data = dict(id=1, project_id=project_id, name=report.test_name, environment=report.env,
                         browser=report.browser,
                         browser_version="12.2.3", resolution="1380x749", url=report.base_url,
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
                         failures=1, total=10,
-                        thresholds_missed=report.thresholds_failed / report.thresholds_total * 100, avg_page_load=1.4,
+                        thresholds_missed=report.thresholds_failed / report.thresholds_total * 100,
+                        avg_page_load=avg_page_load / 1000,
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
 
             res.append(data)

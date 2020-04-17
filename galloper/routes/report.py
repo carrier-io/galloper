@@ -20,6 +20,8 @@ from galloper.data_utils.report_utils import render_analytics_control
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.security_results import SecurityResults
 from galloper.database.models.project import Project
+from galloper.database.models.ui_report import UIReport
+from galloper.database.models.ui_result import UIResult
 from galloper.utils.auth import project_required
 
 bp = Blueprint("reports", __name__)
@@ -86,9 +88,21 @@ def compare_reports(project: Project):
 def visual_report(project: Project):
     # expected report level data
     from uuid import uuid4
-    test_data = dict(id=1, project_id=project.id, name="HelloWorldChrome", environment="dev", browser="chrome",
-                     browser_version="12.2.3", resolution="1380x749", url="https://www.google.com",
-                     end_time="2020-04-15T08:11:37Z", start_time="2020-04-15T07:31:37Z", duration=2400,
-                     failures=1, total=10, thresholds_missed=15, avg_page_load=1.4,
+    report_id = request.args.getlist("report_id")[0]
+
+    ui_report = UIReport.query.filter_by(id=report_id, project_id=project.id).first_or_404()
+    results = UIResult.query.filter_by(report_id=report_id).all()
+
+    totals = list(map(lambda x: x.total, results))
+
+    avg_page_load = sum(totals) / len(totals)
+
+    test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name, environment=ui_report.env,
+                     browser=ui_report.browser,
+                     browser_version="12.2.3", resolution="1380x749", url=ui_report.base_url,
+                     end_time=ui_report.stop_time, start_time=ui_report.start_time, duration=ui_report.duration,
+                     failures=1, total=len(results),
+                     thresholds_missed=ui_report.thresholds_failed / ui_report.thresholds_total * 100,
+                     avg_page_load=avg_page_load / 1000,
                      avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
     return render_template("observer/results.html", test_data=test_data)
