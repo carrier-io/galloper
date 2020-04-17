@@ -58,6 +58,12 @@ class Project(AbstractBaseMixin, Base):
         if project_quota and project_quota.data_retention_limit:
             return project_quota.data_retention_limit
 
+    def get_storage_space_quota(self) -> Optional[int]:
+        from galloper.database.models.project_quota import ProjectQuota
+        project_quota = ProjectQuota.query.filter_by(project_id=self.id).first()
+        if project_quota and project_quota.storage_space:
+            return project_quota.storage_space
+
     @classmethod
     def apply_full_delete_by_pk(cls, pk: int) -> None:
         import docker

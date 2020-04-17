@@ -20,8 +20,9 @@ from .artifacts import BucketsApi, ArtifactApi
 from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
-from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
+from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
@@ -40,6 +41,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>")
     add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>")
     add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>")
+    add_resource_to_api(api, TestSaturation, "/saturation")
 
     add_resource_to_api(api, SecurityReportAPI, "/security/<int:project_id>")
     add_resource_to_api(api, FindingsAPI, "/security/<int:project_id>/finding")
@@ -59,3 +61,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, UIReportsAPI, "/observer/<int:project_id>")
     add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<int:report_id>")
+
+    add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
+    add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",
+                        "/visual/<int:project_id>/<int:report_id>/<string:action>")
