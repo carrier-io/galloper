@@ -8,6 +8,7 @@ class UIResultsAPI(Resource):
     post_rules = (
         dict(name="metrics", type=dict, location="json"),
         dict(name="bucket_name", type=str, location="json"),
+        dict(name="file_name", type=str, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
         dict(name="locators", type=list, location="json")
@@ -36,6 +37,7 @@ class UIResultsAPI(Resource):
             project_id=project_id,
             report_id=report_id,
             bucket_name=args["bucket_name"],
+            file_name=args["file_name"],
             thresholds_total=args["thresholds_total"],
             thresholds_failed=args["thresholds_failed"],
             requests=metrics["requests"],

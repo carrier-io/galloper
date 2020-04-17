@@ -11,6 +11,7 @@ class UIResult(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     report_id = Column(Integer, unique=False, nullable=False)
     bucket_name = Column(String(128), unique=False)
+    file_name = Column(String(128), unique=False)
     thresholds_total = Column(Integer, unique=False)
     thresholds_failed = Column(Integer, unique=False)
     requests = Column(Integer, unique=False)
