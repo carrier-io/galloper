@@ -23,3 +23,4 @@ class UIResult(AbstractBaseMixin, Base):
     dom_content_loading = Column(Integer, unique=False)
     dom_processing = Column(Integer, unique=False)
     locators = Column(JSON, unique=False, default={})
+    resolution = Column(String(128), unique=False)

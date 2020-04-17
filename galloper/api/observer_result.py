@@ -11,7 +11,8 @@ class UIResultsAPI(Resource):
         dict(name="file_name", type=str, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
-        dict(name="locators", type=list, location="json")
+        dict(name="locators", type=list, location="json"),
+        dict(name="resolution", type=list, location="json")
     )
 
     put_rules = (
@@ -26,9 +27,6 @@ class UIResultsAPI(Resource):
         self._parser_put = build_req_parser(rules=self.put_rules)
 
     def post(self, project_id: int, report_id: int):
-        # html
-        # save to minio
-
         args = self._parser_post.parse_args()
 
         metrics = args["metrics"]
@@ -48,7 +46,8 @@ class UIResultsAPI(Resource):
             time_to_first_paint=metrics["time_to_first_paint"],
             dom_content_loading=metrics["dom_content_loading"],
             dom_processing=metrics["dom_processing"],
-            locators=args["locators"]
+            locators=args["locators"],
+            resolution=args["resolution"]
         )
 
         result.insert()
