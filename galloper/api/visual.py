@@ -57,7 +57,7 @@ class VisualReportAPI(Resource):
             except ZeroDivisionError:
                 avg_page_load = ""
 
-            data = dict(id=1, project_id=project_id, name=report.test_name, environment=report.env,
+            data = dict(id=report.id, project_id=project_id, name=report.test_name, environment=report.env,
                         browser=report.browser,
                         browser_version="12.2.3", resolution="1380x749", url=report.base_url,
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
@@ -68,17 +68,6 @@ class VisualReportAPI(Resource):
 
             res.append(data)
 
-        # res = [dict(id=1, project_id=project_id, name="HelloWorldChrome", environment="dev", browser="chrome",
-        #             browser_version="12.2.3", resolution="1380x749", url="https://www.google.com",
-        #             end_time="2020-04-15T08:11:37Z", start_time="2020-04-15T07:31:37Z", duration=2400,
-        #             failures=1, total=10, thresholds_missed=15, avg_page_load=1.4,
-        #             avg_step_duration=0.5, build_id=str(uuid4()), release_id=1),
-        #        dict(id=2, project_id=project_id, name="HelloWorldFirefox", environment="dev", browser="firefox",
-        #             browser_version="12.2.3", resolution="1380x749", url="https://www.google.com",
-        #             end_time="2020-04-15T08:11:37Z", start_time="2020-04-15T07:11:37Z", duration=3600,
-        #             failures=1, total=10, thresholds_missed=15, avg_page_load=1.4,
-        #             avg_step_duration=0, build_id=str(uuid4()), release_id=1)
-        #        ]
         for each in res:
             each["start_time"] = each["start_time"].replace("T", " ").replace("Z", "")
         return {"total": len(res), "rows": res}

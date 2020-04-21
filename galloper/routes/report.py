@@ -108,5 +108,5 @@ def visual_report(project: Project):
                      failures=1, total=len(results),
                      thresholds_missed=ui_report.thresholds_failed / ui_report.thresholds_total * 100,
                      avg_page_load=avg_page_load / 1000,
-                     avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
+                     avg_step_duration=0, build_id=str(uuid4()), release_id=1)
     return render_template("observer/results.html", test_data=test_data)
