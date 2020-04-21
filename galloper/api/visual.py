@@ -55,7 +55,7 @@ class VisualReportAPI(Resource):
             try:
                 avg_page_load = sum(totals) / len(totals)
             except ZeroDivisionError:
-                avg_page_load = ""
+                avg_page_load = 0
 
             data = dict(id=report.id, project_id=project_id, name=report.test_name, environment=report.env,
                         browser=report.browser,
@@ -75,119 +75,7 @@ class VisualReportAPI(Resource):
 
 class VisualResultAPI(Resource):
     _action_mapping = {
-        "table": [
-            {
-                "name": "Google",
-                "speed_index": 666,
-                "total_time": 2450,
-                "first_bite": 354,
-                "first_paint": 1345,
-                "content_load": 2000,
-                "dom_processing": 2130,
-                "missed_thresholds": 10,
-                "report": "/api/v1/artifacts/1/reports/Google_1587031762.html",
-                "actions": [{
-                    "action": "click",
-                    "locator": "id=1",
-                    "value": ""
-                },
-                    {
-                        "action": "type",
-                        "locator": "id=1",
-                        "value": "This is sparta"
-                    },
-                    {
-                        "action": "SendKeys",
-                        "locator": "id=1",
-                        "value": "ENTER"
-                    }
-                ]
-            },
-            {
-                "name": "Youtube",
-                "speed_index": 666,
-                "total_time": 2450,
-                "first_bite": 354,
-                "first_paint": 1345,
-                "content_load": 2000,
-                "dom_processing": 2130,
-                "missed_thresholds": 10,
-                "report": "/api/v1/artifacts/1/reports/Heston%20-%20YouTube_1587031888.html",
-                "actions": [
-                    {
-                        "action": "click",
-                        "locator": "id=1",
-                        "value": ""
-                    },
-                    {
-                        "action": "type",
-                        "locator": "id=1",
-                        "value": "This is sparta"
-                    },
-                    {
-                        "action": "SendKeys",
-                        "locator": "id=1",
-                        "value": "ENTER"
-                    }
-                ]
-            },
-            {
-                "name": "Yahoo",
-                "speed_index": 666,
-                "total_time": 2450,
-                "first_bite": 354,
-                "first_paint": 1345,
-                "content_load": 2000,
-                "dom_processing": 2130,
-                "missed_thresholds": 10,
-                "report": "/api/v1/artifacts/1/reports/Yahoo_1587031938.html",
-                "actions": [
-                    {
-                        "action": "click",
-                        "locator": "id=1",
-                        "value": ""
-                    },
-                    {
-                        "action": "type",
-                        "locator": "id=1",
-                        "value": "This is sparta"
-                    },
-                    {
-                        "action": "SendKeys",
-                        "locator": "id=1",
-                        "value": "ENTER"
-                    }
-                ]
-            },
-            {
-                "name": "Very long and nasty name in a way it is liked by our performance analysts",
-                "speed_index": 666,
-                "total_time": 2450,
-                "first_bite": 354,
-                "first_paint": 1345,
-                "content_load": 2000,
-                "dom_processing": 2130,
-                "missed_thresholds": 10,
-                "report": "/api/v1/artifacts/1/reports/EPAM%20%7C%20Enterprise%20Software%20Development%2C%20Design%20%26%20Consulting_1587031984.html",
-                "actions": [
-                    {
-                        "action": "click",
-                        "locator": "id=1",
-                        "value": ""
-                    },
-                    {
-                        "action": "type",
-                        "locator": "id=1",
-                        "value": "This is sparta"
-                    },
-                    {
-                        "action": "SendKeys",
-                        "locator": "id=1",
-                        "value": "ENTER"
-                    }
-                ]
-            }
-        ],
+        "table": [],
         "chart": {
             "nodes": [
                 {"data": {"id": 'j', "name": 'Google', "bucket": "reports", "file": "Yahoo_1587031938.html"}},
@@ -211,4 +99,35 @@ class VisualResultAPI(Resource):
     }
 
     def get(self, project_id: int, report_id: int, action: Optional[str] = "table"):
+        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
+
+        table = []
+
+        for result in results:
+            data = {
+                "name": result.name,
+                "speed_index": result.speed_index,
+                "total_time": result.total,
+                "first_bite": result.time_to_first_byte,
+                "first_paint": result.time_to_first_paint,
+                "content_load": result.dom_content_loading,
+                "dom_processing": result.dom_processing,
+                "missed_thresholds": result.thresholds_failed,
+                "report": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}",
+                "actions": []
+            }
+
+            actions = []
+            for loc in result.locators:
+                actions.append({
+                    "action": loc["command"],
+                    "locator": loc['target'],
+                    "value": loc['value']
+                })
+
+            data["actions"] = actions
+
+            table.append(data)
+
+        self._action_mapping["table"] = table
         return self._action_mapping[action]

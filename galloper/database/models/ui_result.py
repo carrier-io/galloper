@@ -10,6 +10,7 @@ class UIResult(AbstractBaseMixin, Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, unique=False, nullable=False)
     report_id = Column(Integer, unique=False, nullable=False)
+    name = Column(String(128), unique=False)
     bucket_name = Column(String(128), unique=False)
     file_name = Column(String(128), unique=False)
     thresholds_total = Column(Integer, unique=False)
