@@ -97,10 +97,14 @@ def visual_report(project: Project):
 
     avg_page_load = sum(totals) / len(totals)
 
-    test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name, environment=ui_report.env,
+    test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name,
+                     environment=ui_report.env,
                      browser=ui_report.browser,
-                     browser_version="12.2.3", resolution="1380x749", url=ui_report.base_url,
-                     end_time=ui_report.stop_time, start_time=ui_report.start_time, duration=ui_report.duration,
+                     browser_version=results[0].browser_version.split(" ")[1],
+                     resolution=results[0].resolution,
+                     url=ui_report.base_url,
+                     end_time=ui_report.stop_time, start_time=ui_report.start_time,
+                     duration=ui_report.duration,
                      failures=1, total=len(results),
                      thresholds_missed=ui_report.thresholds_failed / ui_report.thresholds_total * 100,
                      avg_page_load=avg_page_load / 1000,

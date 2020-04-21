@@ -21,8 +21,7 @@ class UIReportsAPI(Resource):
         dict(name="time", type=str, location="json"),
         dict(name="visited_pages", type=int, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
-        dict(name="thresholds_failed", type=int, location="json"),
-        dict(name="resolution", type=int, location="json")
+        dict(name="thresholds_failed", type=int, location="json")
     )
 
     def __init__(self):

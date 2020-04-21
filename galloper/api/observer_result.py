@@ -12,7 +12,8 @@ class UIResultsAPI(Resource):
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
         dict(name="locators", type=list, location="json"),
-        dict(name="resolution", type=list, location="json")
+        dict(name="resolution", type=str, location="json"),
+        dict(name="browser_version", type=str, location="json")
     )
 
     put_rules = (
@@ -47,7 +48,8 @@ class UIResultsAPI(Resource):
             dom_content_loading=metrics["dom_content_loading"],
             dom_processing=metrics["dom_processing"],
             locators=args["locators"],
-            resolution=args["resolution"]
+            resolution=args["resolution"],
+            browser_version=args["browser_version"]
         )
 
         result.insert()

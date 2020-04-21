@@ -52,7 +52,10 @@ class VisualReportAPI(Resource):
 
             totals = list(map(lambda x: x.total, results))
 
-            avg_page_load = sum(totals) / len(totals)
+            try:
+                avg_page_load = sum(totals) / len(totals)
+            except ZeroDivisionError:
+                avg_page_load = ""
 
             data = dict(id=1, project_id=project_id, name=report.test_name, environment=report.env,
                         browser=report.browser,
