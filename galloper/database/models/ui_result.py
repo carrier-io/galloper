@@ -23,6 +23,6 @@ class UIResult(AbstractBaseMixin, Base):
     time_to_first_paint = Column(Integer, unique=False)
     dom_content_loading = Column(Integer, unique=False)
     dom_processing = Column(Integer, unique=False)
-    locators = Column(JSON, unique=False, default={})
+    locators = Column(JSON, unique=False, default=[{}])
     resolution = Column(String(128), unique=False)
     browser_version = Column(String(128), unique=False, nullable=True)

@@ -57,12 +57,17 @@ class VisualReportAPI(Resource):
             except ZeroDivisionError:
                 avg_page_load = 0
 
+            try:
+                thresholds_missed = report.thresholds_failed / report.thresholds_total * 100
+            except ZeroDivisionError:
+                thresholds_missed = 0
+
             data = dict(id=report.id, project_id=project_id, name=report.test_name, environment=report.env,
                         browser=report.browser,
                         browser_version="12.2.3", resolution="1380x749", url=report.base_url,
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
                         failures=1, total=10,
-                        thresholds_missed=report.thresholds_failed / report.thresholds_total * 100,
+                        thresholds_missed=thresholds_missed,
                         avg_page_load=avg_page_load / 1000,
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
 

@@ -11,14 +11,14 @@ class UIResultsAPI(Resource):
         dict(name="file_name", type=str, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
-        dict(name="locators", type=list, location="json"),
+        dict(name="locators", default=[], type=list, location="json"),
         dict(name="resolution", type=str, location="json"),
         dict(name="browser_version", type=str, location="json"),
         dict(name="name", type=str, location="json")
     )
 
     put_rules = (
-        dict(name="locators", type=list, location="json"),
+        dict(name="locators", default=[], type=list, location="json"),
     )
 
     def __init__(self):

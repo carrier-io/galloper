@@ -97,6 +97,11 @@ def visual_report(project: Project):
 
     avg_page_load = sum(totals) / len(totals)
 
+    try:
+        thresholds_missed = ui_report.thresholds_failed / ui_report.thresholds_total * 100
+    except ZeroDivisionError:
+        thresholds_missed = 0
+
     test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name,
                      environment=ui_report.env,
                      browser=ui_report.browser,
@@ -106,7 +111,7 @@ def visual_report(project: Project):
                      end_time=ui_report.stop_time, start_time=ui_report.start_time,
                      duration=ui_report.duration,
                      failures=1, total=len(results),
-                     thresholds_missed=ui_report.thresholds_failed / ui_report.thresholds_total * 100,
+                     thresholds_missed=thresholds_missed,
                      avg_page_load=avg_page_load / 1000,
                      avg_step_duration=0, build_id=str(uuid4()), release_id=1)
     return render_template("observer/results.html", test_data=test_data)
