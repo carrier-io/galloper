@@ -21,7 +21,8 @@ class UIReportsAPI(Resource):
         dict(name="time", type=str, location="json"),
         dict(name="visited_pages", type=int, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
-        dict(name="thresholds_failed", type=int, location="json")
+        dict(name="thresholds_failed", type=int, location="json"),
+        dict(name="exception", type=str, location="json")
     )
 
     def __init__(self):
@@ -59,6 +60,12 @@ class UIReportsAPI(Resource):
         report.thresholds_total = args["thresholds_total"],
         report.thresholds_failed = args["thresholds_failed"]
         report.duration = self.__diffdates(report.start_time, args["time"]).seconds
+
+        exception = args["exception"]
+        if exception:
+            report.exception = exception
+            report.passed = False
+
         report.commit()
 
         return report.to_json()
