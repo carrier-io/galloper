@@ -43,7 +43,7 @@
                             <th scope="col" data-sortable="false" data-field="name">Name</th>
                             <th scope="col" data-sortable="false" data-field="project_owner">Owner</th>
                             <th scope="col" data-sortable="false" data-formatter="checkFormatter">Services</th>
-                            <th scope="col" data-sortable="false">Stats</th>
+                            <th scope="col" data-sortable="false" data-formatter="statsFormatter">Stats</th>
                             <th scope="col" data-sortable="false" data-field="package">Package</th>
                             <th scope="col" data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">Actions</th>
                         </tr>
@@ -58,6 +58,55 @@
 <script>
     function refreshProjectsTable() {
         $("#projects-table").bootstrapTable("refresh");
+    }
+
+    function statsFormatter(value, row, index) {
+        var stats_string = ''
+        $.ajax({
+            async: false,
+            type: "GET",
+            url: `/api/v1/statistic/${row.id}`,
+            success: function (data) {
+                Object.keys(data).forEach(function(metric) {
+                    if (metric == "performance_test_runs") {
+                        stats_string += `<i class="fas fa-tachometer-alt"></i>`
+                    }
+                    else if (metric == "sast_scans") {
+                        stats_string += `<i class="fas fa-code"></i>`
+                    }
+                    else if (metric == "dast_scans") {
+                        stats_string += `<i class="fas fa-laptop-code"></i>`
+                    }
+                    else if (metric == "storage_space") {
+                        stats_string += `<i class="fas fa-hdd"></i>`
+                    }
+                    else if (metric == "tasks_count") {
+                        stats_string += `<i class="fas fa-cubes"></i>`
+                    }
+                    else if (metric == "tasks_executions") {
+                        stats_string += `<i class="fas fa-cube"></i>`
+                    }
+
+                    var rate = 0
+                    var quota = data[metric]["quota"]
+                    if (quota == -1) {
+                        quota = 'unlimit'
+                    }
+                    else {
+                        rate = data[metric]["current"]/quota * 100
+                    }
+                    if (rate < 80) {
+                        stats_string += `<span class="badge badge-pill badge-success mr-1">${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                    }
+                    else if (rate < 90) {
+                        stats_string += `<span class="badge badge-pill badge-warning mr-1">${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                    } else {
+                        stats_string += `<span class="badge badge-pill badge-danger mr-1">${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                    }
+                });
+            }
+        });
+        return stats_string
     }
 
     function checkFormatter(value, row, index) {
