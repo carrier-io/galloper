@@ -99,7 +99,7 @@ class ArtifactApi(Resource):
             file_size = f.tell()
             storage_space_quota = project.get_storage_space_quota()
             statistic = Statistic.query.filter_by(project_id=project_id).first().to_json()
-            if storage_space_quota != -1 and statistic['storage_space'] + file_size > storage_space_quota * 1000000:
+            if storage_space_quota != -1 and statistic['storage_space'] + file_size/1000000 > storage_space_quota:
                 raise Forbidden(description="The storage space limit allowed in the project has been exceeded")
             MinioClient(project=project).upload_file(bucket, content, name)
         return {"message": "Done", "code": 200}
