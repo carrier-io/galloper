@@ -82,10 +82,10 @@
                         fas_class += `<i class="fas fa-hdd"></i>`
                     }
                     else if (metric == "tasks_count") {
-                        fas_class += `<i class="fas fa-cubes"></i>`
+                        fas_class += `<i class="fas fa-cube"></i>`
                     }
                     else if (metric == "tasks_executions") {
-                        fas_class += `<i class="fas fa-cube"></i>`
+                        fas_class += `<i class="fas fa-cubes"></i>`
                     }
 
                     var rate = 0
@@ -97,12 +97,12 @@
                         rate = data[metric]["current"]/quota * 100
                     }
                     if (rate < 80) {
-                        stats_string += `<span class="badge badge-pill badge-success mr-1">${fas_class} ${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                        stats_string += `<span class="badge badge-pill badge-success mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
                     }
                     else if (rate < 90) {
-                        stats_string += `<span class="badge badge-pill badge-warning mr-1">${fas_class} ${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                        stats_string += `<span class="badge badge-pill badge-warning mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
                     } else {
-                        stats_string += `<span class="badge badge-pill badge-danger mr-1">${fas_class} ${metric}: ${data[metric]["current"]} / ${quota} </span>`
+                        stats_string += `<span class="badge badge-pill badge-danger mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
                     }
                 });
             }
