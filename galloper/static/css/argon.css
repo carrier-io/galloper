@@ -496,9 +496,8 @@ h6,
     font-family: inherit;
     font-weight: 600;
     line-height: 1.5;
-
     margin-bottom: .5rem;
-
+    text-transform: capitalize;
     color: #32325d;
 }
 
@@ -17785,8 +17784,8 @@ a.btn-icon-only
 
 .custom-checkbox .custom-control-input ~ .custom-control-label
 {
+    padding-top: 2px;
     font-size: .875rem;
-
     cursor: pointer;
 }
 
@@ -17812,8 +17811,8 @@ a.btn-icon-only
 
 .custom-radio .custom-control-input ~ .custom-control-label
 {
+    padding-top: 2px;
     font-size: .875rem;
-
     cursor: pointer;
 }
 

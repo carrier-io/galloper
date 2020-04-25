@@ -14,6 +14,7 @@
 
 from os import environ
 from datetime import datetime
+from urllib.parse import urlparse
 
 ALLOWED_EXTENSIONS = ['zip', 'py']
 
@@ -23,6 +24,11 @@ REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = environ.get('REDIS_PORT', '6379')
 REDIS_DB = environ.get('REDIS_DB', 2)
 APP_HOST = environ.get('APP_HOST', 'localhost')
+_url = urlparse(APP_HOST)
+EXTERNAL_LOKI_HOST = f"{_url.scheme}://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST
+APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
+POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/raw/master/package/post_processing.zip"
+CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/raw/master/package/control-tower.zip"
 MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://localhost:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
