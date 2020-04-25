@@ -43,7 +43,7 @@ class Statistic(AbstractBaseMixin, Base):
         for bucket in buckets_list:
             for file in minio_client.list_files(bucket):
                 storage_space += file["size"]
-        json_dict["storage_space"] = storage_space
+        json_dict["storage_space"] = round(storage_space/1000000, 2)
 
         tasks = Task.query.filter_by(project_id=json_dict["project_id"]).all()
         json_dict["tasks_count"] = len(tasks)
