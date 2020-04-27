@@ -87,11 +87,11 @@
                         <span class="h4 font-weight-bold mb-0">{{ test_data['name'] }}</span>
                     </div>
                     <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Duration</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">Duration:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['duration'] }} s</span>
                     </div>
                      <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Started</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">Started:</h5>
                         <span id="start_time" class="h4 font-weight-bold mb-0">{{ test_data['start_time'] }}</span>
                     </div>
                      <div class="col">
@@ -99,25 +99,25 @@
                         <span id="end_time" class="h4 font-weight-bold mb-0">{{ test_data['end_time'] }}</span>
                     </div>
                      <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">TH Missed Rate</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">TH Missed Rate:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['thresholds_missed'] }} %</span>
                     </div>
                  </div>
                  <div class="row mt-3">
                     <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Browser</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">Browser:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['browser'] }}</span>
                     </div>
                      <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Version</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">Version:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['browser_version'] }}</span>
                     </div>
                      <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Resolution</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">View port:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['resolution'] }}</span>
                     </div>
                      <div class="col">
-                        <h5 class="card-title text-uppercase text-muted mb-0">Environment</h5>
+                        <h5 class="card-title text-uppercase text-muted mb-0">Environment:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['environment'] }}</span>
                     </div>
                      <div class="col">
@@ -171,11 +171,11 @@
                     <th scope="col" data-sortable="true" data-formatter=trim>Page Name</th>
                     <th scope="col" data-sortable="true" data-field="speed_index">Speed Index</th>
                     <th scope="col" data-sortable="true" data-field="total_time">Total, sec</th>
-                    <th scope="col" data-sortable="true" data-field="first_bite">FB, sec</th>
+                    <th scope="col" data-sortable="true" data-field="first_bite">FB, ms</th>
                     <th scope="col" data-sortable="true" data-field="first_paint">FP, ms</th>
                     <th scope="col" data-sortable="true" data-field="content_load">Content, ms</th>
                     <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
-                    <th scope="col" data-sortable="true" data-field="missed_thresholds">Thresholds</th>
+                    <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
                     <th scope="col" data-formatter=reportLink>Report</th>
                 </tr>
               </thead>
@@ -189,6 +189,8 @@
 <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
 <script src="https://unpkg.com/layout-base/layout-base.js"></script>
 <script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+<script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-dagre.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-avsdf.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-ctxmenu.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape/cytorender.js') }}"></script>

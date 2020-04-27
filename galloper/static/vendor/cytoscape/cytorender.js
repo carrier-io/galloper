@@ -5,11 +5,12 @@ Promise.all([
 ]).then(function(dataArray) {
     var cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
-        layout: {name: 'avsdf', nodeSeparation: 300 },
+        layout: {name: 'dagre', rankDir: 'LR', spacingFactor: 2 },
         ready: function(){ console.log("done") },
         style: dataArray[0],
         elements: dataArray[1]
     });
+
     cy.cxtmenu({
         selector: 'node', // we can add ctx for edge and for everything else, which is cool
         commands: [
@@ -22,28 +23,12 @@ Promise.all([
         {
             content: '<span><i class="fas fa-tachometer-alt"></i> Perf</span',
             select: function(elem){
-             a= document.createElement('a');
+             let a= document.createElement('a');
              a.target= '_blank';
-             a.href= `/api/v1/artifacts/${getSelectedProjectId()}/${elem.data('bucket')}/${elem.data('file')}`;
+             a.href= `${elem.data('file')}`;
              a.click();
              a.remove();
             }
         }
     ]});
-//    cy.cxtmenu({
-//        selector: 'core',
-//        commands: [
-//        {
-//            content: 'bg1',
-//            select: function(){
-//                console.log( 'bg1' );
-//            }
-//        },
-//        {
-//            content: 'bg2',
-//            select: function(){
-//                console.log( 'bg2' );
-//            }
-//        }
-//    ]});
 });
