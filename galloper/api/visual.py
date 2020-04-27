@@ -106,7 +106,7 @@ class VisualResultAPI(Resource):
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": result.name[:21],
+                    "name": result.name,
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
