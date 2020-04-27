@@ -83,22 +83,9 @@ class VisualResultAPI(Resource):
         "table": [],
         "chart": {
             "nodes": [
-                {"data": {"id": 'j', "name": 'Google', "bucket": "reports", "file": "Yahoo_1587031938.html"}},
-                {"data": {"id": 'e', "name": 'Youtube', "bucket": "reports", "file": "Yahoo_1587031938.html"}},
-                {"data": {"id": 'k', "name": 'Yahoo', "bucket": "reports", "file": "Yahoo_1587031938.html"}},
-                {"data": {"id": 'g', "name": 'Veryglongandnastynameinawayitisliked by our performance analysts',
-                          "bucket": "reports", "file": "Yahoo_1587031938.html"}}
+                {"data": {"id": 'start', "name": 'Start', "bucket": "reports", "file": ""}}
             ],
             "edges": [
-                {"data": {"source": 'j', "target": 'e', "time": 0.5}},
-                {"data": {"source": 'j', "target": 'k', "time": 0.8}},
-                {"data": {"source": 'j', "target": 'g', "time": 1.2}},
-                {"data": {"source": 'e', "target": 'j', "time": 1}},
-                {"data": {"source": 'e', "target": 'k', "time": 2.4}},
-                {"data": {"source": 'k', "target": 'j', "time": 0.6}},
-                {"data": {"source": 'k', "target": 'e', "time": 0.1}},
-                {"data": {"source": 'k', "target": 'g', "time": 1.3}},
-                {"data": {"source": 'g', "target": 'j', "time": 0.7}}
             ]
         }
     }
@@ -107,8 +94,25 @@ class VisualResultAPI(Resource):
         results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
 
         table = []
+        nodes = self._action_mapping["chart"]["nodes"]
+        edges = self._action_mapping["chart"]["edges"]
 
         for result in results:
+            source_node_id = nodes[-1]["data"]["id"]
+            target_node_id = str(uuid4())
+
+            nodes.append({
+                "data": {
+                    "id": target_node_id,
+                    "name": result.name,
+                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                }
+            })
+
+            edges.append({
+                "data": {"source": source_node_id, "target": target_node_id, "time": result.total / 1000}
+            })
+
             data = {
                 "name": result.name,
                 "speed_index": result.speed_index,
