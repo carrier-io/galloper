@@ -79,23 +79,24 @@ class VisualReportAPI(Resource):
 
 
 class VisualResultAPI(Resource):
-    _action_mapping = {
-        "table": [],
-        "chart": {
-            "nodes": [
-                {"data": {"id": 'start', "name": 'Start', "bucket": "reports", "file": ""}}
-            ],
-            "edges": [
-            ]
-        }
-    }
 
     def get(self, project_id: int, report_id: int, action: Optional[str] = "table"):
+        _action_mapping = {
+            "table": [],
+            "chart": {
+                "nodes": [
+                    {"data": {"id": 'start', "name": 'Start', "bucket": "reports", "file": ""}}
+                ],
+                "edges": [
+                ]
+            }
+        }
+
         results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
 
         table = []
-        nodes = self._action_mapping["chart"]["nodes"]
-        edges = self._action_mapping["chart"]["edges"]
+        nodes = _action_mapping["chart"]["nodes"]
+        edges = _action_mapping["chart"]["edges"]
 
         for result in results:
             source_node_id = nodes[-1]["data"]["id"]
@@ -110,7 +111,8 @@ class VisualResultAPI(Resource):
             })
 
             edges.append({
-                "data": {"source": source_node_id, "target": target_node_id, "time": result.total / 1000}
+                "data": {"source": source_node_id, "target": target_node_id,
+                         "time": f"{round(result.total / 1000, 2)} sec"}
             })
 
             data = {
@@ -138,5 +140,5 @@ class VisualResultAPI(Resource):
 
             table.append(data)
 
-        self._action_mapping["table"] = table
-        return self._action_mapping[action]
+        _action_mapping["table"] = table
+        return _action_mapping[action]

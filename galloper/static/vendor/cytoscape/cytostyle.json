@@ -7,7 +7,7 @@
             "content": "data(name)",
             "font-size": "12px",
             "text-halign": "center",
-            "text-wrap": "ellipsis",
+            "text-wrap": "wrap",
             "text-max-width": 120
         }
     },

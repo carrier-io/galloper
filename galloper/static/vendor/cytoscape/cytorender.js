@@ -5,11 +5,12 @@ Promise.all([
 ]).then(function(dataArray) {
     var cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
-        layout: {name: 'avsdf', nodeSeparation: 300 },
+        layout: {name: 'dagre', rankDir: 'LR', spacingFactor: 2 },
         ready: function(){ console.log("done") },
         style: dataArray[0],
         elements: dataArray[1]
     });
+
     cy.cxtmenu({
         selector: 'node', // we can add ctx for edge and for everything else, which is cool
         commands: [
