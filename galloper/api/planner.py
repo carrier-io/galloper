@@ -1,3 +1,4 @@
+from copy import deepcopy
 from uuid import uuid4
 from flask_restful import Resource
 from json import loads
@@ -90,14 +91,18 @@ class TestsApiPerformance(Resource):
 
 
 class TestApiBackend(Resource):
+    _get_rules = (
+        dict(name="raw", type=int, default=0, location="args"),
+    )
+
     _post_rules = (
         dict(name="test_type", type=str, required=False, location='json'),
         dict(name="parallel", type=int, required=False, location='json'),
         dict(name="reporter", type=str, required=False, location='json'),
-        dict(name="runner", type=list, required=False, location='json'),
-        dict(name="params", type=list, required=False, location='json'),
-        dict(name="env_vars", type=list, required=False, location='json'),
-        dict(name="customization", type=list, required=False, location='json'),
+        dict(name="runner", type=str, required=False, location='json'),
+        dict(name="params", type=str, default="{}", required=False, location='json'),
+        dict(name="env_vars", type=str, default="{}", required=False, location='json'),
+        dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="java_opts", type=str, required=False, location='json')
     )
 
@@ -105,16 +110,52 @@ class TestApiBackend(Resource):
         self.__init_req_parsers()
 
     def __init_req_parsers(self):
+        self.get_parser = build_req_parser(rules=self._get_rules)
         self.post_parser = build_req_parser(rules=self._post_rules)
 
     def get(self, project_id, test_id):
+        args = self.get_parser.parse_args(strict=False)
         project = Project.query.get_or_404(project_id)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         test = PerformanceTests.query.filter(_filter).first()
+        if args.raw:
+            return test.to_json(["influx.port", "influx.host", "galloper_url",
+                                 "test_name", "influx.db", "comparison_db",
+                                 "loki_host", "loki_port"])
         return test.configure_execution_json()
+
+    def put(self, project_id, test_id):
+        project = Project.query.get_or_404(project_id)
+        args = self.post_parser.parse_args(strict=False)
+        if isinstance(test_id, int):
+            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+        else:
+            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
+        task = PerformanceTests.query.filter(_filter).first()
+        params = deepcopy(task.params)
+        for key, value in loads(args.get("params")).items():
+            if key not in params or params[key] != value:
+                params[key] = value
+        task.params = params
+        params = deepcopy(task.env_vars)
+        for key, value in loads(args.get("env_vars")).items():
+            if key not in params or params[key] != value:
+                params[key] = value
+        task.env_vars = params
+        params = deepcopy(task.customization)
+        for key, value in loads(args.get("customization")).items():
+            if key not in params or params[key] != value:
+                params[key] = value
+        task.customization = params
+        if args.get("java_opts"):
+            task.java_opts = args.get("java_opts")
+        if args.get("parallel"):
+            task.parallel = args.get("parallel")
+        task.commit()
+        return task.to_json()
 
     def post(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)
@@ -126,10 +167,10 @@ class TestApiBackend(Resource):
         task = PerformanceTests.query.filter(_filter).first()
         event = list()
         event.append(task.configure_execution_json(test_type=args.get("test_type"),
-                                                   params=args.get("params", None),
-                                                   env_vars=args.get("env_vars", None),
+                                                   params=loads(args.get("params", None)),
+                                                   env_vars=loads(args.get("env_vars", None)),
                                                    reporting=args.get("reporting", None),
-                                                   customization=args.get("customization", None),
+                                                   customization=loads(args.get("customization", None)),
                                                    java_opts=args.get("java_opts", None),
                                                    parallel=args.get("parallel", None)))
         response = run_task(project.secrets_json["cc"], event)

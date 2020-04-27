@@ -96,7 +96,7 @@
 
     function createLinkToTest(value, row, index) {
         let selectedProjectId = getSelectedProjectId();
-        return `<a href="/tests/${selectedProjectId}/${page_params.get("type")}/${row['id']}">${row.name}</a>`
+        return `<a href="/tests/${page_params.get("type")}?test=${row['id']}">${row.name}</a>`
     }
 
     function percentFormatter(value, row, index) {
@@ -128,18 +128,21 @@
     });
 
     function actionFormatter(value, row, index) {
-        return `<a class="mr-1 ml-1" href="javascript:void(0)" onclick="runTask('${row.id}')"><i class="fas fa-play"></i></a>
-        <a class="mr-1 ml-1" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-cog"></i></a>
-        <a class="mr-1 ml-1" href="javascript:void(0)" onclick="deleteReports('${row.id}')"><i class="fa fa-trash-alt"></i></a>`
+        return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="runTask(this, '${row.id}')"><i class="fas fa-play"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="/tests/backend?test=${row.id}"><i class="fas fa-cog"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-clipboard"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="deleteTasks('${row.id}')"><i class="fa fa-trash-alt"></i></a>`
     }
 
-    function runTask(test_id) {
+    function runTask(elem, test_id) {
         var project_id = getSelectedProjectId();
+        elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
+        elem.classList.add("disabled");
         $.ajax({
             url: `/api/v1/tests/${project_id}/backend/${test_id}`,
             type: 'POST',
             success: function (result) {
-                window.location.href = `/task/${result.redirect}`;
+                window.location.href = `/report`;
             }
         });
     }
@@ -180,7 +183,7 @@
         }
     });
 
-    function deleteReports(id) {
+    function deleteTasks(id) {
         var project_id = $("#selected-project-id").text();
         var reports = `/api/v1/tests/${project_id}/backend?`;
         if (id == undefined){

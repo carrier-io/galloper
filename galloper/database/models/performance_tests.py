@@ -11,7 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+from os import path
 from uuid import uuid4
 from json import dumps
 
@@ -114,7 +114,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
                     pairs[pair][0][each] = self.pairs[pair][1][each]
         cmd = ''
         if self.job_type == 'perfmeter':
-            cmd = f"-n -t {self.entrypoint}"
+            entrypoint = self.entrypoint if path.exists(self.entrypoint) else path.join('/mnt/jmeter', self.entrypoint)
+            cmd = f"-n -t {entrypoint}"
             for key, value in self.params.items():
                 if test_type and key == "test.type":
                     cmd += f" -Jtest.type={test_type}"
@@ -146,3 +147,12 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["execution_params"]["GATLING_TEST_PARAMS"] += f"-D{key}={value} "
         execution_json["execution_params"] = dumps(execution_json["execution_params"])
         return execution_json
+
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        test_param = super().to_json()
+        for key in exclude_fields:
+            del test_param['params'][key]
+        return test_param
+
+
+

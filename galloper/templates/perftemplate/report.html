@@ -12,36 +12,34 @@
                     <div class="col">
                         <ul id="chart-control" class="nav nav-pills justify-content-end">
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="CR" data-target="#addRelease" data-toggle="modal"
-                                        class="btn btn-primary btn-sm">
+                                <button id="CR" data-target="#addRelease" data-toggle="modal" class="btn btn-primary btn-sm">
                                     <span class="d-none d-md-block">Create Release</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="AR" data-target="#assignToRelease" data-toggle="modal"
-                                        class="btn btn-primary btn-sm" disabled>
+                                <button id="AR" data-target="#assignToRelease" data-toggle="modal" class="btn btn-primary btn-sm" disabled>
                                     <span class="d-none d-md-block">Assign to Release</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
-                                    <span class="d-none d-md-block">Delete</span>
+                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Delete" disabled>
+                                    <i class="fa fa-trash-alt"></i>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
+                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Compare" disabled>
                                     <span class="d-none d-md-block">Compare</span>
                                     <span class="d-md-none">C</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
-                                    <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
+                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Filters">
+                                    <i class="fa fa-filter"></i>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
-                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
+                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Refresh">
+                                    <i class="fa fa-sync"></i>
                                 </button>
                             </li>
                         </ul>
