@@ -92,6 +92,7 @@ class VisualResultAPI(Resource):
             }
         }
 
+        report = UIReport.query.get_or_404(report_id)
         results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
 
         table = []
@@ -105,7 +106,7 @@ class VisualResultAPI(Resource):
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": result.name,
+                    "name": result.name[:21],
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
@@ -130,6 +131,9 @@ class VisualResultAPI(Resource):
 
             actions = []
             for loc in result.locators:
+                if loc['target'] == "/":
+                    loc['target'] = report.base_url
+
                 actions.append({
                     "action": loc["command"],
                     "locator": loc['target'],
