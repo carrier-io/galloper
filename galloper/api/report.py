@@ -12,16 +12,14 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-import operator
-from json import loads
+
 from datetime import datetime, timezone
 
 from flask_restful import Resource
-from sqlalchemy import or_, and_
-from werkzeug.exceptions import Forbidden
+from sqlalchemy import and_
 
 from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
-    get_baseline, delete_baseline, get_tps, get_errors, get_backend_requests, get_response_time_per_test
+    get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test
 from galloper.data_utils.charts_utils import (
     requests_summary, requests_hits, avg_responses, summary_table, get_issues, get_data_from_influx,
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
@@ -30,6 +28,7 @@ from galloper.database.models.api_reports import APIReport
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.database.models.project_quota import ProjectQuota
+from galloper.api.base import get
 from galloper.utils.api_utils import build_req_parser
 from galloper.constants import str_to_timestamp
 from galloper.data_utils import arrays
@@ -72,44 +71,10 @@ class ReportAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
-    def __calcualte_limit(self, limit, total):
-        return len(total) if limit == 'All' else limit
-
     def get(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
-        reports = []
         args = self._parser_get.parse_args(strict=False)
-        limit_ = args.get("limit")
-        offset_ = args.get("offset")
-        res = []
-        total = 0
-        if args.get("sort"):
-            sort_rule = getattr(getattr(APIReport, args["sort"]), args["order"])()
-        else:
-            sort_rule = APIReport.id.asc()
-        if not args.get('search') and not args.get('filter'):
-            total = APIReport.query.filter(APIReport.project_id == project.id).order_by(sort_rule).count()
-            res = APIReport.query.filter(
-                APIReport.project_id == project.id
-            ).order_by(sort_rule).limit(self.__calcualte_limit(limit_, total)).offset(offset_).all()
-        elif args.get("search"):
-            search_args = f"%{args['search']}%"
-            filter_ = and_(APIReport.project_id == project.id,
-                           or_(APIReport.name.like(search_args),
-                               APIReport.environment.like(search_args),
-                               APIReport.type.like(search_args)))
-            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
-                self.__calcualte_limit(limit_, total)).offset(offset_).all()
-        elif args.get("filter"):
-            filter_ = list()
-            filter_.append(operator.eq(APIReport.project_id, project.id))
-            for key, value in loads(args.get("filter")).items():
-                filter_.append(operator.eq(getattr(APIReport, key), value))
-            filter_ = and_(*tuple(filter_))
-            total = APIReport.query.order_by(sort_rule).filter(filter_).count()
-            res = APIReport.query.filter(filter_).order_by(sort_rule).limit(
-                self.__calcualte_limit(limit_, total)).offset(offset_).all()
+        reports = []
+        total, res = get(project_id, args, APIReport)
         for each in res:
             each_json = each.to_json()
             each_json["start_time"] = each_json["start_time"].replace("T", " ").split(".")[0]

@@ -111,6 +111,7 @@
 <script>
     $('#crtask').submit(
         function (event) {
+          let selectedProjectId = getSelectedProjectId();
           event.preventDefault();
           var data = new FormData();
           data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
@@ -120,14 +121,14 @@
           data.append('env_vars', $('#env_vars')[0].value);
           $.ajax(
             {
-              url:"/task",
+              url:`/api/v1/task/${selectedProjectId}`,
               data: data,
               cache: false,
               contentType: false,
               processData: false,
               method: 'POST',
               success: function(data){
-                window.location.href = "/task/" + data;
+                window.location.href = "/task/" + data.file;
               }
             }
           );

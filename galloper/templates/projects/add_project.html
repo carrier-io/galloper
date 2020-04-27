@@ -10,8 +10,8 @@
                   <h3 class="mb-0">Create Project</h3>
                 </div>
                 <div class="col-4 text-right">
-                    <a href="#" onclick="submit()" class="btn btn-sm btn-primary">Save</a>
-                    <a href="/" class="btn btn-sm btn-primary">Cancel</a>
+                    <button onclick="submit()" id="submit_button" class="btn btn-sm btn-primary">Save</button>
+                    <a href="/projects" class="btn btn-sm btn-primary">Cancel</a>
                 </div>
               </div>
             </div>
@@ -34,6 +34,8 @@
 
     function submit() {
         let active_package = $(".card-shadow-active").find("span").text()
+        $("#submit_button").html(`<span class="spinner-border spinner-border-sm"></span>`);
+        $("#submit_button").addClass("disabled");
         var project_data = {
             name: $("#proj_name").val(),
             owner: $("#proj_owner").val(),

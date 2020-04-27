@@ -21,7 +21,7 @@ from flask_restful import Resource
 from werkzeug.exceptions import Forbidden
 
 from galloper.database.models.project import Project
-from galloper.database.models.statistic import Statistic
+from galloper.api.base import upload_file
 from galloper.processors.minio import MinioClient
 from galloper.utils.api_utils import build_req_parser
 

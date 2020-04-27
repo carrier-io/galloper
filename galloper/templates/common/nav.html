@@ -7,7 +7,15 @@
             <ul class="menu-dropdown">
                 <li><a href="/projects">Projects</a><span class="icon"><i class="ni ni-badge main-menu"></i></span></li>
                 <li><a href="/tasks">Tasks</a><span class="icon"><i class="ni ni-atom main-menu"></i></span></li>
-                <li><a href="/observer">Observer</a><span class="icon"><i class="ni ni-tv-2 main-menu"></i></span></li>
+                <li class="menu-hasdropdown">
+                    <a href="#" onclick="openMenu('tests')">Tests Planner</a><span class="icon"><i class="fas fa-swatchbook main-menu"></i></span>
+                    <input type="checkbox" class="sub-menu-checkbox" id="tests" />
+					<ul class="sub-menu-dropdown">
+						<li class="nav-item"><a class="nav-link ml-2" href="/tests?type=backend"><span class="icon"><i class="ni ni-sound-wave main-menu"></i></span>Backend Performance</a></li>
+						<li class="nav-item"><a class="nav-link ml-2" href="/tests?type=frontend"><span class="icon"><i class="ni ni-album-2 main-menu"></i></span> UI Performance</a></li>
+						<li class="nav-item"><a class="nav-link ml-2" href="/tests?type=security"><span class="icon"><i class="ni ni-lock-circle-open main-menu"></i></span> Security</a></li>
+					</ul>
+				</li>
 				<li class="menu-hasdropdown">
                     <a href="#" onclick="openMenu('reports')">Reports</a><span class="icon"><i class="ni ni-single-copy-04 main-menu"></i></span>
                     <input type="checkbox" class="sub-menu-checkbox" id="reports" />
@@ -27,6 +35,7 @@
 					</ul>
 				</li>
 				<li><a href="/artifacts">Artifacts</a><span class="icon"><i class="ni ni-archive-2 main-menu"></i></span></li>
+                <li><a href="/observer">Observer</a><span class="icon"><i class="ni ni-tv-2 main-menu"></i></span></li>
 				<li><a href="/grafana">Grafana</a><span class="icon"><i class="ni ni-chart-bar-32 main-menu"></i></span></li>
 			</ul>
 		</div>
