@@ -98,7 +98,7 @@ def visual_report(project: Project):
     avg_page_load = sum(totals) / len(totals)
 
     try:
-        thresholds_missed = ui_report.thresholds_failed / ui_report.thresholds_total * 100
+        thresholds_missed = round(ui_report.thresholds_failed / ui_report.thresholds_total * 100, 2)
     except ZeroDivisionError:
         thresholds_missed = 0
 
