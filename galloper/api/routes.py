@@ -17,14 +17,17 @@ from flask_restful import Api
 from galloper.utils.api_utils import add_resource_to_api
 from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
 from .artifacts import BucketsApi, ArtifactApi
+from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
-from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
-from .task import TaskActionApi
+from .planner import TestsApiPerformance, TestApiBackend
+from .visual import VisualReportAPI, VisualResultAPI
+from .task import TaskActionApi, TasksApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
-from .ui_perf import UIReportsAPI
+from .observer_report import UIReportsAPI
 
 
 def initialize_api_routes(api: Api):
@@ -39,6 +42,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>")
     add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>")
     add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>")
+    add_resource_to_api(api, TestSaturation, "/saturation")
 
     add_resource_to_api(api, SecurityReportAPI, "/security/<int:project_id>")
     add_resource_to_api(api, FindingsAPI, "/security/<int:project_id>/finding")
@@ -52,8 +56,18 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
 
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
+    add_resource_to_api(api, TasksApi, "/task/<int:project_id>")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")
 
-    add_resource_to_api(api, UIReportsAPI, "/ui-perf/<int:project_id>/<int:report_id>", "/ui-perf/<int:project_id>")
+    add_resource_to_api(api, UIReportsAPI, "/observer/<int:project_id>")
+    add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<int:report_id>")
+
+    add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
+    add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",
+                        "/visual/<int:project_id>/<int:report_id>/<string:action>")
+
+    add_resource_to_api(api, TestsApiPerformance, "/tests/<int:project_id>/backend")
+    add_resource_to_api(api, TestApiBackend, "/tests/<int:project_id>/backend/<int:test_id>",
+                                             "/tests/<int:project_id>/backend/<string:test_id>")

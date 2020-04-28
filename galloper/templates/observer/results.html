@@ -1,0 +1,229 @@
+{% include 'common/head.html' %}
+<meta property="build_id" content="{{ test_data['build_id'] }}" />
+<meta property="browser" content="{{ test_data['browser'] }}" />
+<meta property="test_name" content="{{ test_data['name'] }}" />
+<link href="{{ url_for('static', filename='vendor/cytoscape/cyrostyle.css') }}" rel="stylesheet">
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+  <!-- Card stats -->
+  <div class="row header-body">
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Total Pages</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['total'] }}</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-green text-white rounded-circle shadow">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Avg. Page Load</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['avg_page_load'] }} sec</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                <i class="fas fa-chart-line"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Avg. Step Load</h5>
+              <span class="h2 font-weight-bold mb-0">{{ test_data['avg_step_duration'] }} sec</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                <i class="fas fa-chart-line"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+      <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title text-uppercase text-muted mb-0">Error Rate</h5>
+              <span class="h2 font-weight-bold mb-0">{{ (test_data['failures'] * 100 , test_data['total']) | is_zero }} %</span>
+            </div>
+            <div class="col-auto">
+              <div class="icon icon-shape bg-red text-white rounded-circle shadow">
+                <i class="fas fa-exclamation"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="row header-body">
+     <div class="col-xl-12 col-lg-12">
+         <div class="card card-stats mb-4 mb-xl-0">
+             <div class="card-body">
+                 <div class="row">
+                   <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Test Name:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['name'] }}</span>
+                    </div>
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Duration:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['duration'] }} s</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Started:</h5>
+                        <span id="start_time" class="h4 font-weight-bold mb-0">{{ test_data['start_time'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Ended</h5>
+                        <span id="end_time" class="h4 font-weight-bold mb-0">{{ test_data['end_time'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">TH Missed Rate:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['thresholds_missed'] }} %</span>
+                    </div>
+                 </div>
+                 <div class="row mt-3">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Browser:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['browser'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Version:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['browser_version'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">View port:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['resolution'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Environment:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['environment'] }}</span>
+                    </div>
+                     <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Base UR:</h5>
+                        <span class="h4 font-weight-bold mb-0">{{ test_data['url'] }}</span>
+                    </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+</div>
+<div class="row header-body">
+<div class="col-xl-12 mb-6 mb-xl-0">
+  <div class="card bg-gradient-white shadow">
+    <div class="card-header bg-transparent">
+      <div class="row align-items-center">
+        <div class="col-xl-4">
+          <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
+          <h2 class="text-gray mb-0">Results summary</h2>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+        <div id="cy"></div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="row header-body">
+<div class="col-xl-12 col-lg-12">
+    <div class="card card-stats mb-4 mb-xl-0">
+        <div class="card-header bg-transparent">
+          <div class="row align-items-center">
+            <div class="col">
+              <h2 class="text-gray mb-0">Pages Speed Results</h2>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+            <table
+              id="summary_table"
+              data-toggle="table"
+              data-url=""
+              data-pagination="true"
+              data-detail-view="true"
+              data-detail-view-icon="false"
+              data-detail-view-by-click="true"
+              data-detail-formatter="detailFormatter">
+              <thead class="thead-light">
+                <tr>
+                    <th scope="col" data-sortable="true" data-formatter=trim>Page Name</th>
+                    <th scope="col" data-sortable="true" data-field="speed_index">Speed Index</th>
+                    <th scope="col" data-sortable="true" data-field="total_time">Total, sec</th>
+                    <th scope="col" data-sortable="true" data-field="first_bite">FB, ms</th>
+                    <th scope="col" data-sortable="true" data-field="first_paint">FP, ms</th>
+                    <th scope="col" data-sortable="true" data-field="content_load">Content, ms</th>
+                    <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
+                    <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
+                    <th scope="col" data-formatter=reportLink>Report</th>
+                </tr>
+              </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+{% include 'common/foot.html' %}
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/layout-base/layout-base.js"></script>
+<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+<script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-dagre.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-avsdf.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-ctxmenu.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytorender.js') }}"></script>
+<script>
+    function refreshTable() {
+        let selectedProjectId = getSelectedProjectId();
+        let report_id = page_params.get("report_id");
+        $("#summary_table").bootstrapTable('refresh', {url: `/api/v1/visual/${selectedProjectId}/${report_id}`});
+    }
+
+    function trim(value, row, index){
+        return row.name.length > 40 ? row.name.substring(0, 40) : row.name
+    }
+
+    function detailFormatter(index, row) {
+        var html = []
+        row.actions.forEach(action => {
+            html.push(`<b>${action.action}</b>`)
+            if ( action.value !== '' ) html.push(` "<b>${action.value}</b> to "`)
+            else html.push(` on `)
+            html.push(`<b>${action.locator}</b><br />`)
+        })
+        return html.join('')
+  }
+
+  function reportLink(value, row, index) {
+    return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
+  }
+
+    $(document).ready(function() {
+        refreshTable();
+    });
+
+</script>
+</body>
+</html>

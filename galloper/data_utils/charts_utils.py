@@ -108,7 +108,7 @@ def get_data_from_influx(args):
         return create_dataset(timestamps, users['users'], f"{scope}_{metric}", axe)
     data, axe = calculate_analytics_dataset(args['build_id'], args['test_name'], args['lg_type'],
                                             start_time, end_time, aggregation, args['sampler'],
-                                            scope, metric)
+                                            scope, metric, args["status"])
     if data:
         return create_dataset(timestamps, data, f"{scope}_{metric}", axe)
     else:

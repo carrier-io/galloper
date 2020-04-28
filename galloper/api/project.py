@@ -12,8 +12,8 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+from json import dumps
 from typing import Optional, Union, Tuple
-
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
@@ -21,6 +21,9 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
+from galloper.api.base import create_task
+from galloper.data_utils.file_utils import File
+from galloper.constants import POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
 
 from datetime import datetime
 
@@ -106,6 +109,32 @@ class ProjectAPI(Resource):
         )
         statistic.insert()
 
+        pp_args = {
+            "funcname": "post_processor",
+            "invoke_func": "lambda_function.lambda_handler",
+            "runtime": "Python 3.7",
+            "env_vars": dumps({})
+        }
+        pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
+        cc_args = {
+            "funcname": "control_tower",
+            "invoke_func": "lambda.handler",
+            "runtime": "Python 3.7",
+            "env_vars": dumps({
+                "REDIS_HOST": APP_IP,
+                "REDIS_DB": 1,
+                "galloper_url": APP_HOST,
+                "GALLOPER_WEB_HOOK": f'{APP_HOST}{pp.webhook}',
+                "project_id": project.id,
+                "loki_host": EXTERNAL_LOKI_HOST
+            })
+        }
+        cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
+        project.secrets_json = {
+            "pp": pp.task_id,
+            "cc": cc.task_id
+        }
+        project.commit()
         return {"message": f"Project was successfully created"}, 200
 
     def put(self, project_id: Optional[int] = None) -> Tuple[dict, int]:

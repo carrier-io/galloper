@@ -7,39 +7,41 @@
             <div class="card-header bg-transparent border-0">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h2 class="text-gray mb-0">Backend Performance Reports</h2>
+                        <h2 class="text-gray mb-0">UI Performance Reports</h2>
                     </div>
                     <div class="col">
                         <ul id="chart-control" class="nav nav-pills justify-content-end">
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="CR" data-target="#addRelease" data-toggle="modal" class="btn btn-primary btn-sm">
+                                <button id="CR" data-target="#addRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm">
                                     <span class="d-none d-md-block">Create Release</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="AR" data-target="#assignToRelease" data-toggle="modal" class="btn btn-primary btn-sm" disabled>
+                                <button id="AR" data-target="#assignToRelease" data-toggle="modal"
+                                        class="btn btn-primary btn-sm" disabled>
                                     <span class="d-none d-md-block">Assign to Release</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Delete" disabled>
-                                    <i class="fa fa-trash-alt"></i>
+                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block">Delete</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Compare" disabled>
+                                <button id="RT" onclick="runComparison()" class="btn btn-primary btn-sm" disabled>
                                     <span class="d-none d-md-block">Compare</span>
                                     <span class="d-md-none">C</span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Filters">
-                                    <i class="fa fa-filter"></i>
+                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
                                 </button>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Refresh">
-                                    <i class="fa fa-sync"></i>
+                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
                                 </button>
                             </li>
                         </ul>
@@ -62,13 +64,12 @@
                         <th scope="col" data-sortable="true" data-field="start_time">Start</th>
                         <th scope="col" data-sortable="true" data-field="name" data-formatter=createLinkToReport data-filter-control="input">Name</th>
                         <th scope="col" data-sortable="true" data-field="duration" data-filter-control="input">Duration</th>
-                        <th scope="col" data-sortable="true" data-field="vusers" data-filter-control="input">vUsers</th>
                         <th scope="col" data-sortable="true" data-field="environment" data-filter-control="input">Env</th>
-                        <th scope="col" data-sortable="true" data-field="type" data-filter-control="select">Test Type</th>
-                        <th scope="col" data-sortable="true" data-field="throughput" data-filter-control="input">TPS</th>
-                        <th scope="col" data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
+                        <th scope="col" data-sortable="true" data-field="avg_page_load" data-filter-control="input">Avg. Page Time</th>
+                        <th scope="col" data-sortable="true" data-field="avg_step_duration" data-filter-control="input">Avg. Step Time</th>
+                        <th scope="col" data-sortable="true" data-field="thresholds_missed" data-filter-control="input" data-formatter="percentFormatter">Failed checks</th>
                         <th scope="col" data-sortable="true" data-field="release_id" data-filter-control="input">Release ID</th>
-                        <th scope="col" data-field="lg_type" data-formatter=lgFormatter>Runner</th>
+                        <th scope="col" data-field="browser" data-formatter=browserFormatter>Browser</th>
                     </tr>
                     </thead>
                 </table>
@@ -138,7 +139,7 @@
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 <script>
     function createLinkToReport(value, row, index) {
-        return '<a href="/report/backend?report_id=' + row['id'] + '">' + value + '</a>'
+        return '<a href="/visual/report?report_id=' + row['id'] + '">' + value + '</a>'
     }
 
     function percentFormatter(value, row, index) {
@@ -195,7 +196,7 @@
         });
         var data = {
             release_id: $("#releases").val(),
-            reports: reports
+            visual: reports
         };
         let selectedProjectId = getSelectedProjectId();
         $.ajax({
@@ -212,7 +213,7 @@
 
     function refreshTable() {
         let selectedProjectId = getSelectedProjectId();
-        $("#results").bootstrapTable('refresh', {url: `/api/v1/reports/${selectedProjectId}`});
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/visual/${selectedProjectId}`});
     }
 
     $(document).ready(function() {
@@ -220,11 +221,11 @@
         filters();
     });
 
-    function lgFormatter(value, row, index) {
-        if (value === "jmeter") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/jmeter.png')}}\" width=\"25\">"
-        } else if (value === "gatling") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/gatling.png') }}\" width=\"25\">"
+    function browserFormatter(value, row, index) {
+        if (value === "chrome") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/chrome.png')}}\" width=\"25\">"
+        } else if (value === "firefox") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/firefox.png') }}\" width=\"25\">"
         } else {
             return value
         }
@@ -244,7 +245,7 @@
     });
 
     function runComparison() {
-        var reports = "/report/compare?";
+        var reports = "/visual/compare?";
         $("#results").bootstrapTable('getSelections').forEach(item => {
             reports += "id[]=" + item["id"] + "&";
         });
@@ -253,7 +254,7 @@
 
     function deleteReports() {
         var project_id = $("#selected-project-id").text();
-        var reports = `/api/v1/reports/${project_id}?`;
+        var reports = `/api/v1/visual/${project_id}?`;
         $("#results").bootstrapTable('getSelections').forEach(item => {
             reports += "id[]=" + item["id"] + "&"
         });

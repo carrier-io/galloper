@@ -20,26 +20,37 @@ from galloper.data_utils.report_utils import render_analytics_control
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.security_results import SecurityResults
 from galloper.database.models.project import Project
+from galloper.database.models.ui_report import UIReport
+from galloper.database.models.ui_result import UIResult
 from galloper.utils.auth import project_required
 
 bp = Blueprint("reports", __name__)
 
 
 @bp.route("/report", methods=["GET"])
-def report():
+@project_required
+def report(project: Project):
     return render_template("perftemplate/report.html")
 
 
 @bp.route("/security", methods=["GET"])
-def security():
+@project_required
+def security(project: Project):
     return render_template("security/report.html")
 
 
+@bp.route("/visual", methods=["GET"])
+@project_required
+def visual(project: Project):
+    return render_template("observer/report.html")
+
+
 @bp.route("/security/<int:project_id>/finding", methods=["GET"])
-def findings(project_id):
+@project_required
+def findings(project: Project):
     report_id = request.args.get("id", None)
     test_data = SecurityResults.query.filter(
-        and_(SecurityResults.project_id == project_id, SecurityResults.id == report_id)).first()
+        and_(SecurityResults.project_id == project.id, SecurityResults.id == report_id)).first()
     return render_template("security/results.html", test_data=test_data)
 
 
@@ -59,11 +70,52 @@ def view_report(project: Project):
 
 
 @bp.route("/report/compare", methods=["GET"])
-def compare_reports():
+@project_required
+def compare_reports(project: Project):
     samplers = set()
     requests_data = set()
     tests = request.args.getlist("id[]")
-    for each in APIReport.query.filter(APIReport.id.in_(tests)).order_by(APIReport.id.asc()).all():
+    for each in APIReport.query.filter(
+        and_(APIReport.id.in_(tests)), APIReport.project_id == project.id
+    ).order_by(APIReport.id.asc()).all():
         samplers.update(get_sampler_types(each.build_id, each.name, each.lg_type))
         requests_data.update(set(each.requests.split(";")))
     return render_template("perftemplate/comparison_report.html", samplers=samplers, requests=requests_data)
+
+
+@bp.route("/visual/report", methods=["GET"])
+@project_required
+def visual_report(project: Project):
+    # expected report level data
+    from uuid import uuid4
+    report_id = request.args.getlist("report_id")[0]
+
+    ui_report = UIReport.query.filter_by(id=report_id, project_id=project.id).first_or_404()
+    results = UIResult.query.filter_by(report_id=report_id).all()
+
+    totals = list(map(lambda x: x.total, results))
+
+    avg_page_load = sum(totals) / len(totals)
+
+    try:
+        thresholds_missed = ui_report.thresholds_failed / ui_report.thresholds_total * 100
+    except ZeroDivisionError:
+        thresholds_missed = 0
+
+    failures = len(results)
+    if not ui_report.passed:
+        failures = 0
+
+    test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name,
+                     environment=ui_report.env,
+                     browser=ui_report.browser,
+                     browser_version=results[0].browser_version.split(" ")[1],
+                     resolution=results[0].resolution,
+                     url=ui_report.base_url,
+                     end_time=ui_report.stop_time, start_time=ui_report.start_time,
+                     duration=ui_report.duration,
+                     failures=failures, total=len(results),
+                     thresholds_missed=thresholds_missed,
+                     avg_page_load=round(avg_page_load / 1000, 2),
+                     avg_step_duration=0, build_id=str(uuid4()), release_id=1)
+    return render_template("observer/results.html", test_data=test_data)

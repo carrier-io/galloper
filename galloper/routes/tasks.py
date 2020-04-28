@@ -12,14 +12,11 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-import os
-from uuid import uuid4
-from werkzeug.exceptions import Forbidden
-from flask import Blueprint, request, render_template, flash, current_app, redirect, url_for
+from flask import Blueprint, request, render_template, redirect, url_for
 from sqlalchemy import and_
-from werkzeug.utils import secure_filename
 
-from galloper.constants import allowed_file, NAME_CONTAINER_MAPPING
+
+from galloper.constants import NAME_CONTAINER_MAPPING
 from control_tower import run
 
 from galloper.database.models.project import Project
@@ -63,43 +60,9 @@ def call_lambda(task_id: str):
     )
 
 
-@bp.route("/task", methods=["GET", "POST"])
+@bp.route("/task", methods=["GET"])
 @project_required
 def add_task(project: Project):
-    if request.method == "POST":
-        if "file" not in request.files:
-            flash("No file part")
-            return ""
-        file = request.files["file"]
-        if file.filename == "":
-            flash("No selected file")
-            return ""
-        if file and allowed_file(file.filename):
-
-            if not Task.check_task_quota(project_id=project.id):
-                raise Forbidden(description="The number of tasks allowed in the project has been exceeded")
-
-            filename = str(uuid4())
-            filename = secure_filename(filename)
-            file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
-            app = run.connect_to_celery(1)
-            celery_task = app.signature(
-                "tasks.volume",
-                kwargs={"task_id": filename, "file_path": current_app.config["UPLOAD_FOLDER"]}
-            )
-            celery_task.apply_async()
-            task = Task(
-                task_id=filename,
-                project_id=project.id,
-                zippath=filename,
-                task_name=request.form["funcname"],
-                task_handler=request.form["invoke_func"],
-                runtime=request.form["runtime"],
-                env_vars=request.form["env_vars"]
-            )
-            task.insert()
-            return f"{filename}"
-
     return render_template("lambdas/add_task.html", runtimes=NAME_CONTAINER_MAPPING.keys())
 
 

@@ -21,6 +21,7 @@ from flask_restful import Resource
 from werkzeug.exceptions import Forbidden
 
 from galloper.database.models.project import Project
+from galloper.api.base import upload_file
 from galloper.processors.minio import MinioClient
 from galloper.utils.api_utils import build_req_parser
 
@@ -58,7 +59,7 @@ class BucketsApi(Resource):
             expiration_date = today_date + relativedelta(**{expiration_measure: expiration_value})
             time_delta = expiration_date - today_date
             days = time_delta.days
-            if data_retention_limit and days > data_retention_limit:
+            if data_retention_limit != -1 and days > data_retention_limit:
                 raise Forbidden(description="The data retention limit allowed in the project has been exceeded")
 
         created = minio_client.create_bucket(bucket)
@@ -91,8 +92,7 @@ class ArtifactApi(Resource):
     def post(self, project_id: int, bucket: str, filename: str):
         project = Project.query.get_or_404(project_id)
         if "file" in request.files:
-            f = request.files["file"]
-            MinioClient(project=project).upload_file(bucket, f.read(), f.filename)
+            upload_file(bucket, request.files["file"], project)
         return {"message": "Done", "code": 200}
 
     def delete(self, project_id: int, bucket: str, filename: str):

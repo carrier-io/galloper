@@ -1,0 +1,308 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+      <div class="row">
+        <div class="col">
+          <div class="card shadow">
+            <div class="card-header bg-white border-0">
+              <div class="row align-items-center">
+                <div class="col-8">
+                  <h3 class="mb-0">{{title}}</h3>
+                </div>
+                <div class="col-4 text-right">
+                  <a href="/tests?type=backend" class="btn btn-sm btn-primary">Cancel</a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <form id="crtask">
+                <h6 class="heading-small text-muted mb-4">Test Details</h6>
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="testname">Test Name</label>
+                        <p><small>Enter a name that describes the purpose of your test.</small></p>
+                        <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-control-label" for="parallel">Parallel runners</label>
+                        <p><small>How many test agents you need to execute test</small></p>
+                        <input type="text" id="parallel" class="form-control form-control-alternative" placeholder="# of Runners">
+                      </div>
+                      <div class="form-group" id="reporters">
+                            <label class="form-control-label">Reporting</label>
+                            <p><small>Specify expected report types</small></p>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="junit">
+                              <label class="custom-control-label" for="junit">jUnit Report</label>
+                            </div>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="quality">
+                              <label class="custom-control-label" for="quality">Quality Gate</label>
+                            </div>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="perfreports">
+                              <label class="custom-control-label" for="perfreports">Tool Reports</label>
+                            </div>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="email">
+                              <label class="custom-control-label" for="email">Email</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group" id="fileUpload">
+                          <label class="form-control-label" for="file">Test package</label>
+                          <p><small>
+                              Please upload .zip file with your tests. Packaging guidelines.
+                          </small></p>
+                          <input type="file" class="form-control" id="file" multiple="">
+                        </div>
+                        <div class="form-group" id="testid" style="display:none">
+                            <label class="form-control-label" for="file">Test UUID</label>
+                          <p><small>
+                              UUID of the tests, may be used to refer it
+                          </small></p>
+                          <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-control-label" for="entrypoint">Entry point</label>
+                            <p><small>File for jMeter and class for gatling</small></p>
+                        <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. some.jmx or some.Test)">
+                      </div>
+                      <div class="form-group" id="testrunners">
+                        <label class="form-control-label">Test runner</label>
+                        <p><small>Choose the runner for the test.</small></p>
+                        <div class="custom-control custom-radio custom-control-inline">
+                              <input type="radio" id="jmeter5" name="runner" class="custom-control-input">
+                              <label class="custom-control-label" for="jmeter5">JMeter 5.x</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                              <input type="radio" id="jmeter4" name="runner" class="custom-control-input">
+                              <label class="custom-control-label" for="jmeter4">JMeter 4.x</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                              <input type="radio" id="gatling3" name="runner" class="custom-control-input">
+                              <label class="custom-control-label" for="gatling3">Gatling 3.x</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                              <input type="radio" id="gatling2" name="runner" class="custom-control-input">
+                              <label class="custom-control-label" for="gatling2">Gatling 2.x</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <hr class="my-4" />
+                <!-- Address -->
+                <h6 class="heading-small text-muted mb-4">Test Parameters</h6>
+                <div class="pl-lg-4">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label class="form-control-label">Script Params</label>
+                            <p>
+                                <small>Parameters required for the script to run</small>
+                                <a class="ml-3" href="javascript:void(0)" onclick="add('script_params')">
+                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                </a>
+                                <a class="ml-3" href="javascript:void(0)" onclick="remove('script_params')">
+                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                </a>
+                            </p>
+                            <div class="col-lg-10" id="script_params"></div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-control-label">Environment</label>
+                            <p>
+                                <small>Environment variables required for your test</small>
+                                <a class="ml-3" href="javascript:void(0)" onclick="add('env_vars')">
+                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                </a>
+                                <a class="ml-3" href="javascript:void(0)" onclick="remove('env_vars')">
+                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                </a>
+                            </p>
+                            <div class="col-lg-10" id="env_vars"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label class="form-control-label">Runner customizations</label>
+                            <p>
+                                <small>Bucket and file for your customizations</small>
+                                <a class="ml-3" href="javascript:void(0)" onclick="addB('customs')">
+                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                </a>
+                                <a class="ml-3" href="javascript:void(0)" onclick="remove('customs')">
+                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                </a>
+                            </p>
+                            <div class="col-lg-10" id="customs"></div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-control-label" for="javaopts">JAVA OPTS</label>
+                            <p><small>Customization of java variables</small></p>
+                            <input type="text" id="javaopts" class="form-control form-control-alternative" placeholder="JAVA_OPTS">
+                        </div>
+                    </div>
+                </div>
+                <div class="pl-lg-4 mt-4">
+                  <div class="row">
+                    <div class="col-lg-12">
+                        <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
+                        <a href="javascript:void(0)" class="btn btn-warning">Test</a>
+                        <a href="/tests?type=backend" class="btn btn-danger">Cancel</a>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% include 'common/foot.html' %}
+<script>
+    var test_id = {{test_id}};
+
+    function add(container) {
+        $(`#${container}`).append(`<div class="input-group">
+          <input type="text" placeholder="Key" class="form-control form-control-alternative">
+          <input type="text" placeholder="Value" class="form-control form-control-alternative">
+          </div>
+        `)
+    }
+
+    $(document).ready(function() {
+        if (test_id !== null) {
+            var project_id = $("#selected-project-id").text();
+            $.get(
+                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1 }, function( data ) {
+                    $('#submit').attr("onclick", "updateTest()");
+                    $('#submit').text("Edit");
+                    $('#testname').val(data.name);
+                    $('#testname').prop("disabled", true);
+                    $("#fileUpload").remove();
+                    $("#reporters").remove();
+                    $("#testrunners").remove();
+                    $("#testid").css("display", "block");
+                    $("#testuuid").val(data.test_uid);
+                    $('#entrypoint').val(data.entrypoint);
+                    $('#entrypoint').prop("disabled", true);
+                    $('#parallel').val(data.parallel);
+                    $('#javaopts').val(data.java_opts);
+                    for (let [key, value] of Object.entries(data.params)) {
+                        add('script_params');
+                        $("#script_params").children().last().children()[0].value = key;
+                        $("#script_params").children().last().children()[1].value = value;
+                    }
+                    for (let [key, value] of Object.entries(data.env_vars)) {
+                        add('env_vars');
+                        $("#env_vars").children().last().children()[0].value = key;
+                        $("#env_vars").children().last().children()[1].value = value;
+                    }
+                    for (let [key, value] of Object.entries(data.customization)) {
+                        addB('customs');
+                        $("#customs").children().last().children()[0].value = key;
+                        $("#customs").children().last().children()[1].value = value;
+                    }
+                });
+        }
+    });
+
+    function addB(container) {
+        $(`#${container}`).append(`<div class="input-group">
+          <input type="text" placeholder="bucket/file path" class="form-control form-control-alternative">
+          <input type="text" placeholder="destination path" class="form-control form-control-alternative">
+          </div>
+        `)
+    }
+
+    function remove(container) {
+        $(`#${container} .input-group`).last().remove();
+    }
+
+    function get_script_paras() {
+      var script_params = {}
+      var env_vars = {}
+      var extensions = {}
+      $("#script_params .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                script_params[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+      $("#env_vars .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                env_vars[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+      $("#customs .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                extensions[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+
+      return [script_params, env_vars, extensions];
+    }
+
+    function updateTest() {
+        var project_id = $("#selected-project-id").text();
+        var params = get_script_paras();
+        var data = {
+            'params': JSON.stringify(params[0]),
+            'env_vars': JSON.stringify(params[1]),
+            'customization': JSON.stringify(params[2]),
+            'java_opts': $("#javaopts").val(),
+            'parallel': $('#parallel').val()
+        }
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            data: JSON.stringify(data),
+            cache: false,
+            contentType: 'application/json',
+            type: 'PUT',
+            success: function(data){
+                console.log(JSON.stringify(data));
+                $(location).attr('href', "/tests?type=backend")
+            }
+        });
+    }
+
+    function submitForm() {
+          var checked = []
+          var params = get_script_paras();
+          $("input:checkbox:checked").each(function() {
+            checked.push($(this).attr("id"));
+          });
+
+          var project_id = $("#selected-project-id").text();
+          event.preventDefault();
+
+          var data = new FormData();
+          data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
+          data.append('name', $('#testname').val());
+          data.append('parallel', $('#parallel').val());
+          data.append('entrypoint', $('#entrypoint').val());
+          data.append('runner', $( "#testrunners input:checked" ).attr("id"));
+          data.append('reporter', checked);
+          data.append('params', JSON.stringify(params[0]));
+          data.append('env_vars', JSON.stringify(params[1]));
+          data.append('customization', JSON.stringify(params[2]));
+          data.append('java_opts', $("#javaopts").val());
+          console.log(data);
+          $.ajax({
+              url: `/api/v1/tests/${project_id}/backend`,
+              data: data,
+              cache: false,
+              contentType: false,
+              processData: false,
+              method: 'POST',
+              success: function(data){
+                window.location.href = "/tests?type=backend";
+              }
+            }
+          );
+        }
+</script>
+</body>
+</html>
