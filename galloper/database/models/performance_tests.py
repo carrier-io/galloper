@@ -151,7 +151,10 @@ class PerformanceTests(AbstractBaseMixin, Base):
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()
         for key in exclude_fields:
-            del test_param['params'][key]
+            if self.params.get(key):
+                del test_param['params'][key]
+            else:
+                del test_param[key]
         return test_param
 
 

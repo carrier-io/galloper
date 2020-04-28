@@ -95,15 +95,18 @@ class TestApiBackend(Resource):
         dict(name="raw", type=int, default=0, location="args"),
     )
 
-    _post_rules = (
-        dict(name="test_type", type=str, required=False, location='json'),
+    _put_rules = (
         dict(name="parallel", type=int, required=False, location='json'),
-        dict(name="reporter", type=str, required=False, location='json'),
-        dict(name="runner", type=str, required=False, location='json'),
         dict(name="params", type=str, default="{}", required=False, location='json'),
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="java_opts", type=str, required=False, location='json')
+    )
+
+    _post_rules = _put_rules + (
+        dict(name="test_type", type=str, required=False, location='json'),
+        dict(name="reporter", type=str, required=False, location='json'),
+        dict(name="runner", type=str, required=False, location='json')
     )
 
     def __init__(self):
@@ -111,6 +114,7 @@ class TestApiBackend(Resource):
 
     def __init_req_parsers(self):
         self.get_parser = build_req_parser(rules=self._get_rules)
+        self.put_parser = build_req_parser(rules=self._put_rules)
         self.post_parser = build_req_parser(rules=self._post_rules)
 
     def get(self, project_id, test_id):
@@ -129,7 +133,7 @@ class TestApiBackend(Resource):
 
     def put(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)
-        args = self.post_parser.parse_args(strict=False)
+        args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
@@ -155,7 +159,9 @@ class TestApiBackend(Resource):
         if args.get("parallel"):
             task.parallel = args.get("parallel")
         task.commit()
-        return task.to_json()
+        return task.to_json(["influx.port", "influx.host", "galloper_url",
+                             "test_name", "influx.db", "comparison_db",
+                             "loki_host", "loki_port"])
 
     def post(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)

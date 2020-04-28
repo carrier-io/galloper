@@ -197,12 +197,12 @@
                         $("#script_params").children().last().children()[1].value = value;
                     }
                     for (let [key, value] of Object.entries(data.env_vars)) {
-                        add('script_params');
+                        add('env_vars');
                         $("#env_vars").children().last().children()[0].value = key;
                         $("#env_vars").children().last().children()[1].value = value;
                     }
                     for (let [key, value] of Object.entries(data.customization)) {
-                        add('script_params');
+                        addB('customs');
                         $("#customs").children().last().children()[0].value = key;
                         $("#customs").children().last().children()[1].value = value;
                     }
@@ -260,10 +260,10 @@
             data: JSON.stringify(data),
             cache: false,
             contentType: 'application/json',
-            processData: false,
-            method: 'PUT',
+            type: 'PUT',
             success: function(data){
-                window.location.href = `/tests?type=backend`;
+                console.log(JSON.stringify(data));
+                $(location).attr('href', "/tests?type=backend")
             }
         });
     }
