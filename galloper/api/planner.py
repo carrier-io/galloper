@@ -93,6 +93,7 @@ class TestsApiPerformance(Resource):
 class TestApiBackend(Resource):
     _get_rules = (
         dict(name="raw", type=int, default=0, location="args"),
+        dict(name="type", type=str, default='cc', location="args")
     )
 
     _put_rules = (
@@ -129,7 +130,7 @@ class TestApiBackend(Resource):
             return test.to_json(["influx.port", "influx.host", "galloper_url",
                                  "test_name", "influx.db", "comparison_db",
                                  "loki_host", "loki_port"])
-        return test.configure_execution_json()
+        return {"message": test.configure_execution_json(args.get("type")) % project.secrets_json["pp"]}
 
     def put(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)
@@ -172,7 +173,8 @@ class TestApiBackend(Resource):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         task = PerformanceTests.query.filter(_filter).first()
         event = list()
-        event.append(task.configure_execution_json(test_type=args.get("test_type"),
+        event.append(task.configure_execution_json(output='cc',
+                                                   test_type=args.get("test_type"),
                                                    params=loads(args.get("params", None)),
                                                    env_vars=loads(args.get("env_vars", None)),
                                                    reporting=args.get("reporting", None),

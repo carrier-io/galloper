@@ -19,7 +19,7 @@ from flask_restful import Resource
 from sqlalchemy import and_
 
 from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
-    get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test
+    get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test, get_backend_users
 from galloper.data_utils.charts_utils import (
     requests_summary, requests_hits, avg_responses, summary_table, get_issues, get_data_from_influx,
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
@@ -273,7 +273,9 @@ class TestSaturation(Resource):
         dict(name='aggregation', type=str, default="1m", location="args"),
         dict(name='status', type=str, default='ok', location="args"),
         dict(name="calculation", type=str, default="pct95", location="args"),
-        dict(name="deviation", type=float, default=0.05, location="args")
+        dict(name="deviation", type=float, default=0.02, location="args"),
+        dict(name="max_deviation", type=float, default=0.05, location="args"),
+        dict(name="extended_output", type=bool, default=False, location="args")
     )
 
     def __init__(self):
@@ -295,30 +297,44 @@ class TestSaturation(Resource):
         duration_till_now = current_time - start_time
         if duration_till_now < args['wait_till']:
             return {"message": "not enough results", "code": 0}
+        ts_array, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1m")
         _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
-                             args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
-        tps = []
+                                 args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
+        tps = [0]
         for each in data['responses'].values():
             if each:
                 tps.append(each)
         _, data, _ = get_errors(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
                                 args["aggregation"], args["sampler"], scope=args["request"])
-        errors = []
+        errors = [0]
         for each in data['errors'].values():
             if each:
                 errors.append(each)
         total = int(get_response_time_per_test(report.build_id, report.name, report.lg_type, args["sampler"],
                                                args["request"], "total"))
         error_rate = float(sum(errors))/float(total) * 100
-        if arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and error_rate <= args["max_errors"]:
-            return {"message": "proceed", "throughput": max(tps), "errors_rate": error_rate, "code": 0}
+        usrs = [0]
+        for each in list(users["users"].values()):
+            if each:
+                usrs.append(each)
+        response = {"ts": ts_array[-1],
+                    "max_users": max(usrs),
+                    "max_throughput": round(max(tps), 2),
+                    "current_throughput": round(tps[-1], 2),
+                    "errors_rate": round(error_rate, 2)}
+        if args["extended_output"]:
+            response["users"] = usrs
+            response["tps"] = tps
+        if (arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and
+                error_rate <= args["max_errors"] and
+                response["current_throughput"] * (1 + args["max_deviation"]) >= response["max_throughput"]):
+            response["message"] = "proceed"
+            response["code"] = 0
+            return response
         else:
-            return {
-                "message": "saturation",
-                "throughput": round(max(tps), 2),
-                "errors": round(error_rate, 2),
-                "code": 1
-            }
+            response["message"] = "saturation"
+            response["code"] = 1
+            return response
 
 
 
