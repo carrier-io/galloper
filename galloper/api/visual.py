@@ -58,7 +58,7 @@ class VisualReportAPI(Resource):
                 avg_page_load = 0
 
             try:
-                thresholds_missed = report.thresholds_failed / report.thresholds_total * 100
+                thresholds_missed = round(report.thresholds_failed / report.thresholds_total * 100, 2)
             except ZeroDivisionError:
                 thresholds_missed = 0
 
@@ -68,7 +68,7 @@ class VisualReportAPI(Resource):
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
                         failures=1, total=10,
                         thresholds_missed=thresholds_missed,
-                        avg_page_load=avg_page_load / 1000,
+                        avg_page_load=round(avg_page_load / 1000, 2),
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
 
             res.append(data)
