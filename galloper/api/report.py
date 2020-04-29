@@ -304,7 +304,10 @@ class TestSaturation(Resource):
             and_(APIReport.id == args['test_id'], APIReport.project_id == project.id)
         ).first()
         start_time = str_to_timestamp(report.start_time)
-        current_time = datetime.utcnow().timestamp()
+        if report.end_time:
+            current_time = str_to_timestamp(report.end_time)
+        else:
+            current_time = datetime.utcnow().timestamp()
         str_start_time = datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         str_current_time = datetime.fromtimestamp(current_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         duration_till_now = current_time - start_time
@@ -337,6 +340,8 @@ class TestSaturation(Resource):
                     "errors_rate": round(error_rate, 2)}
         if args["u"]:
             user_array = args["u"]
+            if response["max_users"] not in user_array:
+                user_array.append(response["max_users"])
             user_array.sort()
             user_array.reverse()
             uber_array = {}
