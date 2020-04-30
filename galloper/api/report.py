@@ -315,11 +315,18 @@ class TestSaturation(Resource):
             return {"message": "not enough results", "code": 0}
         ts_array, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1m")
         _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
-                             args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
+                             "1s", args["sampler"], scope=args["request"], status=args["status"])
+        _tmp = []
         tps = [0]
-        for each in data['responses'].values():
-            if each:
-                tps.append(each)
+        if 'm' in args['aggregation']:
+            aggregation = int(args['aggregation'].replace('m', '')) * 60
+        else:
+            aggregation = int(args['aggregation'].replace("s", ''))
+        for _ in data["responses"].values():
+            _tmp.append(_)
+            if (len(_tmp) % aggregation) == 0:
+                tps.append(round(float(sum(_tmp)) / aggregation, 2))
+                _tmp = []
         _, data, _ = get_errors(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
                                 args["aggregation"], args["sampler"], scope=args["request"])
         errors = [0]
@@ -370,6 +377,7 @@ class TestSaturation(Resource):
             response["benchmark"] = uber_array
         if args["extended_output"]:
             response["details"] = {}
+            response["tps"] = tps
             for index, value in enumerate(usrs):
                 response["details"][value] = tps[index]
         if (arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and
