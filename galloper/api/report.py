@@ -315,7 +315,7 @@ class TestSaturation(Resource):
             return {"message": "not enough results", "code": 0}
         ts_array, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1m")
         _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
-                                 args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
+                             args["aggregation"], args["sampler"], scope=args["request"], status=args["status"])
         tps = [0]
         for each in data['responses'].values():
             if each:
@@ -369,8 +369,9 @@ class TestSaturation(Resource):
                     u = user_array.pop()
             response["benchmark"] = uber_array
         if args["extended_output"]:
-            response["users"] = usrs
-            response["tps"] = tps
+            response["details"] = {}
+            for index, value in enumerate(usrs):
+                response["details"][value] = tps[index]
         if (arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and
                 error_rate <= args["max_errors"] and
                 response["current_throughput"] * (1 + args["max_deviation"]) >= response["max_throughput"]):
@@ -380,6 +381,10 @@ class TestSaturation(Resource):
         else:
             response["message"] = "saturation"
             response["code"] = 1
+            try:
+                response["max_users"] = usrs[-2]
+            except IndexError:
+                response["max_users"] = usrs[-1]
             return response
 
 
