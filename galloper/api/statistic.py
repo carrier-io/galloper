@@ -21,8 +21,9 @@ class StatisticAPI(Resource):
         statistic = Statistic.query.filter_by(project_id=project_id).first().to_json()
         quota = ProjectQuota.query.filter_by(project_id=project_id).first().to_json()
         stats = {}
-        for each in ["performance_test_runs", "sast_scans", "dast_scans", "storage_space", "tasks_count",
-                     "tasks_executions"]:
+        for each in ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "storage_space",
+                     "tasks_count", "tasks_executions"]:
 
             stats[each] = {"current": statistic[each], "quota": quota[each]}
+        stats["data_retention_limit"] = {"current": 0, "quota": quota["data_retention_limit"]}
         return stats

@@ -334,7 +334,148 @@ var noUiSlider = (function() {
 	// 	init($input);
 	// }
 
+    if ($(".input-slider-container_storage_space")[0]) {
+			$('.input-slider-container_storage_space').each(function() {
 
+					var slider = $(this).find('.input-slider');
+					var sliderId = slider.attr('id');
+					var minValue = slider.data('range-value-min');
+					var maxValue = slider.data('range-value-max');
+
+					var sliderValue = $(this).find('.range-slider-value');
+					var sliderValueId = sliderValue.attr('id');
+					var startValue = sliderValue.data('range-value-low');
+
+					var c = document.getElementById(sliderId),
+							d = document.getElementById(sliderValueId);
+
+					noUiSlider.create(c, {
+							start: [parseInt(startValue)],
+							connect: [true, false],
+							//step: 50,
+							tooltips: {
+							    to(value) {
+                                  let output;
+                                  if (value < 1000) {
+                                      output = parseInt(value) + " Mb";
+                                  } else {
+                                      output = parseInt(value)/1000 + " Gb";
+                                  }
+
+                                  return output;
+                            }},
+							range: {
+									'min': [parseInt(minValue), 400],
+									'5%': [500, 500],
+                                    '10%': [1000, 1000],
+                                    '15%': [2000, 1000],
+                                    '20%': [3000, 2000],
+                                    '25%': [5000, 2500],
+                                    '30%': [7500, 2500],
+                                    '35%': [10000, 5000],
+                                    '40%': [15000, 5000],
+                                    '45%': [20000, 5000],
+                                    '50%': [25000, 15000],
+                                    '60%': [40000, 10000],
+                                    '70%': [50000, 10000],
+                                    '80%': [60000, 15000],
+                                    '90%': [75000, 25000],
+									'max': [parseInt(maxValue)]
+							}
+					});
+
+					c.noUiSlider.on('update', function(a, b, c) {
+							d.textContent = c[b];
+					});
+			})
+	}
+
+	if ($(".input-slider-container_data_retention_limit")[0]) {
+			$('.input-slider-container_data_retention_limit').each(function() {
+
+					var slider = $(this).find('.input-slider');
+					var sliderId = slider.attr('id');
+					var minValue = slider.data('range-value-min');
+					var maxValue = slider.data('range-value-max');
+
+					var sliderValue = $(this).find('.range-slider-value');
+					var sliderValueId = sliderValue.attr('id');
+					var startValue = sliderValue.data('range-value-low');
+
+					var c = document.getElementById(sliderId),
+							d = document.getElementById(sliderValueId);
+
+					noUiSlider.create(c, {
+							start: [parseInt(startValue)],
+							connect: [true, false],
+							//step: 50,
+							tooltips: {
+							    to(value) {
+                                  let output;
+                                  if (value == 365) {
+                                      output = "1 year";
+                                  } else {
+                                      output = parseInt(value)/30 + " month";
+                                  }
+
+                                  return output;
+                            }},
+							range: {
+									'min': [parseInt(minValue), 30],
+                                    '10%': [60, 30],
+                                    '25%': [90, 90],
+                                    '50%': [180, 90],
+                                    '75%': [270, 95],
+									'max': [parseInt(maxValue)]
+							}
+					});
+
+					c.noUiSlider.on('update', function(a, b, c) {
+							d.textContent = c[b];
+					});
+			})
+	}
+
+	if ($(".input-slider-container_tasks_count")[0]) {
+			$('.input-slider-container_tasks_count').each(function() {
+
+					var slider = $(this).find('.input-slider');
+					var sliderId = slider.attr('id');
+					var minValue = slider.data('range-value-min');
+					var maxValue = slider.data('range-value-max');
+
+					var sliderValue = $(this).find('.range-slider-value');
+					var sliderValueId = sliderValue.attr('id');
+					var startValue = sliderValue.data('range-value-low');
+
+					var c = document.getElementById(sliderId),
+							d = document.getElementById(sliderValueId);
+
+					noUiSlider.create(c, {
+							start: [parseInt(startValue)],
+							connect: [true, false],
+							//step: 50,
+							tooltips: {
+							    to(value) {
+                                  return parseInt(value);
+                            }},
+							range: {
+									'min': [parseInt(minValue), 1],
+                                    '10%': [2, 1],
+                                    '20%': [3, 2],
+                                    '30%': [5, 2],
+                                    '50%': [7, 3],
+                                    '70%': [10, 5],
+                                    '85%': [15, 5],
+									'max': [parseInt(maxValue)]
+							}
+					});
+
+					c.noUiSlider.on('update', function(a, b, c) {
+							d.textContent = c[b];
+					});
+			})
+	}
 
 	if ($(".input-slider-container")[0]) {
 			$('.input-slider-container').each(function() {
@@ -354,15 +495,33 @@ var noUiSlider = (function() {
 					noUiSlider.create(c, {
 							start: [parseInt(startValue)],
 							connect: [true, false],
-							//step: 1000,
+							//step: 50,
+							tooltips: {
+							    to(value) {
+                                  return parseInt(value);
+                            }},
 							range: {
-									'min': [parseInt(minValue)],
+									'min': [parseInt(minValue), 4],
+									'5%': [5, 5],
+                                    '10%': [10, 10],
+                                    '15%': [20, 10],
+                                    '20%': [30, 20],
+                                    '25%': [50, 25],
+                                    '30%': [75, 25],
+                                    '35%': [100, 50],
+                                    '40%': [150, 50],
+                                    '45%': [200, 50],
+                                    '50%': [250, 150],
+                                    '60%': [400, 100],
+                                    '70%': [500, 100],
+                                    '80%': [600, 150],
+                                    '90%': [750, 250],
 									'max': [parseInt(maxValue)]
 							}
 					});
 
-					c.noUiSlider.on('update', function(a, b) {
-							d.textContent = a[b];
+					c.noUiSlider.on('update', function(a, b, c) {
+							d.textContent = c[b];
 					});
 			})
 	}

@@ -21739,14 +21739,18 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle
 
 .noUi-tooltip
 {
-    position: absolute;
+    display: none;
+}
+
+.noUi-active .noUi-tooltip {
+     position: absolute;
 
     display: block;
 
     padding: 5px;
 
     text-align: center;
-    white-space: nowrap; 
+    white-space: nowrap;
 
     color: #000;
     border: 1px solid #d9d9d9;

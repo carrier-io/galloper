@@ -155,8 +155,16 @@ class ReleaseApiSaturation(Resource):
                     _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "pct95", args["status"]))
                 error_rate.append(get_response_time_per_test(
                     _.build_id, _.name, _.lg_type, args["sampler"], args["request"], "errors"))
-            if arrays.non_decreasing(throughput):
+            if arrays.non_decreasing(throughput) and error_rate[-1] <= float(args["max_errors"]):
                 return {"message": "proceed", "users": users, "error_rate": int(global_error_rate[-1]), "code": 0}
+            elif error_rate[-1] > float(args["max_errors"]):
+                return {
+                    "message": "missed_error_rate_threshold",
+                    "users": users,
+                    "throughput": throughput,
+                    "errors": int(error_rate[-1]),
+                    "code": 1
+                }
             else:
                 return {
                     "message": "saturation",

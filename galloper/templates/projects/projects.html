@@ -72,6 +72,9 @@
                     if (metric == "performance_test_runs") {
                         fas_class += `<i class="fas fa-tachometer-alt"></i>`
                     }
+                    else if (metric == "ui_performance_test_runs") {
+                        fas_class += `<i class="fas fa-desktop"></i>`
+                    }
                     else if (metric == "sast_scans") {
                         fas_class += `<i class="fas fa-code"></i>`
                     }
@@ -91,18 +94,20 @@
                     var rate = 0
                     var quota = data[metric]["quota"]
                     if (quota == -1) {
-                        quota = 'unlimit'
+                        quota = 'unlimited'
                     }
                     else {
                         rate = data[metric]["current"]/quota * 100
                     }
-                    if (rate < 80) {
-                        stats_string += `<span class="badge badge-pill badge-success mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
-                    }
-                    else if (rate < 90) {
-                        stats_string += `<span class="badge badge-pill badge-warning mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
-                    } else {
-                        stats_string += `<span class="badge badge-pill badge-danger mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                    if (metric != "data_retention_limit") {
+                        if (rate < 80) {
+                            stats_string += `<span class="badge badge-pill badge-success mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                        }
+                        else if (rate < 90) {
+                            stats_string += `<span class="badge badge-pill badge-warning mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                        } else {
+                            stats_string += `<span class="badge badge-pill badge-danger mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                        }
                     }
                 });
             }
