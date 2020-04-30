@@ -233,20 +233,13 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
         status_addon = f" and status='{status.upper()}'"
     responses_query = f"select time, count(response_time) from {lg_type}..{test_name} where time>='{start_time}' " \
                       f"and time<='{end_time}' and sampler_type='{sampler}' {status_addon} and build_id='{build_id}' " \
-                      f"{scope_addon} group by time(1s)"
+                      f"{scope_addon} group by time({aggregation})"
     res = get_client().query(responses_query)[test_name]
     results = {"responses": {}}
     for _ in timestamps:
         results['responses'][_] = None
-    # aggregation of responses
-    _tmp = []
-    if 'm' in aggregation:
-        aggregation = f"{str(int(aggregation.replace('m', ''))*60)}s"
     for _ in res:
-        _tmp.append(_['count'])
-        if (len(_tmp) % int(aggregation.replace('s', ''))) == 0:
-            results['responses'][_['time']] = float(sum(_tmp)) / int(aggregation.replace('s', ''))
-            _tmp = []
+        results['responses'][_['time']] = _['count']
     return timestamps, results, users
 
 
@@ -330,7 +323,7 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
         _tmp.append(results['hits'][_])
         results['hits'][_] = None
         if (len(_tmp) % int(aggregation.replace('s', ''))) == 0:
-            results['hits'][_ts] = float(sum(_tmp)) / int(aggregation.replace('s', ''))
+            results['hits'][_ts] = float(sum(_tmp))
             _tmp = []
             _ts = None
     return timestamps, results, users
