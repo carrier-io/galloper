@@ -11,7 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+from os import path
 from uuid import uuid4
 from json import dumps
 
@@ -96,7 +96,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
 
         super().insert()
 
-    def configure_execution_json(self, test_type=None, params=None, env_vars=None, reporting=None,
+    def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, java_opts=None, parallel=None):
         if not java_opts:
             java_opts = self.java_opts
@@ -114,11 +114,13 @@ class PerformanceTests(AbstractBaseMixin, Base):
                     pairs[pair][0][each] = self.pairs[pair][1][each]
         cmd = ''
         if self.job_type == 'perfmeter':
-            cmd = f"-n -t {self.entrypoint}"
+            entrypoint = self.entrypoint if path.exists(self.entrypoint) else path.join('/mnt/jmeter', self.entrypoint)
+            cmd = f"-n -t {entrypoint}"
             for key, value in self.params.items():
                 if test_type and key == "test.type":
                     cmd += f" -Jtest.type={test_type}"
-                cmd += f" -J{key}={value}"
+                else:
+                    cmd += f" -J{key}={value}"
         execution_json = {
             "container": self.runner,
             "execution_params": {
@@ -145,4 +147,24 @@ class PerformanceTests(AbstractBaseMixin, Base):
             for key, value in self.params.items():
                 execution_json["execution_params"]["GATLING_TEST_PARAMS"] += f"-D{key}={value} "
         execution_json["execution_params"] = dumps(execution_json["execution_params"])
-        return execution_json
+        if output == 'cc':
+            return execution_json
+        else:
+            return f"docker run -e project_id={self.project_id} -e REDIS_HOST={APP_IP} " \
+                   f"-e loki_host={EXTERNAL_LOKI_HOST} -e GALLOPER_WEB_HOOK={APP_HOST}/task/%s " \
+                   f"-e galloper_url={APP_HOST} getcarrier/control_tower:latest " \
+                   f"--container {self.runner} --execution_params '{execution_json['execution_params']}' " \
+                   f"--job_type {self.job_type} --job_name {self.name} --concurrency {execution_json['concurrency']} " \
+                   f"--bucket {self.bucket} --artifact {self.file}"
+
+    def to_json(self, exclude_fields: tuple = ()) -> dict:
+        test_param = super().to_json()
+        for key in exclude_fields:
+            if self.params.get(key):
+                del test_param['params'][key]
+            else:
+                del test_param[key]
+        return test_param
+
+
+

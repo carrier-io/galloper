@@ -16,7 +16,7 @@ from datetime import datetime
 from io import BytesIO
 
 from dateutil.relativedelta import relativedelta
-from flask import request, send_file
+from flask import request, send_file, current_app
 from flask_restful import Resource
 from werkzeug.exceptions import Forbidden
 
@@ -86,8 +86,10 @@ class ArtifactApi(Resource):
 
     def get(self, project_id: int, bucket: str, filename: str):
         project = Project.query.get_or_404(project_id)
+        current_app.logger.info(f"Bucket: {bucket}      File: {filename}")
         fobj = MinioClient(project=project).download_file(bucket, filename)
         return send_file(BytesIO(fobj), attachment_filename=filename)
+
 
     def post(self, project_id: int, bucket: str, filename: str):
         project = Project.query.get_or_404(project_id)

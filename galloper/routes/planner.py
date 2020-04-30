@@ -12,7 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
@@ -31,4 +31,6 @@ def tasks(project: Project):
 @bp.route("/tests/backend", methods=["GET", "POST"])
 @project_required
 def backend(project: Project):
-    return render_template("planner/backend.html")
+    if request.args.get("test"):
+        return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"))
+    return render_template("planner/backend.html", title="Add performance tests", test_id="null")

@@ -7,7 +7,7 @@
             <div class="card-header bg-white border-0">
               <div class="row align-items-center">
                 <div class="col-8">
-                  <h3 class="mb-0">Add Performance Test</h3>
+                  <h3 class="mb-0">{{title}}</h3>
                 </div>
                 <div class="col-4 text-right">
                   <a href="/tests?type=backend" class="btn btn-sm btn-primary">Cancel</a>
@@ -30,7 +30,7 @@
                         <p><small>How many test agents you need to execute test</small></p>
                         <input type="text" id="parallel" class="form-control form-control-alternative" placeholder="# of Runners">
                       </div>
-                      <div class="form-group">
+                      <div class="form-group" id="reporters">
                             <label class="form-control-label">Reporting</label>
                             <p><small>Specify expected report types</small></p>
                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -52,12 +52,19 @@
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="form-group">
+                        <div class="form-group" id="fileUpload">
                           <label class="form-control-label" for="file">Test package</label>
                           <p><small>
                               Please upload .zip file with your tests. Packaging guidelines.
                           </small></p>
                           <input type="file" class="form-control" id="file" multiple="">
+                        </div>
+                        <div class="form-group" id="testid" style="display:none">
+                            <label class="form-control-label" for="file">Test UUID</label>
+                          <p><small>
+                              UUID of the tests, may be used to refer it
+                          </small></p>
+                          <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                         </div>
                         <div class="form-group">
                             <label class="form-control-label" for="entrypoint">Entry point</label>
@@ -143,7 +150,7 @@
                 <div class="pl-lg-4 mt-4">
                   <div class="row">
                     <div class="col-lg-12">
-                        <button onclick="submitForm()" class="btn btn-success">Create</button>
+                        <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
                         <a href="javascript:void(0)" class="btn btn-warning">Test</a>
                         <a href="/tests?type=backend" class="btn btn-danger">Cancel</a>
                     </div>
@@ -156,6 +163,8 @@
       </div>
 {% include 'common/foot.html' %}
 <script>
+    var test_id = {{test_id}};
+
     function add(container) {
         $(`#${container}`).append(`<div class="input-group">
           <input type="text" placeholder="Key" class="form-control form-control-alternative">
@@ -163,6 +172,43 @@
           </div>
         `)
     }
+
+    $(document).ready(function() {
+        if (test_id !== null) {
+            var project_id = $("#selected-project-id").text();
+            $.get(
+                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1 }, function( data ) {
+                    $('#submit').attr("onclick", "updateTest()");
+                    $('#submit').text("Edit");
+                    $('#testname').val(data.name);
+                    $('#testname').prop("disabled", true);
+                    $("#fileUpload").remove();
+                    $("#reporters").remove();
+                    $("#testrunners").remove();
+                    $("#testid").css("display", "block");
+                    $("#testuuid").val(data.test_uid);
+                    $('#entrypoint').val(data.entrypoint);
+                    $('#entrypoint').prop("disabled", true);
+                    $('#parallel').val(data.parallel);
+                    $('#javaopts').val(data.java_opts);
+                    for (let [key, value] of Object.entries(data.params)) {
+                        add('script_params');
+                        $("#script_params").children().last().children()[0].value = key;
+                        $("#script_params").children().last().children()[1].value = value;
+                    }
+                    for (let [key, value] of Object.entries(data.env_vars)) {
+                        add('env_vars');
+                        $("#env_vars").children().last().children()[0].value = key;
+                        $("#env_vars").children().last().children()[1].value = value;
+                    }
+                    for (let [key, value] of Object.entries(data.customization)) {
+                        addB('customs');
+                        $("#customs").children().last().children()[0].value = key;
+                        $("#customs").children().last().children()[1].value = value;
+                    }
+                });
+        }
+    });
 
     function addB(container) {
         $(`#${container}`).append(`<div class="input-group">
@@ -176,29 +222,59 @@
         $(`#${container} .input-group`).last().remove();
     }
 
+    function get_script_paras() {
+      var script_params = {}
+      var env_vars = {}
+      var extensions = {}
+      $("#script_params .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                script_params[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+      $("#env_vars .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                env_vars[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+      $("#customs .input-group").each(function() {
+           if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
+                extensions[$(this).children()[0].value] = $(this).children()[1].value;
+           }
+      });
+
+      return [script_params, env_vars, extensions];
+    }
+
+    function updateTest() {
+        var project_id = $("#selected-project-id").text();
+        var params = get_script_paras();
+        var data = {
+            'params': JSON.stringify(params[0]),
+            'env_vars': JSON.stringify(params[1]),
+            'customization': JSON.stringify(params[2]),
+            'java_opts': $("#javaopts").val(),
+            'parallel': $('#parallel').val()
+        }
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            data: JSON.stringify(data),
+            cache: false,
+            contentType: 'application/json',
+            type: 'PUT',
+            success: function(data){
+                console.log(JSON.stringify(data));
+                $(location).attr('href', "/tests?type=backend")
+            }
+        });
+    }
+
     function submitForm() {
           var checked = []
-          var script_params = {}
-          var env_vars = {}
-          var extensions = {}
+          var params = get_script_paras();
           $("input:checkbox:checked").each(function() {
             checked.push($(this).attr("id"));
           });
-          $("#script_params .input-group").each(function() {
-               if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
-                    script_params[$(this).children()[0].value] = $(this).children()[1].value;
-               }
-          });
-          $("#env_vars .input-group").each(function() {
-               if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
-                    env_vars[$(this).children()[0].value] = $(this).children()[1].value;
-               }
-          });
-          $("#customs .input-group").each(function() {
-               if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
-                    extensions[$(this).children()[0].value] = $(this).children()[1].value;
-               }
-          });
+
           var project_id = $("#selected-project-id").text();
           event.preventDefault();
 
@@ -209,13 +285,12 @@
           data.append('entrypoint', $('#entrypoint').val());
           data.append('runner', $( "#testrunners input:checked" ).attr("id"));
           data.append('reporter', checked);
-          data.append('params', JSON.stringify(script_params));
-          data.append('env_vars', JSON.stringify(env_vars));
-          data.append('customization', JSON.stringify(extensions));
+          data.append('params', JSON.stringify(params[0]));
+          data.append('env_vars', JSON.stringify(params[1]));
+          data.append('customization', JSON.stringify(params[2]));
           data.append('java_opts', $("#javaopts").val());
           console.log(data);
-          $.ajax(
-            {
+          $.ajax({
               url: `/api/v1/tests/${project_id}/backend`,
               data: data,
               cache: false,
