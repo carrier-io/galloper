@@ -45,14 +45,60 @@
 
     function submit() {
         let selectedProjectId = getSelectedProjectId();
-        let active_package = $(".card-shadow-active").find("span").text()
+        if ($("#performance_test_runs_unlimited").prop('checked')) {
+            perf_tests_limit = -1
+        } else {
+            perf_tests_limit = $("#performance_test_runs_value").html()
+        }
+        if ($("#ui_performance_test_runs_unlimited").prop('checked')) {
+            ui_perf_tests_limit = -1
+        } else {
+            ui_perf_tests_limit = $("#ui_performance_test_runs_value").html()
+        }
+        if ($("#sast_scans_unlimited").prop('checked')) {
+            sast_scans_limit = -1
+        } else {
+            sast_scans_limit = $("#sast_scans_value").html()
+        }
+        if ($("#dast_scans_unlimited").prop('checked')) {
+            dast_scans_limit = -1
+        } else {
+            dast_scans_limit = $("#dast_scans_value").html()
+        }
+        if ($("#tasks_count_unlimited").prop('checked')) {
+            tasks_count_limit = -1
+        } else {
+            tasks_count_limit = $("#tasks_count_value").html()
+        }
+        if ($("#tasks_executions_unlimited").prop('checked')) {
+            task_executions_limit = -1
+        } else {
+            task_executions_limit = $("#tasks_executions_value").html()
+        }
+        if ($("#storage_space_unlimited").prop('checked')) {
+            storage_space_limit = -1
+        } else {
+            storage_space_limit = $("#storage_space_value").html()
+        }
+        if ($("#data_retention_limit_unlimited").prop('checked')) {
+            data_retention_limit = -1
+        } else {
+            data_retention_limit = $("#data_retention_limit_value").html()
+        }
         var project_data = {
             name: $("#proj_name").val(),
             owner: $("#proj_owner").val(),
             sast_enabled: $("#sast").val(),
             dast_enabled: $("#dast").val(),
             performance_enabled: $("#perf").val(),
-            package: active_package
+            perf_tests_limit: perf_tests_limit,
+            ui_perf_tests_limit: ui_perf_tests_limit,
+            sast_scans_limit: sast_scans_limit,
+            dast_scans_limit: dast_scans_limit,
+            tasks_count_limit: tasks_count_limit,
+            task_executions_limit: task_executions_limit,
+            storage_space_limit: storage_space_limit,
+            data_retention_limit: data_retention_limit
         }
         console.log(project_data)
         $.ajax({
@@ -64,6 +110,21 @@
                 window.location.href = "/projects"
             }
         });
+    }
+
+    function disableSlider(checkboxID, sliderID, shieldID) {
+        var slider = document.getElementById(sliderID)
+        if ($(`#${checkboxID}`).prop( "checked" )) {
+            slider.setAttribute('disabled', true);
+            let current_value = $(`#${shieldID}`).html();
+            $(`#${checkboxID}`).prop( "name", current_value);
+            $(`#${shieldID}`).text("Unlimited");
+        } else {
+            slider.removeAttribute('disabled');
+            let current_value = $(`#${checkboxID}`).prop( "name" );
+            $(`#${shieldID}`).text(current_value);
+
+        }
     }
 
     function setFocus(id) {
@@ -78,13 +139,117 @@
 
     function getProjectQuota() {
         let project_id = getSelectedProjectId();
-        fetch(`/api/v1/quota/${project_id}`)
-            .then(response => response.json())
-            .then(data => {
-                setFocus(data.name)
-            })
-            .catch(err => console.log("Fetch Error :-S", err));
+        $.ajax({
+            async: false,
+            type: "GET",
+            url: `/api/v1/statistic/${project_id}`,
+            success: function (data) {
+                console.log(data)
+                Object.keys(data).forEach(function(item) {
+                    if (item == "storage_space") {
+                        if (data[item]["current"] < 1000) {
+                            current = data[item]["current"] + " Mb";
+                        } else {
+                            current = data[item]["current"]/1000 + " Gb";
+                        }
+                        if (data[item]["current"] < 1000) {
+                            quota = data[item]["quota"] + " Mb";
+                        } else {
+                            quota = data[item]["quota"]/1000 + " Gb";
+                        }
+                        $("#storage_space").text(current + " / " + quota);
+                    } else if (item == "data_retention_limit") {
+                        let retention_limit_value = data[item]["quota"]
+                        let retention_limit_current_value;
+                        if (retention_limit_value == 365) {
+                            retention_limit_current_value = "1 year";
+                        } else {
+                            retention_limit_current_value = retention_limit_value/30 + " month";
+                        }
+                        $("#data_retention_limit").text(retention_limit_current_value);
+                    } else {
+                        let current_value = data[item]["current"] + " / " + data[item]["quota"]
+                        $(`#${item}`).text(current_value);
+                    }
+                    if (data[item]["quota"] == -1) {
+                        $(`#${item}_unlimited`).prop( "checked", true)
+                        disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+                    } else {
+                        $(`#${item}_value`).text(data[item]["quota"]);
+                        var slider = document.getElementById(`input-slider-${item}`)
+                        slider.noUiSlider.set(data[item]["quota"]);
+                    }
+                })
+
+            }
+        });
     }
+
+
+$('#performance_test_runs_value').on('DOMSubtreeModified',function() {
+         let prev_value = $("#performance_test_runs").html()
+         let current_value = $("#performance_test_runs_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#performance_test_runs").text(new_value);
+    })
+
+    $('#ui_performance_test_runs_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#ui_performance_test_runs").html()
+         let current_value = $("#ui_performance_test_runs_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#ui_performance_test_runs").text(new_value);
+    })
+
+    $('#sast_scans_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#sast_scans").html()
+         let current_value = $("#sast_scans_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#sast_scans").text(new_value);
+    })
+
+    $('#dast_scans_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#dast_scans").html()
+         let current_value = $("#dast_scans_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#dast_scans").text(new_value);
+    })
+
+    $('#tasks_count_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#tasks_count").html()
+         let current_value = $("#tasks_count_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#tasks_count").text(new_value);
+    })
+
+    $('#tasks_executions_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#tasks_executions").html()
+         let current_value = $("#tasks_executions_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#tasks_executions").text(new_value);
+    })
+
+    $('#storage_space_value').on('DOMSubtreeModified',function(){
+        let prev_value = $("#storage_space").html()
+        let current_value = parseInt($("#storage_space_value").html())
+        let new_value;
+        if (current_value < 1000) {
+           new_value = prev_value.split("/")[0] + "/ " + current_value + " Mb";
+           } else {
+           new_value = prev_value.split("/")[0] + "/ " + current_value/1000 + " Gb";
+           }
+        $("#storage_space").text(new_value);
+    })
+
+    $('#data_retention_limit_value').on('DOMSubtreeModified',function(){
+        let retention_limit_value = parseInt($("#data_retention_limit_value").html())
+        let retention_limit_current_value;
+        if (retention_limit_value == 365) {
+           retention_limit_current_value = "1 year";
+           } else {
+           retention_limit_current_value = retention_limit_value/30 + " month";
+           }
+        $("#data_retention_limit").text(retention_limit_current_value);
+    })
 
     $(document).ready(function() {
         getProjectDetails();
