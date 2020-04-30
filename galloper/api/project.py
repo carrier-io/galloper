@@ -40,7 +40,14 @@ class ProjectAPI(Resource):
         dict(name="dast_enabled", type=str, default=None, location="json"),
         dict(name="sast_enabled", type=str, default=None, location="json"),
         dict(name="performance_enabled", type=str, default=None, location="json"),
-        dict(name="package", type=str, default="Basic", location="json")
+        dict(name="perf_tests_limit", type=int, default=100, location="json"),
+        dict(name="ui_perf_tests_limit", type=int, default=100, location="json"),
+        dict(name="sast_scans_limit", type=int, default=100, location="json"),
+        dict(name="dast_scans_limit", type=int, default=100, location="json"),
+        dict(name="tasks_count_limit", type=int, default=3, location="json"),
+        dict(name="task_executions_limit", type=int, default=200, location="json"),
+        dict(name="storage_space_limit", type=int, default=100, location="json"),
+        dict(name="data_retention_limit", type=int, default=30, location="json")
     )
 
     def __init__(self):
@@ -75,15 +82,26 @@ class ProjectAPI(Resource):
         dast_enabled_ = False if data["dast_enabled"] == "disabled" else True
         sast_enabled_ = False if data["sast_enabled"] == "disabled" else True
         performance_enabled_ = False if data["performance_enabled"] == "disabled" else True
-        if project_id:
-            project = Project.query.get_or_404(project_id)
-            project.name = name_
-            project.project_owner = owner_
-            project.dast_enabled = dast_enabled_
-            project.sast_enabled = sast_enabled_
-            project.performance_enabled = performance_enabled_
-            project.commit()
-            return {"message": f"Project with id {project.id} was successfully updated"}, 200
+        perf_tests_limit = data["perf_tests_limit"]
+        ui_perf_tests_limit = data["ui_perf_tests_limit"]
+        sast_scans_limit = data["sast_scans_limit"]
+        dast_scans_limit = data["dast_scans_limit"]
+        tasks_count_limit = data["tasks_count_limit"]
+        task_executions_limit = data["task_executions_limit"]
+        storage_space_limit = data["storage_space_limit"]
+        data_retention_limit = data["data_retention_limit"]
+        # if project_id:
+        #     project = Project.query.get_or_404(project_id)
+        #     project.name = name_
+        #     project.project_owner = owner_
+        #     project.dast_enabled = dast_enabled_
+        #     project.sast_enabled = sast_enabled_
+        #     project.performance_enabled = performance_enabled_
+        #     project.commit()
+        #     getattr(project_quota, "custom")(project_id, perf_tests_limit, ui_perf_tests_limit, sast_scans_limit,
+        #                                      dast_scans_limit, -1, storage_space_limit, data_retention_limit,
+        #                                      tasks_count_limit, task_executions_limit)
+        #     return {"message": f"Project with id {project.id} was successfully updated"}, 200
 
         project = Project(
             name=name_,
@@ -91,12 +109,13 @@ class ProjectAPI(Resource):
             project_owner=owner_,
             sast_enabled=sast_enabled_,
             performance_enabled=performance_enabled_,
-            package=data["package"].lower()
+            package="custom"
         )
         project.insert()
         SessionProject.set(project.id)  # Looks weird, sorry :D
-        if hasattr(project_quota, data["package"].lower()):
-            getattr(project_quota, data["package"].lower())(project.id)
+        getattr(project_quota, "custom")(project.id, perf_tests_limit, ui_perf_tests_limit, sast_scans_limit,
+                                         dast_scans_limit, -1, storage_space_limit, data_retention_limit,
+                                         tasks_count_limit, task_executions_limit)
 
         statistic = Statistic(
             project_id=project.id,
@@ -105,6 +124,7 @@ class ProjectAPI(Resource):
             sast_scans=0,
             dast_scans=0,
             ui_performance_test_runs=0,
+            public_pool_workers=0,
             tasks_executions=0
         )
         statistic.insert()
@@ -147,10 +167,12 @@ class ProjectAPI(Resource):
         project.dast_enabled = False if data["dast_enabled"] == "disabled" else True
         project.sast_enabled = False if data["sast_enabled"] == "disabled" else True
         project.performance_enabled = False if data["performance_enabled"] == "disabled" else True
-        project.package = data["package"]
+        project.package = "custom"
         project.commit()
-        if hasattr(project_quota, data["package"].lower()):
-            getattr(project_quota, data["package"].lower())(project.id)
+        getattr(project_quota, "custom")(project.id, data["perf_tests_limit"], data["ui_perf_tests_limit"],
+                                         data["sast_scans_limit"], data["dast_scans_limit"], -1,
+                                         data["storage_space_limit"], data["data_retention_limit"],
+                                         data["tasks_count_limit"], data["task_executions_limit"])
         return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS)
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
