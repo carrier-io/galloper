@@ -24,7 +24,7 @@ from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, 
 from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend
 from .visual import VisualReportAPI, VisualResultAPI
-from .task import TaskActionApi, TasksApi
+from .task import TaskActionApi, TasksApi, TaskApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
@@ -56,6 +56,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
 
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
+    add_resource_to_api(api, TaskApi, "/task/<int:project_id>/<string:task_id>")
     add_resource_to_api(api, TasksApi, "/task/<int:project_id>")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")

@@ -172,7 +172,7 @@
                 $("#envName").append(`<option value="${item}">${item}</option>`);
             });
             $("#envName").selectpicker('refresh');
-          }
+          });
     }
     function renderTable() {
         $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val()+"&environment="+$("#envName").val());

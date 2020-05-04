@@ -70,6 +70,32 @@ class TasksApi(Resource):
         return {"file": task_id, "code": 0}, 200
 
 
+class TaskApi(Resource):
+    _get_rules = (
+        dict(name="offset", type=int, default=0, location="args"),
+        dict(name="limit", type=int, default=0, location="args"),
+        dict(name="search", type=str, default="", location="args"),
+        dict(name="sort", type=str, default="", location="args"),
+        dict(name="order", type=str, default="", location="args"),
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self.get_parser = build_req_parser(rules=self._get_rules)
+
+    def get(self, project_id: int, task_id: str):
+        args = self.get_parser.parse_args(strict=False)
+        reports = []
+        total, res = get(project_id, args, Results, additional_filter={"task_id": task_id})
+        for each in res:
+            reports.append(each.to_json())
+        return {"total": total, "rows": reports}
+
+
 class TaskActionApi(Resource):
     result_rules = (
         dict(name="ts", type=int, location="json"),
