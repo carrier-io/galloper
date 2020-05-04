@@ -21,28 +21,26 @@ def _calcualte_limit(limit, total):
     return len(total) if limit == 'All' else limit
 
 
-def get(project_id, args, data_model):
+def get(project_id, args, data_model, additional_filter=None):
     project = Project.query.get_or_404(project_id)
     limit_ = args.get("limit")
     offset_ = args.get("offset")
     if args.get("sort"):
         sort_rule = getattr(getattr(data_model, args["sort"]), args["order"])()
     else:
-        sort_rule = data_model.id.asc()
-    if not args.get('filter'):
-        total = data_model.query.filter(data_model.project_id == project.id).order_by(sort_rule).count()
-        res = data_model.query.filter(
-            data_model.project_id == project.id
-        ).order_by(sort_rule).limit(_calcualte_limit(limit_, total)).offset(offset_).all()
-    else:
-        filter_ = list()
-        filter_.append(operator.eq(data_model.project_id, project.id))
+        sort_rule = data_model.id.desc()
+    filter_ = list()
+    filter_.append(operator.eq(data_model.project_id, project.id))
+    if additional_filter:
+        for key, value in additional_filter.items():
+            filter_.append(operator.eq(getattr(data_model, key), value))
+    if args.get('filter'):
         for key, value in loads(args.get("filter")).items():
             filter_.append(operator.eq(getattr(data_model, key), value))
-        filter_ = and_(*tuple(filter_))
-        total = data_model.query.order_by(sort_rule).filter(filter_).count()
-        res = data_model.query.filter(filter_).order_by(sort_rule).limit(
-            _calcualte_limit(limit_, total)).offset(offset_).all()
+    filter_ = and_(*tuple(filter_))
+    total = data_model.query.order_by(sort_rule).filter(filter_).count()
+    res = data_model.query.filter(filter_).order_by(sort_rule).limit(
+        _calcualte_limit(limit_, total)).offset(offset_).all()
     return total, res
 
 

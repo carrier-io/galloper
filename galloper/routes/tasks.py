@@ -69,17 +69,11 @@ def add_task(project: Project):
 @bp.route("/task/<string:task_id>/<string:action>", methods=["GET", "POST"])
 @project_required
 def suspend_task(project: Project, task_id: str, action: str):
+    task = Task.query.filter(
+        and_(Task.task_id == task_id, Task.project_id == project.id)
+    ).first()
     if action in ("suspend", "delete", "activate"):
-        task = Task.query.filter(
-                and_(Task.task_id == task_id, Task.project_id == project.id)
-            ).first()
         getattr(task, action)()
     elif action == "results":
-        result = Results.query.filter(
-            and_(Results.task_id == task_id, Task.project_id == project.id)
-        ).order_by(Results.ts.desc()).all()
-        task = Task.query.filter(
-            and_(Task.task_id == task_id, Task.project_id == project.id)
-        ).first()
-        return render_template("lambdas/task_results.html", results=result, task=task)
+        return render_template("lambdas/task_results.html", task=task)
     return redirect(url_for("tasks.tasks"))

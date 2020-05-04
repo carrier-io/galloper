@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 from flask_restful import Resource
 from sqlalchemy import and_
-from statistics import mean
+from statistics import mean, harmonic_mean
 
 from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
     get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test, get_backend_users, \
@@ -279,7 +279,8 @@ class TestSaturation(Resource):
         dict(name="max_deviation", type=float, default=0.05, location="args"),
         dict(name="extended_output", type=bool, default=False, location="args"),
         dict(name="u", type=int, action="append", location="args"),
-        dict(name="u_aggr", type=int, default=2, location="args")
+        dict(name="u_aggr", type=int, default=2, location="args"),
+        dict(name="ss", type=int, default=42, location="args")
     )
 
     def __init__(self):
@@ -313,58 +314,63 @@ class TestSaturation(Resource):
         duration_till_now = current_time - start_time
         if duration_till_now < args['wait_till']:
             return {"message": "not enough results", "code": 0}
-        ts_array, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1m")
-        _, data, _ = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
-                             "1s", args["sampler"], scope=args["request"], status=args["status"])
+        ts_array, data, users = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
+                                        "1s", args["sampler"], scope=args["request"], status=args["status"])
         _tmp = []
-        tps = [0]
-        if 'm' in args['aggregation']:
-            aggregation = int(args['aggregation'].replace('m', '')) * 60
-        else:
-            aggregation = int(args['aggregation'].replace("s", ''))
-        for _ in data["responses"].values():
-            _tmp.append(_)
-            if (len(_tmp) % aggregation) == 0:
-                tps.append(round(float(sum(_tmp)) / aggregation, 2))
+        tps = list()
+        usrs = list()
+        errors = list()
+        ss = args['ss']
+        for index, _ in enumerate(data["responses"].values()):
+            if _ and _ > 0:
+                _tmp.append(_)
+            if len(_tmp) and (len(_tmp) % ss) == 0:
+                tps.append(round(harmonic_mean(_tmp)))
+                usrs.append(users[index])
                 _tmp = []
+        if _tmp:
+            tps.append(round(harmonic_mean(_tmp)))
+            usrs.append(users[-1])
+            _tmp = []
         _, data, _ = get_errors(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
                                 args["aggregation"], args["sampler"], scope=args["request"])
-        errors = [0]
         for each in data['errors'].values():
             if each:
                 errors.append(each)
         total = int(get_response_time_per_test(report.build_id, report.name, report.lg_type, args["sampler"],
                                                args["request"], "total"))
         error_rate = float(sum(errors))/float(total) * 100
-        usrs = [0]
-        for each in list(users["users"].values()):
-            if each:
-                usrs.append(each)
-        response = {"ts": ts_array[-1],
-                    "max_users": max(usrs),
-                    "max_throughput": round(max(tps), 2),
-                    "current_throughput": round(tps[-1], 2),
-                    "errors_rate": round(error_rate, 2)}
+        try:
+            max_tp, user_index = arrays.non_decreasing(tps[:-1], deviation=args["deviation"], val=True)
+            max_users = usrs[user_index]
+        except TypeError:
+            return {"message": "not enough results", "code": 0}
+        response = {
+            "ts": ts_array[-1],
+            "max_users": max_users,
+            "max_throughput": round(max(tps), 2),
+            "current_throughput": round(max_tp, 2),
+            "errors_rate": round(error_rate, 2)
+        }
         if args["u"]:
             user_array = args["u"]
-            if response["max_users"] not in user_array:
-                user_array.append(response["max_users"])
+            if max_users not in user_array:
+                user_array.append(max_users)
             user_array.sort()
             user_array.reverse()
             uber_array = {}
-            ts_array, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1s")
-            start_time = ts_array[0]
+            _, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1s")
             u = user_array.pop()
-            users = users["users"]
-            for ts in ts_array[1:]:
-                if users[ts] and users[ts] > u:
-                    _, data, _ = get_tps(report.build_id, report.name, report.lg_type, start_time, ts,
+            start_time = _[0]
+            for key, value in users["users"].items():
+                if value > u and max_users >= u:
+                    _, data, _ = get_tps(report.build_id, report.name, report.lg_type, start_time, key,
                                          "1s", args["sampler"], scope=args["request"],
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
-                    tp = mean(tp)
+                    tp = harmonic_mean(tp)
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
-                                                      start_time, ts, "1s", args["sampler"], scope=args["request"],
+                                                      start_time, key, "1s", args["sampler"], scope=args["request"],
                                                       status=args["status"])
                     rt = [0 if v is None else v for v in list(data['response'].values())[:-1]]
                     rt = self.part(rt, args["u_aggr"])
@@ -372,14 +378,15 @@ class TestSaturation(Resource):
                         "throughput": round(tp, 2),
                         "response_time": round(rt, 2)
                     }
-                    start_time = ts
+                    start_time = key
                     u = user_array.pop()
             response["benchmark"] = uber_array
         if args["extended_output"]:
             response["details"] = {}
             response["tps"] = tps
             for index, value in enumerate(usrs):
-                response["details"][value] = tps[index]
+                if not response["details"].get(value) or response["details"][value] > tps[index]:
+                    response["details"][value] = tps[index]
         if (arrays.non_decreasing(tps[:-1], deviation=args["deviation"]) and
                 error_rate <= args["max_errors"] and
                 response["current_throughput"] * (1 + args["max_deviation"]) >= response["max_throughput"]):
@@ -389,10 +396,6 @@ class TestSaturation(Resource):
         else:
             response["message"] = "saturation"
             response["code"] = 1
-            try:
-                response["max_users"] = usrs[-2]
-            except IndexError:
-                response["max_users"] = usrs[-1]
             return response
 
 

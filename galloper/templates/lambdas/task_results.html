@@ -22,59 +22,60 @@
                 </div>
               </div>
             </div>
-            <div class="table-responsive">
-              <table class="table align-items-center table-flush">
-                <thead class="thead-light">
-                  <tr>
-                    <th scope="col">Time</th>
-                    <th scope="col">Log</th>
-                    <th scope="col">Results</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for result in results %}
-                    <th scope="row">
-                      {{ result.ts | ctime}}
-                    </th>
-                    <td>
-                      <pre>{{ result.log }}</pre>
-                    </td>
-                    <td>
-                      <pre>{{ result.results }} </pre>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div class="card-footer py-4">
-              <!--<nav aria-label="...">-->
-                <!--<ul class="pagination justify-content-end mb-0">-->
-                  <!--<li class="page-item disabled">-->
-                    <!--<a class="page-link" href="#" tabindex="-1">-->
-                      <!--<i class="fas fa-angle-left"></i>-->
-                      <!--<span class="sr-only">Previous</span>-->
-                    <!--</a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item active">-->
-                    <!--<a class="page-link" href="#">1</a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item">-->
-                    <!--<a class="page-link" href="#">2 <span class="sr-only">(current)</span></a>-->
-                  <!--</li>-->
-                  <!--<li class="page-item"><a class="page-link" href="#">3</a></li>-->
-                  <!--<li class="page-item">-->
-                    <!--<a class="page-link" href="#">-->
-                      <!--<i class="fas fa-angle-right"></i>-->
-                      <!--<span class="sr-only">Next</span>-->
-                    <!--</a>-->
-                  <!--</li>-->
-                <!--</ul>-->
-              <!--</nav>-->
-            </div>
+            <table class="table align-items-center table-flush"
+              id="results"
+              data-toggle="table"
+              data-page-size=10
+              data-page-list=[10,20,50,100,200,All]
+              data-side-pagination="server"
+              data-url=""
+              data-pagination="true">
+              <thead class="thead-light">
+                <tr>
+                    <th scope="col" data-sortable="true" data-field="ts" data-formatter=ctime>Time</th>
+                    <th scope="col" data-sortable="true" data-field="log" data-formatter=pre>Log</th>
+                    <th scope="col" data-sortable="true" data-field="results" data-formatter=json2str>Result</th>
+                </tr>
+              </thead>
+            </table>
           </div>
         </div>
       </div>
 {% include 'common/foot.html' %}
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+<script>
+    function refreshTable() {
+        let selectedProjectId = getSelectedProjectId();
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/task/${selectedProjectId}/{{ task.task_id }}`});
+    }
+
+    function pre(value, row, index) {
+        value = value.replace(/\t/g, '\n').replace( /\x1b\[0m/g , '').replace( /\x1b\[32m/g , '');
+        return `<pre>${value}</pre>`
+    }
+
+    function json2str(value, row, index) {
+        return `<pre>${JSON.stringify(JSON.parse(value), null, 4)}<pre>`
+    }
+
+    function ctime(value, row, index) {
+        console.log(row);
+        var a = new Date(row.ts * 1000);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var year = a.getFullYear();
+        var month = months[a.getMonth()];
+        var date = a.getDate();
+        var hour = a.getHours();
+        var min = a.getMinutes();
+        var sec = a.getSeconds();
+        var time = year + '-' + month + '-' + date + ' ' + hour + ':' + min + ':' + sec ;
+        return time;
+    }
+
+    $(document).ready(function() {
+        refreshTable();
+    });
+</script>
 </body>
 </html>
