@@ -233,7 +233,7 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
         status_addon = f" and status='{status.upper()}'"
     responses_query = f"select time, count(response_time) from {lg_type}..{test_name} where time>='{start_time}' " \
                       f"and time<='{end_time}' and sampler_type='{sampler}' {status_addon} and build_id='{build_id}' " \
-                      f"{scope_addon} group by time({aggregation})"
+                      f"{scope_addon} group by time({aggregation}) fill(0)"
     res = get_client().query(responses_query)[test_name]
     results = {"responses": {}}
     for _ in timestamps:
