@@ -348,7 +348,7 @@ class TestSaturation(Resource):
         response = {
             "ts": ts_array[-1],
             "max_users": max_users,
-            "max_throughput": round(max(tps), 2),
+            "max_throughput": round(max(tps[:-1]), 2),
             "current_throughput": round(max_tp, 2),
             "errors_rate": round(error_rate, 2)
         }
@@ -368,6 +368,7 @@ class TestSaturation(Resource):
                                          "1s", args["sampler"], scope=args["request"],
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
+                    tp = list(filter(lambda a: a != 0, tp))
                     tp = harmonic_mean(tp)
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                       start_time, key, "1s", args["sampler"], scope=args["request"],
@@ -380,6 +381,7 @@ class TestSaturation(Resource):
                     }
                     start_time = key
                     u = user_array.pop()
+            uber_array[str(max_users)]["throughput"] = response["current_throughput"]
             response["benchmark"] = uber_array
         if args["extended_output"]:
             response["details"] = {}
