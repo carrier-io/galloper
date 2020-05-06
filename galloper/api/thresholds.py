@@ -118,4 +118,4 @@ class EnvironmentsAPI(Resource):
             and_(APIReport.name == args.get("name"),
                  APIReport.project_id == project.id)
         ).order_by(APIReport.id.asc()).all()
-        return [each.environment for each in query_result]
+        return list(set([each.environment for each in query_result]))

@@ -130,7 +130,10 @@ class TestApiBackend(Resource):
             return test.to_json(["influx.port", "influx.host", "galloper_url",
                                  "test_name", "influx.db", "comparison_db",
                                  "loki_host", "loki_port"])
-        return {"message": test.configure_execution_json(args.get("type")) % project.secrets_json["pp"]}
+        message = test.configure_execution_json(args.get("type"))
+        if args["type"] == "docker":
+            message = test.configure_execution_json(args.get("type")) % project.secrets_json["pp"]
+        return {"message": message}
 
     def put(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)
