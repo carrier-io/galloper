@@ -21,7 +21,7 @@ from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
-from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
+from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend
 from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi, TasksApi, TaskApi

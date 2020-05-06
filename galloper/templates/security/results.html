@@ -166,8 +166,9 @@
     function actionsFormatter(value, row, index) {
         var report_id = page_params.get("id");
         return  `<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-                    <button type="button" class="btn btn-ok" onclick="falsePositive(${report_id}, ${row['id']})">False Positive</button>
-                    <button type="button" class="btn btn-default" onclick="ignoreIssue(${report_id}, ${row['id']})">Ignore finding</button>
+                    <button type="button" class="btn btn-ok" onclick="validFunding(${report_id}, ${row['id']})">Valid</button>
+                    <button type="button" class="btn btn-warning" onclick="falsePositive(${report_id}, ${row['id']})">False Positive</button>
+                    <button type="button" class="btn btn-default" onclick="ignoreIssue(${report_id}, ${row['id']})">Ignore</button>
                  </div>`
 
     }
@@ -193,6 +194,10 @@
 
     function falsePositive(report_id, issue_id) {
         modify_issue(report_id, issue_id, "false_positive")
+    }
+
+    function validFunding((report_id, issue_id) {
+        modify_issue(report_id, issue_id, "valid")
     }
 
     function ignoreIssue(report_id, issue_id) {
