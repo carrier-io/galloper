@@ -345,6 +345,12 @@ class TestSaturation(Resource):
             max_users = usrs[user_index]
         except TypeError:
             return {"message": "not enough results", "code": 0}
+        except IndexError:
+            if error_rate > args["max_errors"]:
+                return {"message": "error rate exceeded threshold", "code": 1}
+            else:
+                return {"message": "not enough results", "code": 0}
+            
         response = {
             "ts": ts_array[-1],
             "max_users": max_users,
