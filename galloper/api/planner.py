@@ -133,7 +133,7 @@ class TestApiBackend(Resource):
         message = test.configure_execution_json(args.get("type"))
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type")) % project.secrets_json["pp"]
-        return {"message": message}
+        return [message]  # this is cc format
 
     def put(self, project_id, test_id):
         project = Project.query.get_or_404(project_id)

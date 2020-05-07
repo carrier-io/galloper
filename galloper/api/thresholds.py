@@ -24,6 +24,7 @@ from galloper.utils.api_utils import build_req_parser
 class ThresholdsAPI(Resource):
     get_rules = (
         dict(name="name", type=str, location="args"),
+        dict(name="environment", type=str, location="args")
     )
     delete_rules = (
         dict(name="name", type=str, location="args"),
@@ -31,7 +32,8 @@ class ThresholdsAPI(Resource):
         dict(name="scope", type=str, location=("args", "json")),
         dict(name="target", type=str, location=("args", "json")),
         dict(name="aggregation", type=str, location=("args", "json")),
-        dict(name="comparison", type=str, location=("args", "json"))
+        dict(name="comparison", type=str, location=("args", "json")),
+        dict(name="env", type=str, location=("args", "json"))
     )
     post_rules = delete_rules + (
         dict(name="yellow", type=float, location="json"),
@@ -59,14 +61,15 @@ class ThresholdsAPI(Resource):
             aggregation=args["aggregation"],
             comparison=args["comparison"],
             yellow=args["yellow"],
-            red=args["red"]
+            red=args["red"],
+            environment=args["env"]
         )}
 
     def delete(self):
         args = self._parser_delete.parse_args(strict=False)
         delete_threshold(
             test=args["test"],
-            environment=args.get("environment"),
+            environment=args("env"),
             target=args["target"],
             scope=args["scope"],
             aggregation=args["aggregation"],
