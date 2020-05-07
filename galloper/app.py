@@ -20,6 +20,7 @@ from flask_restful import Api
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
 from galloper.api.routes import initialize_api_routes
+from galloper.utils.vault import init_vault
 
 
 def register_blueprints(flask_app: Flask) -> None:
@@ -42,6 +43,7 @@ def create_app(config_class: type = Config) -> Flask:
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_class())
     init_db()
+    init_vault()
 
     @flask_app.teardown_appcontext
     def shutdown_session(exception=None):

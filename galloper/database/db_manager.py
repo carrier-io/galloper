@@ -43,5 +43,6 @@ def init_db():
     from .models import task_results
     from .models import statistic
     from .models import ui_report
+    from .models import vault
 
     Base.metadata.create_all(bind=engine)
