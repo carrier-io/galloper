@@ -19,41 +19,46 @@
 
 import hvac  # pylint: disable=E0401
 import requests  # pylint: disable=E0401
+from requests.exceptions import ConnectionError
 import galloper.constants as consts
 from galloper.database.models.vault import Vault
 from galloper.database.models.project import Project
 
 
+
 def init_vault():
     """ Initialize Vault """
     # Get Vault client
-    client = hvac.Client(url=consts.VAULT_URL)
-    # Initialize it if needed
-    if not client.sys.is_initialized():
-        vault = Vault.query.get(consts.VAULT_DB_PK)
-        # Remove stale DB keys
-        if vault is not None:
-            Vault.apply_full_delete_by_pk(pk=consts.VAULT_DB_PK)
-        # Initialize Vault
-        vault_data = client.sys.initialize()
-        # Save keys to DB
-        vault = Vault(
-            id=consts.VAULT_DB_PK,
-            unseal_json=vault_data,
-        )
-        vault.insert()
-    # Unseal if needed
-    if client.sys.is_sealed():
-        vault = Vault.query.get(consts.VAULT_DB_PK)
-        client.sys.submit_unseal_keys(keys=vault.unseal_json["keys"])
-    # Enable AppRole auth method if needed
-    client = get_root_client()
-    auth_methods = client.sys.list_auth_methods()
-    if "carrier-approle/" not in auth_methods["data"].keys():
-        client.sys.enable_auth_method(
-            method_type="approle",
-            path="carrier-approle",
-        )
+    try:
+        client = hvac.Client(url=consts.VAULT_URL)
+        # Initialize it if needed
+        if not client.sys.is_initialized():
+            vault = Vault.query.get(consts.VAULT_DB_PK)
+            # Remove stale DB keys
+            if vault is not None:
+                Vault.apply_full_delete_by_pk(pk=consts.VAULT_DB_PK)
+            # Initialize Vault
+            vault_data = client.sys.initialize()
+            # Save keys to DB
+            vault = Vault(
+                id=consts.VAULT_DB_PK,
+                unseal_json=vault_data,
+            )
+            vault.insert()
+        # Unseal if needed
+        if client.sys.is_sealed():
+            vault = Vault.query.get(consts.VAULT_DB_PK)
+            client.sys.submit_unseal_keys(keys=vault.unseal_json["keys"])
+        # Enable AppRole auth method if needed
+        client = get_root_client()
+        auth_methods = client.sys.list_auth_methods()
+        if "carrier-approle/" not in auth_methods["data"].keys():
+            client.sys.enable_auth_method(
+                method_type="approle",
+                path="carrier-approle",
+            )
+    except ConnectionError:
+        return 0
 
 
 def get_root_client():
