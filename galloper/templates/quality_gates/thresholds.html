@@ -172,11 +172,11 @@
                 $("#envName").append(`<option value="${item}">${item}</option>`);
             });
             $("#envName").selectpicker('refresh');
+            renderTable();
           });
     }
     function renderTable() {
-        $("#thresholds").attr("data-url", "/api/v1/thresholds?name="+$("#testName").val()+"&environment="+$("#envName").val());
-        $("#thresholds").bootstrapTable('refresh');
+        $("#thresholds").bootstrapTable('refresh', {url: "/api/v1/thresholds?name="+$("#testName").val()+"&environment="+$("#envName").val()});
     }
 
     function editAndDelete(value, row, index) {
@@ -234,7 +234,7 @@
             type: "POST",
             data: JSON.stringify({
                 test: $("#testName").val(),
-                environment: $("#envName").val(),
+                env: $("#envName").val(),
                 scope: $("#scope").val(),
                 target: $("#target").val(),
                 aggregation: $("#aggregation").val(),
@@ -255,7 +255,7 @@
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
-            environment: $("#envName").val(),
+            env: $("#envName").val(),
             scope: data['scope'],
             target: data['target'],
             aggregation: data['aggregation'],
@@ -279,6 +279,5 @@
 
     $(document).ready(function() {
         renderEnvPicker();
-        renderTable();
     });
 </script>
