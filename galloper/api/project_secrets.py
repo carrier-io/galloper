@@ -14,7 +14,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 from flask_restful import Resource  # pylint: disable=E0401
 
@@ -34,16 +34,45 @@ class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
     def __init_req_parsers(self):
         self._parser_post = build_req_parser(rules=self.post_rules)
 
-    def get(self, project_id: Optional[int] = None) -> Tuple[dict, int]:  # pylint: disable=R0201,C0111
+    def get(self, project_id: int) -> Tuple[dict, int]:  # pylint: disable=R0201,C0111
         # Check project_id for validity
         project = Project.query.get_or_404(project_id)
         # Get secrets
         return {"secrets": get_project_secrets(project.id)}, 200
 
-    def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:  # pylint: disable=C0111
+    def post(self, project_id: int) -> Tuple[dict, int]:  # pylint: disable=C0111
         data = self._parser_post.parse_args()
         # Check project_id for validity
         project = Project.query.get_or_404(project_id)
         # Set secrets
         set_project_secrets(project.id, data["secrets"])
         return {"message": f"Project secrets were saved"}, 200
+
+
+class ProjectSecretAPI(Resource):  # pylint: disable=C0111
+    post_rules = (
+        dict(name="secret", type=str, required=True, default=None, location="json"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
+    def get(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=R0201,C0111
+        # Check project_id for validity
+        project = Project.query.get_or_404(project_id)
+        # Get secret
+        secrets = get_project_secrets(project.id)
+        return {"secret": secrets.get(secret, None)}, 200
+
+    def post(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
+        data = self._parser_post.parse_args()
+        # Check project_id for validity
+        project = Project.query.get_or_404(project_id)
+        # Set secret
+        secrets = get_project_secrets(project.id)
+        secrets[secret] = data["secret"]
+        set_project_secrets(project.id, secrets)
+        return {"message": f"Project secret was saved"}, 200
