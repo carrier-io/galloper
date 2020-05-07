@@ -181,7 +181,7 @@
 
     function editAndDelete(value, row, index) {
         var id = row['time'];
-        return `<a href="#" onclick="showEditThreshold('`+id+`')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
+        return `<a href="#" onclick="showEditThreshold('${id}')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
     }
 
     $("#addThresholdsModal").on("show.bs.modal", function() {
@@ -215,10 +215,14 @@
     });
 
     function showEditThreshold(index){
-        var data = $("#thresholds").bootstrapTable('getRowByUniqueId', index);
-        console.log(data);
         $("#addThresholdsModal").modal('toggle');
         $("#modal_title").html("Edit Threshold");
+        setTimeout(updateModalData, 500, index);
+
+    }
+
+    function updateModalData(index) {
+        var data = $("#thresholds").bootstrapTable('getRowByUniqueId', index);
         $("#scope").selectpicker('val', data['scope']);
         $("#target").selectpicker('val', data['target']);
         $("#aggregation").selectpicker('val', data['aggregation']);
@@ -227,6 +231,7 @@
         $("#red").val(data['red']);
         $("#submit").attr('onclick', `editThreshold("${index}")`);
     }
+
 
     function insertThreshold(){
         $.ajax({
