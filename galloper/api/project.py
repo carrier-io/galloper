@@ -21,6 +21,7 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
+from galloper.utils.vault import initialize_project_space, remove_project_space
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
@@ -150,9 +151,12 @@ class ProjectAPI(Resource):
             })
         }
         cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
+        project_vault_data = initialize_project_space(project.id)
         project.secrets_json = {
             "pp": pp.task_id,
-            "cc": cc.task_id
+            "cc": cc.task_id,
+            "vault_auth_role_id": project_vault_data["auth_role_id"],
+            "vault_auth_secret_id": project_vault_data["auth_secret_id"],
         }
         project.commit()
         return {"message": f"Project was successfully created"}, 200
@@ -177,6 +181,7 @@ class ProjectAPI(Resource):
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
         Project.apply_full_delete_by_pk(pk=project_id)
+        remove_project_space(project_id)
         return {"message": f"Project with id {project_id} was successfully deleted"}, 200
 
 
