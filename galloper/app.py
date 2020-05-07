@@ -43,7 +43,7 @@ def create_app(config_class: type = Config) -> Flask:
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_class())
     init_db()
-    init_vault()
+    init_vault()  # won't do anything is vault is not available
 
     @flask_app.teardown_appcontext
     def shutdown_session(exception=None):

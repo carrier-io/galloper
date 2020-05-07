@@ -14,6 +14,7 @@
 
 from json import dumps
 from typing import Optional, Union, Tuple
+from flask import current_app
 from flask_restful import Resource
 
 from galloper.database.models.project import Project
@@ -91,19 +92,6 @@ class ProjectAPI(Resource):
         task_executions_limit = data["task_executions_limit"]
         storage_space_limit = data["storage_space_limit"]
         data_retention_limit = data["data_retention_limit"]
-        # if project_id:
-        #     project = Project.query.get_or_404(project_id)
-        #     project.name = name_
-        #     project.project_owner = owner_
-        #     project.dast_enabled = dast_enabled_
-        #     project.sast_enabled = sast_enabled_
-        #     project.performance_enabled = performance_enabled_
-        #     project.commit()
-        #     getattr(project_quota, "custom")(project_id, perf_tests_limit, ui_perf_tests_limit, sast_scans_limit,
-        #                                      dast_scans_limit, -1, storage_space_limit, data_retention_limit,
-        #                                      tasks_count_limit, task_executions_limit)
-        #     return {"message": f"Project with id {project.id} was successfully updated"}, 200
-
         project = Project(
             name=name_,
             dast_enabled=dast_enabled_,
@@ -151,7 +139,14 @@ class ProjectAPI(Resource):
             })
         }
         cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
-        project_vault_data = initialize_project_space(project.id)
+        project_vault_data = {
+            "auth_role_id": "",
+            "auth_secret_id": ""
+        }
+        try:
+            project_vault_data = initialize_project_space(project.id)
+        except:
+            current_app.logger.warning("Vault in not configured")
         project.secrets_json = {
             "pp": pp.task_id,
             "cc": cc.task_id,
