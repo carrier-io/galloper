@@ -17,6 +17,8 @@
 
 """ Vault tools """
 
+from jinja2 import Template
+
 import hvac  # pylint: disable=E0401
 import requests  # pylint: disable=E0401
 from requests.exceptions import ConnectionError
@@ -175,3 +177,29 @@ def get_project_secrets(project_id):
         path="project-secrets",
         mount_point=f"kv-for-{project_id}",
     ).get("data", dict()).get("data", dict())
+
+
+def unsecret(value, secrets=None, project_id=None):
+    if not secrets:
+        secrets = get_project_secrets(project_id)
+    if isinstance(value, str):
+        template = Template(value)
+        return template.render(secret=secrets)
+    elif isinstance(value, list):
+        return unsecret_list(secrets, value)
+    elif isinstance(value, dict):
+        return unsecret_json(secrets, value)
+    else:
+        return value
+
+
+def unsecret_json(secrets, json):
+    for key in json.keys():
+        json[key] = unsecret(json[key], secrets)
+    return json
+
+
+def unsecret_list(secrets, array):
+    for i in range(len(array)):
+        array[i] = unsecret(array[i], secrets)
+    return array

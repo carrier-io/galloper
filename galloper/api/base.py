@@ -9,6 +9,7 @@ from galloper.database.models.task import Task
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
+from galloper.dal.vault import get_project_secrets, unsecret
 
 from werkzeug.exceptions import Forbidden
 from werkzeug.utils import secure_filename
@@ -84,12 +85,11 @@ def create_task(project, file, args):
     return task
 
 
-def run_task(task_id, event):
-    task = Task.query.filter(
-        and_(Task.task_id == task_id)
-    ).first().to_json()
+def run_task(task_id, project_id, event):
+    task = Task.query.filter(and_(Task.task_id == task_id)).first().to_json()
+    secrets = get_project_secrets(project_id)
     app = run.connect_to_celery(1)
     celery_task = app.signature("tasks.execute",
-                                kwargs={"task": task, "event": event})
+                                kwargs={"task": unsecret(task, secrets), "event": unsecret(event, secrets)})
     celery_task.apply_async()
     return {"message": "Accepted", "code": 200}

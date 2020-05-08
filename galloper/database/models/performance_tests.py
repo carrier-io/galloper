@@ -20,7 +20,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.constants import APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
-
+from galloper.dal.vault import get_project_secrets, unsecret
 
 class PerformanceTests(AbstractBaseMixin, Base):
     __tablename__ = "performance_tests"
@@ -97,7 +97,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         super().insert()
 
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
-                                 customization=None, java_opts=None, parallel=None):
+                                 customization=None, java_opts=None, parallel=None, execution=False):
         if not java_opts:
             java_opts = self.java_opts
         pairs = {
@@ -147,6 +147,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
             for key, value in self.params.items():
                 execution_json["execution_params"]["GATLING_TEST_PARAMS"] += f"-D{key}={value} "
         execution_json["execution_params"] = dumps(execution_json["execution_params"])
+        if execution:
+            execution_json = unsecret(execution_json, project_id=self.project_id)
         if output == 'cc':
             return execution_json
         else:

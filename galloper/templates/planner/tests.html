@@ -154,7 +154,7 @@
             url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker`,
             type: 'GET',
             success: function (result) {
-                $("#execution_config").val(result.message);
+                $("#execution_config").val(result.config);
                 $("#showConfigModal").modal("show");
             }
         });
@@ -166,7 +166,7 @@
             url: `/api/v1/tests/${project_id}/backend/${test_id}?type=cc`,
             type: 'GET',
             success: function (result) {
-                $("#execution_config").val(JSON.stringify(result.message, null, 4));
+                $("#execution_config").val(JSON.stringify(result.config, null, 4));
                 $("#showConfigModal").modal("show");
             }
         });

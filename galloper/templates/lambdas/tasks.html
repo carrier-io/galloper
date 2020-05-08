@@ -124,12 +124,13 @@
 <script>
   function executeLambda(id){
     event_json = document.getElementById("event-json-"+id).value
+    let selectedProjectId = getSelectedProjectId();
     if (event_json.length === 0) {
       event_json = "{}"
     }
     $.ajax(
       {
-        url:"/task/"+id,
+        url: `/api/v1/task/${selectedProjectId}/${id}`,
         data: event_json,
         cache: false,
         contentType: "application/json",

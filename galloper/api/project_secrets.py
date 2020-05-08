@@ -20,7 +20,7 @@ from flask_restful import Resource  # pylint: disable=E0401
 
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
-from galloper.utils.vault import get_project_secrets, set_project_secrets
+from galloper.dal.vault import get_project_secrets, set_project_secrets
 
 
 class ProjectSecretsAPI(Resource):  # pylint: disable=C0111

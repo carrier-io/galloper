@@ -4,16 +4,15 @@ from flask_restful import Resource
 from werkzeug.exceptions import Forbidden
 from werkzeug.datastructures import FileStorage
 
-
-from galloper.api.base import get, create_task
+from galloper.api.base import get, create_task, run_task
 from galloper.constants import allowed_file
 from galloper.data_utils.file_utils import File
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
 from galloper.database.models.project import Project
 from galloper.database.models.project_quota import ProjectQuota
-from galloper.utils.api_utils import build_req_parser
-
+from galloper.utils.api_utils import build_req_parser, str2bool
+from galloper.dal.vault import unsecret
 
 
 class TasksApi(Resource):
@@ -72,13 +71,7 @@ class TasksApi(Resource):
 
 class TaskApi(Resource):
     _get_rules = (
-        dict(name="offset", type=int, default=0, location="args"),
-        dict(name="limit", type=int, default=0, location="args"),
-        dict(name="search", type=str, default="", location="args"),
-        dict(name="sort", type=str, default="", location="args"),
-        dict(name="order", type=str, default="", location="args"),
-        dict(name="name", type=str, location="args"),
-        dict(name="filter", type=str, location="args")
+        dict(name="exec", type=str2bool, default=False, location="args"),
     )
 
     def __init__(self):
@@ -89,14 +82,30 @@ class TaskApi(Resource):
 
     def get(self, project_id: int, task_id: str):
         args = self.get_parser.parse_args(strict=False)
-        reports = []
-        total, res = get(project_id, args, Results, additional_filter={"task_id": task_id})
-        for each in res:
-            reports.append(each.to_json())
-        return {"total": total, "rows": reports}
+        task = Task.query.filter_by(task_id=task_id).first()
+        project = Project.query.get_or_404(project_id)
+        if args.get("exec"):
+            return unsecret(task.to_json(), project_id=project.id)
+        return task.to_json()
+
+    def post(self, project_id: int, task_id: str):
+        task = Task.query.filter_by(task_id=task_id).first()
+        project = Project.query.get_or_404(project_id)
+        event = request.get_json()
+        return run_task(task.task_id, project.id, event)
 
 
 class TaskActionApi(Resource):
+    _get_rules = (
+        dict(name="offset", type=int, default=0, location="args"),
+        dict(name="limit", type=int, default=0, location="args"),
+        dict(name="search", type=str, default="", location="args"),
+        dict(name="sort", type=str, default="", location="args"),
+        dict(name="order", type=str, default="", location="args"),
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
+    )
+
     result_rules = (
         dict(name="ts", type=int, location="json"),
         dict(name="results", type=str, location="json"),
@@ -108,11 +117,19 @@ class TaskActionApi(Resource):
 
     def __init_req_parsers(self):
         self._result_parser = build_req_parser(rules=self.result_rules)
+        self.get_parser = build_req_parser(rules=self._get_rules)
 
     def get(self, task_id, action):
         task = Task.query.filter_by(task_id=task_id).first()
         if action in ("suspend", "delete", "activate"):
             getattr(task, action)()
+        if action == "results":
+            args = self.get_parser.parse_args(strict=False)
+            reports = []
+            total, res = get(task.project_id, args, Results, additional_filter={"task_id": task_id})
+            for each in res:
+                reports.append(each.to_json())
+            return {"total": total, "rows": reports}
         return {"message": "Done", "code": 200}
 
     def post(self, task_id, action):

@@ -22,7 +22,7 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
-from galloper.utils.vault import initialize_project_space, remove_project_space
+from galloper.dal.vault import initialize_project_space, remove_project_space
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST, EXTERNAL_LOKI_HOST

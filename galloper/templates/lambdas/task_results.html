@@ -46,8 +46,7 @@
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 <script>
     function refreshTable() {
-        let selectedProjectId = getSelectedProjectId();
-        $("#results").bootstrapTable('refresh', {url: `/api/v1/task/${selectedProjectId}/{{ task.task_id }}`});
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/task/{{ task.task_id }}/results`});
     }
 
     function pre(value, row, index) {
