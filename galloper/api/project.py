@@ -22,10 +22,11 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject
-from galloper.dal.vault import initialize_project_space, remove_project_space
+from galloper.dal.vault import initialize_project_space, remove_project_space, set_project_secrets
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
-from galloper.constants import POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
+from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
+                                EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT)
 
 from datetime import datetime
 
@@ -100,6 +101,7 @@ class ProjectAPI(Resource):
             performance_enabled=performance_enabled_,
             package="custom"
         )
+        project_secrets = {}
         project.insert()
         SessionProject.set(project.id)  # Looks weird, sorry :D
         getattr(project_quota, "custom")(project.id, perf_tests_limit, ui_perf_tests_limit, sast_scans_limit,
@@ -125,20 +127,31 @@ class ProjectAPI(Resource):
             "env_vars": dumps({})
         }
         pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
+        project_secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
+        project_secrets["post_processor_id"] = pp.task_id
+        project_secrets["redis_host"] = APP_IP
+        project_secrets["galloper_url"] = APP_HOST
+        project_secrets["loki_host"] = EXTERNAL_LOKI_HOST
+        project_secrets["project_id"] = project.id
+        project_secrets["influx_ip"] = APP_IP
+        project_secrets["influx_port"] = INFLUX_PORT
+        project_secrets["loki_port"] = LOKI_PORT
         cc_args = {
             "funcname": "control_tower",
             "invoke_func": "lambda.handler",
             "runtime": "Python 3.7",
             "env_vars": dumps({
-                "REDIS_HOST": APP_IP,
+                "REDIS_HOST": "{{secret.redis_host}}",
                 "REDIS_DB": 1,
-                "galloper_url": APP_HOST,
-                "GALLOPER_WEB_HOOK": f'{APP_HOST}{pp.webhook}',
-                "project_id": project.id,
-                "loki_host": EXTERNAL_LOKI_HOST
+                "token": "{{secret.auth_token}}",
+                "galloper_url": "{{secret.galloper_url}}",
+                "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
+                "project_id": '{{secret.project_id}}',
+                "loki_host": '{{secret.loki_host}}'
             })
         }
         cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
+        project_secrets["control_tower_id"] = cc.task_id
         project_vault_data = {
             "auth_role_id": "",
             "auth_secret_id": ""
@@ -148,12 +161,11 @@ class ProjectAPI(Resource):
         except:
             current_app.logger.warning("Vault in not configured")
         project.secrets_json = {
-            "pp": pp.task_id,
-            "cc": cc.task_id,
             "vault_auth_role_id": project_vault_data["auth_role_id"],
             "vault_auth_secret_id": project_vault_data["auth_secret_id"],
         }
         project.commit()
+        set_project_secrets(project.id, project_secrets)
         return {"message": f"Project was successfully created"}, 200
 
     def put(self, project_id: Optional[int] = None) -> Tuple[dict, int]:

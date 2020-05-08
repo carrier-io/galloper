@@ -92,7 +92,7 @@ class TaskApi(Resource):
         task = Task.query.filter_by(task_id=task_id).first()
         project = Project.query.get_or_404(project_id)
         event = request.get_json()
-        return run_task(task.task_id, project.id, event)
+        return run_task(project.id, event, task.task_id)
 
 
 class TaskActionApi(Resource):
