@@ -38,7 +38,11 @@ class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
         # Check project_id for validity
         project = Project.query.get_or_404(project_id)
         # Get secrets
-        return {"secrets": get_project_secrets(project.id)}, 200
+        secrets_dict = get_project_secrets(project.id)
+        resp = []
+        for key in secrets_dict.keys():
+            resp.append({"name": key, "secret": "******"})
+        return resp
 
     def post(self, project_id: int) -> Tuple[dict, int]:  # pylint: disable=C0111
         data = self._parser_post.parse_args()
@@ -76,3 +80,11 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
         secrets[secret] = data["secret"]
         set_project_secrets(project.id, secrets)
         return {"message": f"Project secret was saved"}, 200
+
+    def delete(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
+        project = Project.query.get_or_404(project_id)
+        secrets = get_project_secrets(project.id)
+        if secret in secrets:
+            del secrets[secret]
+        set_project_secrets(project.id, secrets)
+        return {"message": "deleted"}, 200
