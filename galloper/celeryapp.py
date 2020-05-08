@@ -104,7 +104,6 @@ def zip_to_volume(self, task_id, file_path, *args, **kwargs):
 
 @app.task(name="tasks.execute", bind=True, acks_late=True, base=AbortableTask)
 def execute_lambda(self, task, event, *args, **kwargs):
-    task = db_session.query(Task).filter(Task.task_id == task["task_id"])[0].to_json()
     if not ProjectQuota.check_quota(project_id=task['project_id'], quota='tasks_executions'):
         data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': 'Forbidden',
                 'stderr': "The number of task executions allowed in the project has been exceeded"}

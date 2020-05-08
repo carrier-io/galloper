@@ -20,7 +20,7 @@ from flask_restful import Api
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
 from galloper.api.routes import initialize_api_routes
-from galloper.utils.vault import init_vault
+from galloper.dal.vault import init_vault
 
 
 def register_blueprints(flask_app: Flask) -> None:
