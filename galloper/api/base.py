@@ -85,11 +85,13 @@ def create_task(project, file, args):
     return task
 
 
-def run_task(task_id, project_id, event):
-    task = Task.query.filter(and_(Task.task_id == task_id)).first().to_json()
+def run_task(project_id, event, task_id=None):
     secrets = get_project_secrets(project_id)
+    task_id = task_id if task_id else secrets["control_tower_id"]
+    task = Task.query.filter(and_(Task.task_id == task_id)).first().to_json()
     app = run.connect_to_celery(1)
     celery_task = app.signature("tasks.execute",
-                                kwargs={"task": unsecret(task, secrets), "event": unsecret(event, secrets)})
+                                kwargs={"task": unsecret(task, secrets),
+                                        "event": unsecret(event, secrets)})
     celery_task.apply_async()
-    return {"message": "Accepted", "code": 200}
+    return {"message": "Accepted", "code": 200, "task_id": task_id}

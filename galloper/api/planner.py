@@ -132,8 +132,7 @@ class TestApiBackend(Resource):
                                  "test_name", "influx.db", "comparison_db",
                                  "loki_host", "loki_port"])
         if args["type"] == "docker":
-            message = test.configure_execution_json(args.get("type"),
-                                                    execution=args.get("exec")) % project.secrets_json["pp"]
+            message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
         else:
             message = [test.configure_execution_json(args.get("type"), execution=args.get("exec"))]
         return {"config": message}  # this is cc format
@@ -187,6 +186,6 @@ class TestApiBackend(Resource):
                                                    customization=loads(args.get("customization", None)),
                                                    java_opts=args.get("java_opts", None),
                                                    parallel=args.get("parallel", None)))
-        response = run_task(project.secrets_json["cc"], project.id, event)
-        response["redirect"] = f'{project.secrets_json["cc"]}/results'
+        response = run_task(project.id, event)
+        response["redirect"] = f'/task/{response["task_id"]}/results'
         return response
