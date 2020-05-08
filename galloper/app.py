@@ -24,7 +24,7 @@ from galloper.utils.vault import init_vault
 
 
 def register_blueprints(flask_app: Flask) -> None:
-    from galloper.routes import tasks, observer, artifacts, report, thresholds, projects, planner
+    from galloper.routes import tasks, observer, artifacts, report, thresholds, projects, planner, secrets
     flask_app.register_blueprint(projects.bp)
     flask_app.register_blueprint(tasks.bp)
     flask_app.register_blueprint(observer.bp)
@@ -32,6 +32,7 @@ def register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(report.bp)
     flask_app.register_blueprint(thresholds.bp)
     flask_app.register_blueprint(planner.bp)
+    flask_app.register_blueprint(secrets.bp)
 
 
 def register_api(flask_app: Flask) -> None:
