@@ -21739,14 +21739,18 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle
 
 .noUi-tooltip
 {
-    position: absolute;
+    display: none;
+}
+
+.noUi-active .noUi-tooltip {
+     position: absolute;
 
     display: block;
 
     padding: 5px;
 
     text-align: center;
-    white-space: nowrap; 
+    white-space: nowrap;
 
     color: #000;
     border: 1px solid #d9d9d9;
@@ -22189,23 +22193,4 @@ input#menu[type="checkbox"] {
   top 73px;
 		transform: translate3d(200px, 0, 0);
     transition: transform .45s cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-	/* label.hamburger {
-		display: none;
-	} */
-
-.preview {
-    width:400px; height:400px;
-    -webkit-transform-origin:0 0;
-    -ms-transform-origin:0 0;
-    transform-origin:0 0;
-}
-
-.modal {
-    font-size: 0.8rem;
-}
-
-.pagination-info {
-    padding-left: 20px;
 }

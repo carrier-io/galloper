@@ -79,6 +79,12 @@ class Project(AbstractBaseMixin, Base):
         from galloper.database.models.security_details import SecurityDetails
         from galloper.database.models.api_reports import APIReport
         from galloper.database.models.api_release import APIRelease
+        from galloper.database.models.performance_tests import PerformanceTests
+        from galloper.database.models.ui_report import UIReport
+        from galloper.database.models.ui_result import UIResult
+        from galloper.database.models.statistic import Statistic
+        from galloper.database.models.project_quota import ProjectQuota
+
 
         _logger = logging.getLogger(cls.__name__.lower())
         _logger.info("Start deleting entire project within transaction")
@@ -106,6 +112,21 @@ class Project(AbstractBaseMixin, Base):
         for task in Task.query.filter_by(project_id=pk).all():
             task_ids.append(task.task_id)
             task.delete(commit=False)
+
+        for test in PerformanceTests.query.filter_by(project_id=pk).all():
+            test.delete(commit=False)
+
+        for result in UIResult.query.filter_by(project_id=pk).all():
+            result.delete(commit=False)
+
+        for result in UIReport.query.filter_by(project_id=pk).all():
+            result.delete(commit=False)
+
+        for stats in Statistic.query.filter_by(project_id=pk).all():
+            stats.delete(commit=False)
+
+        for quota in ProjectQuota.query.filter_by(project_id=pk).all():
+            quota.delete(commit=False)
 
         try:
             db_session.flush()

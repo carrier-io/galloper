@@ -20,11 +20,12 @@ from .artifacts import BucketsApi, ArtifactApi
 from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
+from .project_secrets import ProjectSecretsAPI, ProjectSecretAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
-from .sequrity_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
+from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend
 from .visual import VisualReportAPI, VisualResultAPI
-from .task import TaskActionApi, TasksApi
+from .task import TaskActionApi, TasksApi, TaskApi
 from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
@@ -51,11 +52,14 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
     add_resource_to_api(api, ProjectSessionAPI, "/project-session", "/project-session/<int:project_id>")
     add_resource_to_api(api, ProjectQuotaAPI, "/quota", "/quota/<int:project_id>")
+    add_resource_to_api(api, ProjectSecretsAPI, "/secrets/<int:project_id>")
+    add_resource_to_api(api, ProjectSecretAPI, "/secrets/<int:project_id>/<string:secret>")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")
 
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
+    add_resource_to_api(api, TaskApi, "/task/<int:project_id>/<string:task_id>")
     add_resource_to_api(api, TasksApi, "/task/<int:project_id>")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")

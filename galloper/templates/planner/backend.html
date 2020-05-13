@@ -262,8 +262,7 @@
             contentType: 'application/json',
             type: 'PUT',
             success: function(data){
-                console.log(JSON.stringify(data));
-                $(location).attr('href', "/tests?type=backend")
+                window.location.href = "/tests?type=backend";
             }
         });
     }

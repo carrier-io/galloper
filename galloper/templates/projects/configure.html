@@ -30,6 +30,21 @@
         $("#perf").selectpicker("refresh")
         $("#sast").selectpicker("refresh")
         $("#dast").selectpicker("refresh")
+        if (data.package == "custom") {
+            disablePackageSelector();
+        } else if (data.package == "basic") {
+            document.getElementById("input-slider-package").noUiSlider.set(1);
+            enablePackageSelector();
+        } else if (data.package == "startup") {
+            document.getElementById("input-slider-package").noUiSlider.set(2);
+            enablePackageSelector();
+        } else if (data.package == "professional") {
+            document.getElementById("input-slider-package").noUiSlider.set(3);
+            enablePackageSelector();
+        } else if (data.package == "enterprise") {
+            document.getElementById("input-slider-package").noUiSlider.set(4);
+            enablePackageSelector();
+        }
     }
 
     function getProjectDetails() {
@@ -45,14 +60,62 @@
 
     function submit() {
         let selectedProjectId = getSelectedProjectId();
-        let active_package = $(".card-shadow-active").find("span").text()
+        package = $("#selected_package").html()
+        if ($("#performance_test_runs_unlimited").prop('checked')) {
+            perf_tests_limit = -1
+        } else {
+            perf_tests_limit = $("#performance_test_runs_value").html()
+        }
+        if ($("#ui_performance_test_runs_unlimited").prop('checked')) {
+            ui_perf_tests_limit = -1
+        } else {
+            ui_perf_tests_limit = $("#ui_performance_test_runs_value").html()
+        }
+        if ($("#sast_scans_unlimited").prop('checked')) {
+            sast_scans_limit = -1
+        } else {
+            sast_scans_limit = $("#sast_scans_value").html()
+        }
+        if ($("#dast_scans_unlimited").prop('checked')) {
+            dast_scans_limit = -1
+        } else {
+            dast_scans_limit = $("#dast_scans_value").html()
+        }
+        if ($("#tasks_count_unlimited").prop('checked')) {
+            tasks_count_limit = -1
+        } else {
+            tasks_count_limit = $("#tasks_count_value").html()
+        }
+        if ($("#tasks_executions_unlimited").prop('checked')) {
+            task_executions_limit = -1
+        } else {
+            task_executions_limit = $("#tasks_executions_value").html()
+        }
+        if ($("#storage_space_unlimited").prop('checked')) {
+            storage_space_limit = -1
+        } else {
+            storage_space_limit = $("#storage_space_value").html()
+        }
+        if ($("#data_retention_limit_unlimited").prop('checked')) {
+            data_retention_limit = -1
+        } else {
+            data_retention_limit = $("#data_retention_limit_value").html()
+        }
         var project_data = {
             name: $("#proj_name").val(),
             owner: $("#proj_owner").val(),
             sast_enabled: $("#sast").val(),
             dast_enabled: $("#dast").val(),
             performance_enabled: $("#perf").val(),
-            package: active_package
+            package: package,
+            perf_tests_limit: perf_tests_limit,
+            ui_perf_tests_limit: ui_perf_tests_limit,
+            sast_scans_limit: sast_scans_limit,
+            dast_scans_limit: dast_scans_limit,
+            tasks_count_limit: tasks_count_limit,
+            task_executions_limit: task_executions_limit,
+            storage_space_limit: storage_space_limit,
+            data_retention_limit: data_retention_limit
         }
         console.log(project_data)
         $.ajax({
@@ -66,25 +129,260 @@
         });
     }
 
-    function setFocus(id) {
-        ["basic", "startup", "enterprise", "professional"].forEach( item => {
-            if ($(`#${item}`).hasClass("card-shadow-active")) {
-                $(`#${item}`).removeClass( "card-shadow-active" ).addClass( "card-shadow" );
+    function disableSlider(checkboxID, sliderID, shieldID) {
+        disablePackageSelector()
+        var slider = document.getElementById(sliderID)
+        if ($(`#${checkboxID}`).prop( "checked" )) {
+            slider.setAttribute('disabled', true);
+            let current_value = $(`#${shieldID}`).html();
+            if (current_value != "Unlimited") {
+                $(`#${checkboxID}`).prop( "name", current_value);
             }
-        })
-        $(`#${id}`).removeClass( "card-shadow" ).addClass( "card-shadow-active" );
+            $(`#${shieldID}`).text("Unlimited");
+        } else {
+            slider.removeAttribute('disabled');
+            let current_value = $(`#${checkboxID}`).prop( "name" );
+            $(`#${shieldID}`).text(current_value);
 
+        }
     }
 
     function getProjectQuota() {
         let project_id = getSelectedProjectId();
-        fetch(`/api/v1/quota/${project_id}`)
-            .then(response => response.json())
-            .then(data => {
-                setFocus(data.name)
-            })
-            .catch(err => console.log("Fetch Error :-S", err));
+        $.ajax({
+            async: false,
+            type: "GET",
+            url: `/api/v1/statistic/${project_id}`,
+            success: function (data) {
+                console.log(data)
+                Object.keys(data).forEach(function(item) {
+                    if (item == "storage_space") {
+                        if (data[item]["current"] < 1000) {
+                            current = data[item]["current"] + " Mb";
+                        } else {
+                            current = data[item]["current"]/1000 + " Gb";
+                        }
+                        if (data[item]["current"] < 1000) {
+                            quota = data[item]["quota"] + " Mb";
+                        } else {
+                            quota = data[item]["quota"]/1000 + " Gb";
+                        }
+                        $("#storage_space").text(current + " / " + quota);
+                    } else if (item == "data_retention_limit") {
+                        let retention_limit_value = data[item]["quota"]
+                        let retention_limit_current_value;
+                        if (retention_limit_value == 365) {
+                            retention_limit_current_value = "1 year";
+                        } else {
+                            retention_limit_current_value = retention_limit_value/30 + " month";
+                        }
+                        $("#data_retention_limit").text(retention_limit_current_value);
+                    } else {
+                        let current_value = data[item]["current"] + " / " + data[item]["quota"]
+                        $(`#${item}`).text(current_value);
+                    }
+                    if (data[item]["quota"] == -1) {
+                        $(`#${item}_unlimited`).prop( "checked", true)
+                        disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+                    } else {
+                        $(`#${item}_value`).text(data[item]["quota"]);
+                        var slider = document.getElementById(`input-slider-${item}`)
+                        slider.noUiSlider.set(data[item]["quota"]);
+                    }
+                })
+
+            }
+        });
     }
+
+    function packageSelector() {
+        if ($("#package_selector").prop( "checked" )) {
+            disablePackageSelector()
+        } else {
+            enablePackageSelector()
+        }
+    }
+
+    function disablePackageSelector() {
+        $("#selected_package").text("Custom");
+        $("#package_selector").prop( "checked", true )
+        var slider = document.getElementById("input-slider-package")
+        slider.setAttribute('disabled', true);
+    }
+
+    function enablePackageSelector() {
+        let package_id = $("#selected_package_name").html()
+        let package = getPackageById(package_id);
+        $("#selected_package").text(package);
+        var slider = document.getElementById("input-slider-package")
+        slider.removeAttribute('disabled');
+        slider.noUiSlider.set(package_id);
+        $("#package_selector").prop( "checked", false )
+    }
+
+    $('#selected_package_name').on('DOMSubtreeModified',function(){
+         let package_id = $("#selected_package_name").html()
+         let current_value = getPackageById(package_id);
+         $("#selected_package").text(current_value);
+         setQuotaForPackage(current_value);
+    })
+
+    function setQuotaForPackage(package) {
+        if (package == "Basic") {
+            setQuotaForBasicPackage();
+        } else if (package == "Startup") {
+            setQuotaForStartupPackage();
+        } else if (package == "Professional") {
+            setQuotaForProfessionalPackage();
+        } else if (package == "Enterprise") {
+            setQuotaForEnterprisePackage();
+        }
+        enablePackageSelector();
+    }
+
+    function setQuotaForBasicPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(10);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(10);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(10);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(1);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(3);
+        document.getElementById("input-slider-tasks_executions").noUiSlider.set(250);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(100);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(30);
+    }
+
+    function setQuotaForStartupPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(100);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(100);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(100);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(20);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(5);
+        document.getElementById("input-slider-tasks_executions").noUiSlider.set(1000);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(500);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(90);
+    }
+
+    function setQuotaForProfessionalPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(1000);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(1000);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(1000);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(100);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(10);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(1000);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(180);
+        $("#tasks_executions_unlimited").prop( "checked", true );
+        disableSlider("tasks_executions_unlimited", "input-slider-tasks_executions", "tasks_executions")
+    }
+
+    function setQuotaForEnterprisePackage() {
+        enableAllSliders()
+        const arr = ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "tasks_count", "tasks_executions", "storage_space", "data_retention_limit"];
+        arr.forEach(item => {
+            $(`#${item}_unlimited`).prop( "checked", true );
+            disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+        });
+    }
+
+    function enableAllSliders() {
+        ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "tasks_count", "tasks_executions", "storage_space", "data_retention_limit"].forEach( item => {
+            $(`#${item}_unlimited`).prop( "checked", false );
+            let current_value = $(`#${item}`).html();
+            if (current_value != "Unlimited") {
+                $(`#${item}_unlimited`).prop( "name", current_value);
+            }
+            disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+        })
+    }
+
+    function getPackageById(package_id) {
+        let package;
+         if (package_id == 1) {
+            package = "Basic";
+         } else if (package_id == 2) {
+            package = "Startup";
+         } else if (package_id == 3) {
+            package = "Professional";
+         } else if (package_id == 4) {
+            package = "Enterprise";
+         }
+         return package
+    }
+
+    $('#performance_test_runs_value').on('DOMSubtreeModified',function() {
+         let prev_value = $("#performance_test_runs").html()
+         let current_value = $("#performance_test_runs_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#performance_test_runs").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#ui_performance_test_runs_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#ui_performance_test_runs").html()
+         let current_value = $("#ui_performance_test_runs_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#ui_performance_test_runs").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#sast_scans_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#sast_scans").html()
+         let current_value = $("#sast_scans_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#sast_scans").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#dast_scans_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#dast_scans").html()
+         let current_value = $("#dast_scans_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#dast_scans").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#tasks_count_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#tasks_count").html()
+         let current_value = $("#tasks_count_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#tasks_count").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#tasks_executions_value').on('DOMSubtreeModified',function(){
+         let prev_value = $("#tasks_executions").html()
+         let current_value = $("#tasks_executions_value").html()
+         var new_value = prev_value.split("/")[0] + "/ " + current_value
+         $("#tasks_executions").text(new_value);
+         disablePackageSelector()
+    })
+
+    $('#storage_space_value').on('DOMSubtreeModified',function(){
+        let prev_value = $("#storage_space").html()
+        let current_value = parseInt($("#storage_space_value").html())
+        let new_value;
+        if (current_value < 1000) {
+           new_value = prev_value.split("/")[0] + "/ " + current_value + " Mb";
+           } else {
+           new_value = prev_value.split("/")[0] + "/ " + current_value/1000 + " Gb";
+           }
+        $("#storage_space").text(new_value);
+        disablePackageSelector()
+    })
+
+    $('#data_retention_limit_value').on('DOMSubtreeModified',function(){
+        let retention_limit_value = parseInt($("#data_retention_limit_value").html())
+        let retention_limit_current_value;
+        if (retention_limit_value == 365) {
+           retention_limit_current_value = "1 year";
+           } else {
+           retention_limit_current_value = retention_limit_value/30 + " month";
+           }
+        $("#data_retention_limit").text(retention_limit_current_value);
+        disablePackageSelector()
+    })
 
     $(document).ready(function() {
         getProjectDetails();

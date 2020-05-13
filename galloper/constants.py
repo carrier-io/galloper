@@ -24,6 +24,8 @@ REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = environ.get('REDIS_PORT', '6379')
 REDIS_DB = environ.get('REDIS_DB', 2)
 APP_HOST = environ.get('APP_HOST', 'localhost')
+INFLUX_PORT = 8086
+LOKI_PORT = 3100
 _url = urlparse(APP_HOST)
 EXTERNAL_LOKI_HOST = f"{_url.scheme}://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST
 APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
@@ -35,6 +37,8 @@ MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
 MINIO_REGION = environ.get('MINIO_REGION', 'us-east-1')
 LOKI_HOST = environ.get('LOKI', 'http://carrier-loki:3100')
 MAX_DOTS_ON_CHART = 100
+VAULT_URL = environ.get('VAULT_URL', 'http://carrier-vault:8200')
+VAULT_DB_PK = 1
 
 
 NAME_CONTAINER_MAPPING = {
@@ -79,7 +83,7 @@ UNZIP_DOCKER_COMPOSE = """version: '3'
 services:
   unzip:
     build: {path}
-    volumes: 
+    volumes:
       - {volume}:/tmp/unzipped
     labels:
       - 'traefik.enable=false'
@@ -116,8 +120,8 @@ var html = document.getElementsByTagName('html')
 var styles = Array.prototype.slice.call(docHead.getElementsByTagName('style'));
 var patterns = ['ajax.googleapis.com', 'apis.google.com', '.google-analytics.com',
 				'connect.facebook.net', 'platform.twitter.com', 'code.jquery.com',
-				'platform.linkedin.com', '.disqus.com', 'assets.pinterest.com', 
-				'widgets.digg.com', '.addthis.com', 'code.jquery.com', 
+				'platform.linkedin.com', '.disqus.com', 'assets.pinterest.com',
+				'widgets.digg.com', '.addthis.com', 'code.jquery.com',
 				'ad.doubleclick.net', '.lognormal.com', 'embed.spotify.com'];
 var browsers_regex = /(Chrome|Firefox|Safari)\/(\S+)/
 
@@ -338,15 +342,15 @@ function checkAccessibility() {
 }
 
 function checkBestPractice() {
-	
+
 	function bestPracticeCharset() {
 		var charSet = document.characterSet;
 		var score = 100;
-		if (charSet === null) score = 0 
+		if (charSet === null) score = 0
 			else if (charSet !== 'UTF-8') score=50;
 		return [score, charSet]
 	}
-	
+
     function bestPracticeDoctype() {
         var score = 100
         var docType = document.doctype;
@@ -422,7 +426,7 @@ function checkBestPractice() {
 }
 
 function checkPerformance() {
-	
+
     function avoidScalingImages() {
         var offending = [];
         images.forEach(image => {
@@ -444,7 +448,7 @@ function checkPerformance() {
         var blockingCSS = [];
         var blockingJS = [];
         var domains = [];
-		
+
         function testByType(assetUrl) {
             var domain = getHostname(assetUrl);
             if (domain !== docDomain) {
@@ -603,7 +607,7 @@ function checkInfo() {
 		var match = window.navigator.userAgent.match(browsers_regex);
 		return match ? match[1] + ' ' + match[2] : 'unknown';
 	}
-	
+
 	function domDepth(document) {
 		function numParents(elem) {
 			var n = 0;
@@ -631,7 +635,7 @@ function checkInfo() {
 			max: maxParents
 		};
 	}
-		
+
 	function storageSize(storage) {
 		if (storage) {
 			var keys = storage.length || Object.keys(storage).length;
@@ -646,7 +650,7 @@ function checkInfo() {
 			return 0;
 		}
 	}
-	
+
 	function metadataDescription(){
 		var description = document.querySelector('meta[name="description"]');
 		var og = document.querySelector('meta[property="og:description"]');
@@ -658,7 +662,7 @@ function checkInfo() {
 			return '';
 		}
   	}
-	
+
 	function isResponsive(){
 		var isResponsive = true;
 		var bodyScrollWidth = document.body.scrollWidth;
@@ -674,7 +678,7 @@ function checkInfo() {
 		}
 		return isResponsive;
 	}
-	
+
 	function serviceWorker(){
 		if ('serviceWorker' in navigator) {
 		    // Only report activated service workers
@@ -689,7 +693,7 @@ function checkInfo() {
 		    return false;
 		  }
 	}
-	
+
 	function storageSize(storage) {
 	    var keys = storage.length || Object.keys(storage).length;
 	    var bytes = 0;
@@ -712,7 +716,7 @@ function checkInfo() {
 			document.body.clientHeight;
 		return width + 'x' + height;
 	}
-	
+
 	return {
 		amp: amp(),
 		browser: browser(),
@@ -757,7 +761,7 @@ function checkInfo() {
 			measures: marks.length
 	    },
 		windowSize: windowSize()
-		
+
 	}
 }
 
@@ -766,7 +770,7 @@ function checkPrivacy(){
 		var score = 100;
 		var offending = [];
 		var offenders = ['.google.', 'facebook.com', 'youtube.', 'yahoo.com'];
-		
+
 		for (var i = 0; i < offenders.length; i++) {
 			if (docDomain.indexOf(offenders[i]) > -1) {
 				score = 0;
@@ -834,9 +838,9 @@ function checkTiming() {
 	    }
 	    return Number(Math.max(firstPaint, 0).toFixed(0));
 	  };
-	
+
 	function fullyLoaded(){
-		// this wierdo checks last loaded resource, e.g. recuring requests 
+		// this wierdo checks last loaded resource, e.g. recuring requests
 		// influence on this metric
 		if (performanceObj && performanceObj.getEntriesByType) {
 		    var resources = performanceObj.getEntriesByType('resource');
@@ -851,7 +855,7 @@ function checkTiming() {
 		    return -1;
 		  }
 	}
-	
+
 	function RUMSpeedIndex(win) {
 	  win = win || window;
 	  var doc = win.document;
@@ -1017,7 +1021,7 @@ function checkTiming() {
 	  }
 	 return Number(SpeedIndex.toFixed(0));
 	};
-	
+
 	return {
 		firstPaint: GetFirstPaint(),
 		fullyLoaded: fullyLoaded(),

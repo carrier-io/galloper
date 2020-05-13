@@ -130,7 +130,8 @@
     function actionFormatter(value, row, index) {
         return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="runTask(this, '${row.id}')"><i class="fas fa-play"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="/tests/backend?test=${row.id}"><i class="fas fa-cog"></i></a>
-        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-clipboard"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-ship"></i></a></span>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showDockerSnippet('${row.id}')"><i class="fab fa-docker"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="deleteTasks('${row.id}')"><i class="fa fa-trash-alt"></i></a>`
     }
 
@@ -147,13 +148,25 @@
         });
     }
 
+    function showDockerSnippet(test_id) {
+        var project_id = getSelectedProjectId();
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker`,
+            type: 'GET',
+            success: function (result) {
+                $("#execution_config").val(result.config);
+                $("#showConfigModal").modal("show");
+            }
+        });
+    }
+
     function showExecutionConfig(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=cc`,
             type: 'GET',
             success: function (result) {
-                $("#execution_config").val(JSON.stringify(result, null, 4));
+                $("#execution_config").val(JSON.stringify(result.config, null, 4));
                 $("#showConfigModal").modal("show");
             }
         });

@@ -26,32 +26,28 @@ class ProjectQuota(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     name = Column(String, unique=False, nullable=False)
     performance_test_runs = Column(Integer, unique=False)  # per month
+    ui_performance_test_runs = Column(Integer, unique=False)  # per month
     sast_scans = Column(Integer, unique=False)  # total active
     dast_scans = Column(Integer, unique=False)  # per month
     public_pool_workers = Column(Integer, unique=False)
     storage_space = Column(Integer, unique=False)
     data_retention_limit = Column(Integer, unique=False)
-    tasks_limit = Column(Integer, unique=False)
+    tasks_count = Column(Integer, unique=False)
     tasks_executions = Column(Integer, unique=False)
 
-    def update(self, name, performance_test_runs, sast_scans, dast_scans, public_pool_workers,
-               storage_space, data_retention_limit, tasks_limit, tasks_executions):
+    def update(self, name, performance_test_runs, ui_performance_test_runs, sast_scans, dast_scans, public_pool_workers,
+               storage_space, data_retention_limit, tasks_count, tasks_executions):
         self.name = name
         self.performance_test_runs = performance_test_runs
+        self.ui_performance_test_runs = ui_performance_test_runs
         self.sast_scans = sast_scans
         self.dast_scans = dast_scans
         self.public_pool_workers = public_pool_workers
         self.storage_space = storage_space
         self.data_retention_limit = data_retention_limit
-        self.tasks_limit = tasks_limit
+        self.tasks_count = tasks_count
         self.tasks_executions = tasks_executions
         self.commit()
-
-    def to_json(self, exclude_fields: tuple = ()) -> dict:
-        json_dict = super().to_json()
-        json_dict['tasks_count'] = json_dict.pop('tasks_limit')
-
-        return json_dict
 
     @classmethod
     def check_quota(cls, project_id: int, quota: str) -> bool:
@@ -65,20 +61,22 @@ class ProjectQuota(AbstractBaseMixin, Base):
         return True
 
 
-def _update_quota(name, project_id, performance_test_runs, sast_scans, dast_scans,
-                  public_pool_workers, storage_space, data_retention_limit, tasks_limit,
+def _update_quota(name, project_id, performance_test_runs, ui_performance_test_runs, sast_scans, dast_scans,
+                  public_pool_workers, storage_space, data_retention_limit, tasks_count,
                   tasks_executions):
     quota = ProjectQuota.query.filter_by(project_id=project_id).first()
     if quota:
         quota.update(name=name, performance_test_runs=performance_test_runs, sast_scans=sast_scans,
-                     dast_scans=dast_scans, public_pool_workers=public_pool_workers,
-                     storage_space=storage_space, data_retention_limit=data_retention_limit,
-                     tasks_limit=tasks_limit, tasks_executions=tasks_executions)
+                     ui_performance_test_runs=ui_performance_test_runs, dast_scans=dast_scans,
+                     public_pool_workers=public_pool_workers, storage_space=storage_space,
+                     data_retention_limit=data_retention_limit, tasks_count=tasks_count,
+                     tasks_executions=tasks_executions)
     else:
         quota = ProjectQuota(name=name, project_id=project_id, performance_test_runs=performance_test_runs,
-                             sast_scans=sast_scans, dast_scans=dast_scans, public_pool_workers=public_pool_workers,
+                             ui_performance_test_runs=ui_performance_test_runs, sast_scans=sast_scans,
+                             dast_scans=dast_scans, public_pool_workers=public_pool_workers,
                              storage_space=storage_space, data_retention_limit=data_retention_limit,
-                             tasks_limit=tasks_limit, tasks_executions=tasks_executions)
+                             tasks_count=tasks_count, tasks_executions=tasks_executions)
         quota.insert()
     return quota
 
@@ -87,25 +85,27 @@ def basic(project_id):
     return _update_quota(name="basic",
                          project_id=project_id,
                          performance_test_runs=10,
+                         ui_performance_test_runs=10,
                          sast_scans=10,
-                         dast_scans=0,
-                         public_pool_workers=1,
+                         dast_scans=1,
+                         public_pool_workers=-1,
                          storage_space=100,
                          data_retention_limit=30,
-                         tasks_limit=3,
-                         tasks_executions=300)
+                         tasks_count=3,
+                         tasks_executions=250)
 
 
 def startup(project_id):
     return _update_quota(name="startup",
                          project_id=project_id,
                          performance_test_runs=100,
+                         ui_performance_test_runs=100,
                          sast_scans=100,
                          dast_scans=20,
-                         public_pool_workers=3,
+                         public_pool_workers=-1,
                          storage_space=500,
                          data_retention_limit=90,
-                         tasks_limit=5,
+                         tasks_count=5,
                          tasks_executions=1000)
 
 
@@ -113,37 +113,40 @@ def professional(project_id):
     return _update_quota(name="professional",
                          project_id=project_id,
                          performance_test_runs=1000,
+                         ui_performance_test_runs=1000,
                          sast_scans=1000,
                          dast_scans=100,
-                         public_pool_workers=5,
-                         storage_space=1024,
-                         data_retention_limit=365,
-                         tasks_limit=10,
-                         tasks_executions=10000)
+                         public_pool_workers=-1,
+                         storage_space=1000,
+                         data_retention_limit=180,
+                         tasks_count=10,
+                         tasks_executions=-1)
 
 
 def enterprise(project_id):
     return _update_quota(name="enterprise",
                          project_id=project_id,
                          performance_test_runs=-1,
+                         ui_performance_test_runs=-1,
                          sast_scans=-1,
                          dast_scans=-1,
                          public_pool_workers=-1,
                          storage_space=-1,
                          data_retention_limit=-1,
-                         tasks_limit=-1,
+                         tasks_count=-1,
                          tasks_executions=-1)
 
 
-def custom(project_id, performance_test_runs, sast_scans, dast_scans, public_pool_workers, storage_space,
-           data_retention_limit, tasks_limit, tasks_executions):
+def custom(project_id, performance_test_runs, ui_performance_test_runs,  sast_scans, dast_scans, public_pool_workers, storage_space,
+           data_retention_limit, tasks_count, tasks_executions):
     return _update_quota(name="custom",
                          project_id=project_id,
                          performance_test_runs=performance_test_runs,
+                         ui_performance_test_runs=ui_performance_test_runs,
                          sast_scans=sast_scans,
                          dast_scans=dast_scans,
                          public_pool_workers=public_pool_workers,
                          storage_space=storage_space,
                          data_retention_limit=data_retention_limit,
-                         tasks_limit=tasks_limit,
+                         tasks_count=tasks_count,
                          tasks_executions=tasks_executions)

@@ -233,7 +233,6 @@ class FindingsAPI(Resource):
             upd = {args["action"]: 1}
         else:
             upd = {"false_positive": 0, "info_finding": 0}
-        # TODO: add validation that finding is a part of project, application. etc.
         SecurityReport.query.filter(and_(
             SecurityReport.project_id == project_id,
             SecurityReport.issue_hash == issue_hash)

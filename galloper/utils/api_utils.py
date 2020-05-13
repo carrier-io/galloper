@@ -15,6 +15,14 @@
 from flask_restful import Api, Resource, reqparse
 
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    return False
+
+
 def build_req_parser(rules: tuple, location=("json", "values")) -> reqparse.RequestParser:
     request_parser = reqparse.RequestParser()
     for rule in rules:

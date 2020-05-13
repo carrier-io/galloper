@@ -1,17 +1,12 @@
-import operator
-from json import loads
 from typing import Optional
+from uuid import uuid4
 
 from flask_restful import Resource
-from sqlalchemy import or_, and_
 
-from galloper.database.models.api_reports import APIReport
-from galloper.database.models.project import Project
-from galloper.constants import str_to_timestamp
+from galloper.api.base import get
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
-from uuid import uuid4
 
 
 class VisualReportAPI(Resource):
@@ -35,15 +30,8 @@ class VisualReportAPI(Resource):
         return len(total) if limit == 'All' else limit
 
     def get(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
-        reports = []
         args = self._parser_get.parse_args(strict=False)
-        limit_ = args.get("limit")
-        offset_ = args.get("offset")
-        from uuid import uuid4
-        # expected model
-
-        reports = UIReport.query.filter_by(project_id=project_id).all()
+        total, reports = get(project_id, args, UIReport)
 
         res = []
 
@@ -58,7 +46,7 @@ class VisualReportAPI(Resource):
                 avg_page_load = 0
 
             try:
-                thresholds_missed = report.thresholds_failed / report.thresholds_total * 100
+                thresholds_missed = round(report.thresholds_failed / report.thresholds_total * 100, 2)
             except ZeroDivisionError:
                 thresholds_missed = 0
 
@@ -68,14 +56,14 @@ class VisualReportAPI(Resource):
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
                         failures=1, total=10,
                         thresholds_missed=thresholds_missed,
-                        avg_page_load=avg_page_load / 1000,
+                        avg_page_load=round(avg_page_load / 1000, 2),
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
 
             res.append(data)
 
         for each in res:
             each["start_time"] = each["start_time"].replace("T", " ").replace("Z", "")
-        return {"total": len(res), "rows": res}
+        return {"total": total, "rows": res}
 
 
 class VisualResultAPI(Resource):

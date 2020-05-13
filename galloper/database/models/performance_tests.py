@@ -20,7 +20,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.constants import APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
-
+from galloper.dal.vault import get_project_secrets, unsecret
 
 class PerformanceTests(AbstractBaseMixin, Base):
     __tablename__ = "performance_tests"
@@ -74,11 +74,11 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if not self.test_uid:
             self.test_uid = str(uuid4())
         if "influx.port" not in self.params.keys():
-            self.params["influx.port"] = 8086
+            self.params["influx.port"] = "{{secret.influx_port}}"
         if "influx.host" not in self.params.keys():
-            self.params["influx.host"] = APP_IP
+            self.params["influx.host"] = "{{secret.influx_ip}}"
         if "galloper_url" not in self.env_vars.keys():
-            self.params["galloper_url"] = APP_HOST
+            self.params["galloper_url"] = "{{secret.galloper_url}}"
         if "influx.db" not in self.params.keys():
             self.params["influx.db"] = self.container_mapping[self.runner]['influx_db']
         if "test_name" not in self.params.keys():
@@ -88,16 +88,16 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "comparison_db" not in self.params.keys():
             self.params["comparison_db"] = 'comparison'
         if "loki_host" not in self.env_vars.keys():
-            self.params["loki_host"] = EXTERNAL_LOKI_HOST
+            self.params["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in self.env_vars.keys():
-            self.params["loki_port"] = 3100
+            self.params["loki_port"] = "{{secret.loki_port}}"
         self.job_type = self.container_mapping[self.runner]['job_type']
         self.runner = self.container_mapping[self.runner]['container']  # here because influx_db
 
         super().insert()
 
-    def configure_execution_json(self, test_type=None, params=None, env_vars=None, reporting=None,
-                                 customization=None, java_opts=None, parallel=None):
+    def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
+                                 customization=None, java_opts=None, parallel=None, execution=False):
         if not java_opts:
             java_opts = self.java_opts
         pairs = {
@@ -119,7 +119,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
             for key, value in self.params.items():
                 if test_type and key == "test.type":
                     cmd += f" -Jtest.type={test_type}"
-                cmd += f" -J{key}={value}"
+                else:
+                    cmd += f" -J{key}={value}"
         execution_json = {
             "container": self.runner,
             "execution_params": {
@@ -146,7 +147,18 @@ class PerformanceTests(AbstractBaseMixin, Base):
             for key, value in self.params.items():
                 execution_json["execution_params"]["GATLING_TEST_PARAMS"] += f"-D{key}={value} "
         execution_json["execution_params"] = dumps(execution_json["execution_params"])
-        return execution_json
+        if execution:
+            execution_json = unsecret(execution_json, project_id=self.project_id)
+        if output == 'cc':
+            return execution_json
+        else:
+            return "docker run -e project_id=%s -e REDIS_HOST={{secret.redis_host}} " \
+                   "-e loki_host={{secret.loki_host}} -e GALLOPER_WEB_HOOK={{secret.post_processor}} " \
+                   "-e galloper_url={{secret.galloper_url}} getcarrier/control_tower:latest " \
+                   "--container %s --execution_params '%s' " \
+                   "--job_type %s --job_name %s --concurrency %s --bucket %s --artifact %s" \
+                   "" % (self.project_id, self.runner, execution_json['execution_params'], self.job_type,
+                         self.name, execution_json['concurrency'], self.bucket, self.file)
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()

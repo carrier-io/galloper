@@ -33,18 +33,66 @@
     }
 
     function submit() {
-        let active_package = $(".card-shadow-active").find("span").text()
+        //let active_package = $(".card-shadow-active").find("span").text()
         $("#submit_button").html(`<span class="spinner-border spinner-border-sm"></span>`);
         $("#submit_button").addClass("disabled");
+        package = $("#selected_package").html()
+        if ($("#performance_test_runs_unlimited").prop('checked')) {
+            perf_tests_limit = -1
+        } else {
+            perf_tests_limit = $("#performance_test_runs_value").html()
+        }
+        if ($("#ui_performance_test_runs_unlimited").prop('checked')) {
+            ui_perf_tests_limit = -1
+        } else {
+            ui_perf_tests_limit = $("#ui_performance_test_runs_value").html()
+        }
+        if ($("#sast_scans_unlimited").prop('checked')) {
+            sast_scans_limit = -1
+        } else {
+            sast_scans_limit = $("#sast_scans_value").html()
+        }
+        if ($("#dast_scans_unlimited").prop('checked')) {
+            dast_scans_limit = -1
+        } else {
+            dast_scans_limit = $("#dast_scans_value").html()
+        }
+        if ($("#tasks_count_unlimited").prop('checked')) {
+            tasks_count_limit = -1
+        } else {
+            tasks_count_limit = $("#tasks_count_value").html()
+        }
+        if ($("#task_executions_unlimited").prop('checked')) {
+            task_executions_limit = -1
+        } else {
+            task_executions_limit = $("#tasks_executions_value").html()
+        }
+        if ($("#storage_space_unlimited").prop('checked')) {
+            storage_space_limit = -1
+        } else {
+            storage_space_limit = $("#storage_space_value").html()
+        }
+        if ($("#data_retention_limit_unlimited").prop('checked')) {
+            data_retention_limit = -1
+        } else {
+            data_retention_limit = $("#data_retention_limit_value").html()
+        }
         var project_data = {
             name: $("#proj_name").val(),
             owner: $("#proj_owner").val(),
             sast_enabled: $("#sast").val(),
             dast_enabled: $("#dast").val(),
             performance_enabled: $("#perf").val(),
-            package: active_package
+            package: package,
+            perf_tests_limit: perf_tests_limit,
+            ui_perf_tests_limit: ui_perf_tests_limit,
+            sast_scans_limit: sast_scans_limit,
+            dast_scans_limit: dast_scans_limit,
+            tasks_count_limit: tasks_count_limit,
+            task_executions_limit: task_executions_limit,
+            storage_space_limit: storage_space_limit,
+            data_retention_limit: data_retention_limit
         }
-        console.log(project_data)
         $.ajax({
             url: `/api/v1/project`,
             type: 'POST',
@@ -56,15 +104,235 @@
         });
     }
 
-    function setFocus(id) {
-        ["basic", "startup", "enterprise", "professional"].forEach( item => {
-            if ($(`#${item}`).hasClass("card-shadow-active")) {
-                $(`#${item}`).removeClass( "card-shadow-active" ).addClass( "card-shadow" );
+    function disableSlider(checkboxID, sliderID, shieldID) {
+        disablePackageSelector()
+        var slider = document.getElementById(sliderID)
+        if ($(`#${checkboxID}`).prop( "checked" )) {
+            slider.setAttribute('disabled', true);
+            $(`#${shieldID}`).text("Unlimited");
+        } else {
+            slider.removeAttribute('disabled');
+            if (shieldID == "storage_space") {
+                let storage_space_value = parseInt($("#storage_space_value").html())
+                let storage_space_current_value;
+                if (storage_space_value < 1000) {
+                    storage_space_current_value = "0 Mb / " + storage_space_value + " Mb";
+                } else {
+                    storage_space_current_value = "0 Mb / " + storage_space_value/1000 + " Gb";
+                }
+                $("#storage_space").text(storage_space_current_value);
+            } else if (shieldID == "data_retention_limit") {
+                let retention_limit_value = parseInt($("#data_retention_limit_value").html())
+                let retention_limit_current_value;
+                if (retention_limit_value == 365) {
+                    retention_limit_current_value = "1 year";
+                } else {
+                    retention_limit_current_value = retention_limit_value/30 + " month";
+                }
+                $("#data_retention_limit").text(retention_limit_current_value);
+            } else {
+                let current_value = "0 / " + $(`#${shieldID}_value`).html();
+                $(`#${shieldID}`).text(current_value);
             }
-        })
-        $(`#${id}`).removeClass( "card-shadow" ).addClass( "card-shadow-active" );
-
+        }
     }
+
+    function packageSelector() {
+        if ($("#package_selector").prop( "checked" )) {
+            disablePackageSelector()
+        } else {
+            enablePackageSelector()
+        }
+    }
+
+    function disablePackageSelector() {
+        $("#selected_package").text("Custom");
+        $("#package_selector").prop( "checked", true )
+        var slider = document.getElementById("input-slider-package")
+        slider.setAttribute('disabled', true);
+    }
+
+    function enablePackageSelector() {
+        let package_id = $("#selected_package_name").html()
+        let package = getPackageById(package_id);
+        $("#selected_package").text(package);
+        var slider = document.getElementById("input-slider-package")
+        slider.removeAttribute('disabled');
+        slider.noUiSlider.set(package_id);
+        $("#package_selector").prop( "checked", false )
+    }
+
+    $('#selected_package_name').on('DOMSubtreeModified',function(){
+         let package_id = $("#selected_package_name").html()
+         let current_value = getPackageById(package_id);
+         $("#selected_package").text(current_value);
+         setQuotaForPackage(current_value);
+    })
+
+    function setQuotaForPackage(package) {
+        if (package == "Basic") {
+            setQuotaForBasicPackage();
+        } else if (package == "Startup") {
+            setQuotaForStartupPackage();
+        } else if (package == "Professional") {
+            setQuotaForProfessionalPackage();
+        } else if (package == "Enterprise") {
+            setQuotaForEnterprisePackage();
+        }
+        enablePackageSelector();
+    }
+
+    function setQuotaForBasicPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(10);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(10);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(10);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(1);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(3);
+        document.getElementById("input-slider-tasks_executions").noUiSlider.set(250);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(100);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(30);
+    }
+
+    function setQuotaForStartupPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(100);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(100);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(100);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(20);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(5);
+        document.getElementById("input-slider-tasks_executions").noUiSlider.set(1000);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(500);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(90);
+    }
+
+    function setQuotaForProfessionalPackage() {
+        enableAllSliders();
+        document.getElementById("input-slider-performance_test_runs").noUiSlider.set(1000);
+        document.getElementById("input-slider-ui_performance_test_runs").noUiSlider.set(1000);
+        document.getElementById("input-slider-sast_scans").noUiSlider.set(1000);
+        document.getElementById("input-slider-dast_scans").noUiSlider.set(100);
+        document.getElementById("input-slider-tasks_count").noUiSlider.set(10);
+        document.getElementById("input-slider-storage_space").noUiSlider.set(1000);
+        document.getElementById("input-slider-data_retention_limit").noUiSlider.set(180);
+        $("#tasks_executions_unlimited").prop( "checked", true );
+        document.getElementById("input-slider-tasks_executions").setAttribute('disabled', true);
+        $("#tasks_executions").text("Unlimited");
+    }
+
+    function setQuotaForEnterprisePackage() {
+        enableAllSliders()
+        const arr = ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "tasks_count", "tasks_executions", "storage_space", "data_retention_limit"];
+        arr.forEach(item => {
+            $(`#${item}_unlimited`).prop( "checked", true );
+            disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+        });
+    }
+
+    function enableAllSliders() {
+        ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "tasks_count", "tasks_executions", "storage_space", "data_retention_limit"].forEach( item => {
+            $(`#${item}_unlimited`).prop( "checked", false );
+            disableSlider(`${item}_unlimited`, `input-slider-${item}`, item)
+        })
+    }
+
+    function getPackageById(package_id) {
+        let package;
+         if (package_id == 1) {
+            package = "Basic";
+         } else if (package_id == 2) {
+            package = "Startup";
+         } else if (package_id == 3) {
+            package = "Professional";
+         } else if (package_id == 4) {
+            package = "Enterprise";
+         }
+         return package
+    }
+
+    $('#performance_test_runs_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#performance_test_runs_value").html()
+         $("#performance_test_runs").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#ui_performance_test_runs_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#ui_performance_test_runs_value").html()
+         $("#ui_performance_test_runs").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#sast_scans_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#sast_scans_value").html()
+         $("#sast_scans").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#dast_scans_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#dast_scans_value").html()
+         $("#dast_scans").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#tasks_count_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#tasks_count_value").html()
+         $("#tasks_count").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#tasks_executions_value').on('DOMSubtreeModified',function(){
+         let current_value = "0 / " + $("#tasks_executions_value").html()
+         $("#tasks_executions").text(current_value);
+         disablePackageSelector()
+    })
+
+    $('#storage_space_value').on('DOMSubtreeModified',function(){
+        let storage_space_value = parseInt($("#storage_space_value").html())
+        let storage_space_current_value;
+        if (storage_space_value < 1000) {
+           storage_space_current_value = "0 Mb / " + storage_space_value + " Mb";
+           } else {
+           storage_space_current_value = "0 Mb / " + storage_space_value/1000 + " Gb";
+           }
+        $("#storage_space").text(storage_space_current_value);
+        disablePackageSelector()
+    })
+
+    $('#data_retention_limit_value').on('DOMSubtreeModified',function(){
+        let retention_limit_value = parseInt($("#data_retention_limit_value").html())
+        let retention_limit_current_value;
+        if (retention_limit_value == 365) {
+           retention_limit_current_value = "1 year";
+           } else {
+           retention_limit_current_value = retention_limit_value/30 + " month";
+           }
+        $("#data_retention_limit").text(retention_limit_current_value);
+        disablePackageSelector()
+    })
+
+    $(document).ready(function() {
+        ["performance_test_runs", "ui_performance_test_runs", "sast_scans", "dast_scans", "tasks_count", "tasks_executions"].forEach( item => {
+            let current_value = "0 / " + $(`#${item}_value`).html()
+            $(`#${item}`).text(current_value);
+        })
+        let storage_space_value = parseInt($("#storage_space_value").html())
+        let storage_space_current_value;
+        if (storage_space_value < 1000) {
+           storage_space_current_value = "0 Mb / " + storage_space_value + " Mb";
+           } else {
+           storage_space_current_value = "0 Mb / " + storage_space_value/1000 + " Gb";
+           }
+        $("#storage_space").text(storage_space_current_value);
+        let retention_limit_value = parseInt($("#data_retention_limit_value").html())
+        let retention_limit_current_value;
+        if (retention_limit_value == 365) {
+           retention_limit_current_value = "1 year";
+           } else {
+           retention_limit_current_value = retention_limit_value/30 + " month";
+           }
+        $("#data_retention_limit").text(retention_limit_current_value);
+
+    });
 
 </script>
 </body>
