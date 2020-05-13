@@ -21,34 +21,32 @@
                   </div>
               </div>
           </div>
-          <div class="card-body" id="preset">
-              <table
-                  id="results"
-                  data-toggle="table"
-                  data-url=""
-                  data-page-size=10
-                  data-page-list=[10,20,50,100]
-                  data-side-pagination="server"
-                  data-pagination="true"
-                  data-search="true">
-                  <thead>
-                    <tr>
-                      <th data-checkbox="true"></th>
-                      <th data-visible="false" data-field="id">index</th>
-                      <th data-sortable="true" data-field="scan_time">Scan Date</th>
-                      <th data-sortable="true" data-field="project_name" data-formatter=createLinkToReport>Project</th>
-                      <th data-sortable="true" data-field="app_name" data-formatter=createLinkToReport>Application</th>
-                      <th data-sortable="true" data-field="environment">Env</th>
-                      <th data-sortable="true" data-field="scan_duration">Duration</th>
-                      <th data-sortable="true" data-field="scan_type">Type</th>
-                      <th data-field="findings">Finding</th>
-                      <th data-field="false_positives">FP</th>
-                      <th data-field="excluded">Excl</th>
-                      <th data-field="info_findings">Info</th>
-                    </tr>
-                  </thead>
-                </table>
-          </div>
+          <table class="table align-items-center table-flush"
+              id="results"
+              data-toggle="table"
+              data-url=""
+              data-page-size=10
+              data-page-list=[10,20,50,100]
+              data-side-pagination="server"
+              data-pagination="true"
+              data-search="true">
+              <thead class="thead-light">
+                <tr>
+                  <th data-checkbox="true"></th>
+                  <th data-visible="false" data-field="id">index</th>
+                  <th data-sortable="true" data-field="scan_time">Scan Date</th>
+                  <th data-sortable="true" data-field="project_name" data-formatter=createLinkToReport>Project</th>
+                  <th data-sortable="true" data-field="app_name" data-formatter=createLinkToReport>Application</th>
+                  <th data-sortable="true" data-field="environment">Env</th>
+                  <th data-sortable="true" data-field="scan_duration">Duration</th>
+                  <th data-sortable="true" data-field="scan_type">Type</th>
+                  <th data-field="findings">Finding</th>
+                  <th data-field="false_positives">FP</th>
+                  <th data-field="excluded">Excl</th>
+                  <th data-field="info_findings">Info</th>
+                </tr>
+              </thead>
+            </table>
       </div>
   </div>
 </div>
@@ -66,7 +64,7 @@ $(document).ready(function() {
 
 function createLinkToReport(value, row, index){
     var project_id = $("#selected-project-id").text();
-    return `<a href="/security/${project_id}/finding?id=${row.id}">${value}</a>`
+    return `<a href="/security/finding?id=${row.id}">${value}</a>`
 }
 
  $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function() {

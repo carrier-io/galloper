@@ -45,7 +45,7 @@ def visual(project: Project):
     return render_template("observer/report.html")
 
 
-@bp.route("/security/<int:project_id>/finding", methods=["GET"])
+@bp.route("/security/finding", methods=["GET"])
 @project_required
 def findings(project: Project):
     report_id = request.args.get("id", None)

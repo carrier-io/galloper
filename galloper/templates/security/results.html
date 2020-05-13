@@ -112,26 +112,24 @@
                       </div>
                   </div>
               </div>
-              <div class="card-body" id="preset">
-                    <table
-                      id="errors"
-                      data-toggle="table"
-                      data-url=""
-                      data-pagination="true"
-                      data-detail-view="true"
-                      data-detail-view-icon="true"
-                      data-detail-formatter="detailFormatter">
-                      <thead>
-                        <tr>
-                          <th data-sortable="true" data-field="tool_name">Tool</th>
-                          <th data-sortable="true" data-field="description">Description</th>
-                          <th data-sortable="true" data-field="severity">Severity</th>
-                          <th data-sortable="true" data-formatter=statusFormatter>Status</th>
-                          <th data-formatter=actionsFormatter>Actions</th>
-                        </tr>
-                      </thead>
-                    </table>
-              </div>
+                <table class="table align-items-center table-flush"
+                  id="errors"
+                  data-toggle="table"
+                  data-url=""
+                  data-pagination="true"
+                  data-detail-view="true"
+                  data-detail-view-icon="true"
+                  data-detail-formatter="detailFormatter">
+                  <thead class="thead-light">
+                    <tr>
+                      <th data-sortable="true" data-field="tool_name">Tool</th>
+                      <th data-sortable="true" data-field="description">Description</th>
+                      <th data-sortable="true" data-field="severity">Severity</th>
+                      <th data-sortable="true" data-formatter=statusFormatter>Status</th>
+                      <th data-formatter=actionsFormatter>Actions</th>
+                    </tr>
+                  </thead>
+                </table>
           </div>
       </div>
     </div>
@@ -148,7 +146,7 @@
     function renderTable(scope) {
         var report_id = page_params.get("id");
         var project_id = $("#selected-project-id").text();
-        $("#errors").bootstrapTable('refreshOptions', {url: `/api/v1/security/${project_id}/finding?id=${report_id}&type=${scope}`})
+        $("#errors").bootstrapTable('refresh', {url: `/api/v1/security/${project_id}/finding?id=${report_id}&type=${scope}`})
     }
 
     function statusFormatter(value, row, index) {
@@ -166,7 +164,7 @@
     function actionsFormatter(value, row, index) {
         var report_id = page_params.get("id");
         return  `<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-                    <button type="button" class="btn btn-ok" onclick="validFunding(${report_id}, ${row['id']})">Valid</button>
+                    <button type="button" class="btn btn-danger" onclick="validFunding(${report_id}, ${row['id']})">Valid</button>
                     <button type="button" class="btn btn-warning" onclick="falsePositive(${report_id}, ${row['id']})">False Positive</button>
                     <button type="button" class="btn btn-default" onclick="ignoreIssue(${report_id}, ${row['id']})">Ignore</button>
                  </div>`
@@ -196,7 +194,7 @@
         modify_issue(report_id, issue_id, "false_positive")
     }
 
-    function validFunding((report_id, issue_id) {
+    function validFunding(report_id, issue_id) {
         modify_issue(report_id, issue_id, "valid")
     }
 
