@@ -477,6 +477,52 @@ var noUiSlider = (function() {
 			})
 	}
 
+    if ($(".input-slider-container-package")[0]) {
+			$('.input-slider-container-package').each(function() {
+
+					var slider = $(this).find('.input-slider');
+					var sliderId = slider.attr('id');
+					var minValue = slider.data('range-value-min');
+					var maxValue = slider.data('range-value-max');
+
+					var sliderValue = $(this).find('.range-slider-value');
+					var sliderValueId = sliderValue.attr('id');
+					var startValue = sliderValue.data('range-value-low');
+
+					var c = document.getElementById(sliderId),
+							d = document.getElementById(sliderValueId);
+
+					noUiSlider.create(c, {
+							start: [parseInt(startValue)],
+							connect: [true, false],
+							tooltips: {
+							    to(value) {
+                                  let output;
+                                  if (value == 1) {
+                                      output = "Basic";
+                                  } else if (value == 2) {
+                                      output = "Startup";
+                                  } else if (value == 3) {
+                                      output = "Professional";
+                                  } else if (value == 4) {
+                                      output = "Enterprise";
+                                  }
+                                  return output;
+                            }},
+							range: {
+									'min': [parseInt(minValue), 1],
+                                    '33%': [2, 1],
+                                    '66%': [3, 1],
+									'max': [parseInt(maxValue)]
+							}
+					});
+
+					c.noUiSlider.on('update', function(a, b, c) {
+							d.textContent = c[b];
+					});
+			})
+	}
+
 	if ($(".input-slider-container")[0]) {
 			$('.input-slider-container').each(function() {
 

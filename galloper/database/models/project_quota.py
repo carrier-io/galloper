@@ -81,56 +81,60 @@ def _update_quota(name, project_id, performance_test_runs, ui_performance_test_r
     return quota
 
 
-# def basic(project_id):
-#     return _update_quota(name="basic",
-#                          project_id=project_id,
-#                          performance_test_runs=10,
-#                          sast_scans=10,
-#                          dast_scans=0,
-#                          public_pool_workers=1,
-#                          storage_space=100,
-#                          data_retention_limit=30,
-#                          tasks_limit=3,
-#                          tasks_executions=300)
-#
-#
-# def startup(project_id):
-#     return _update_quota(name="startup",
-#                          project_id=project_id,
-#                          performance_test_runs=100,
-#                          sast_scans=100,
-#                          dast_scans=20,
-#                          public_pool_workers=3,
-#                          storage_space=500,
-#                          data_retention_limit=90,
-#                          tasks_limit=5,
-#                          tasks_executions=1000)
-#
-#
-# def professional(project_id):
-#     return _update_quota(name="professional",
-#                          project_id=project_id,
-#                          performance_test_runs=1000,
-#                          sast_scans=1000,
-#                          dast_scans=100,
-#                          public_pool_workers=5,
-#                          storage_space=1024,
-#                          data_retention_limit=365,
-#                          tasks_limit=10,
-#                          tasks_executions=10000)
-#
-#
-# def enterprise(project_id):
-#     return _update_quota(name="enterprise",
-#                          project_id=project_id,
-#                          performance_test_runs=-1,
-#                          sast_scans=-1,
-#                          dast_scans=-1,
-#                          public_pool_workers=-1,
-#                          storage_space=-1,
-#                          data_retention_limit=-1,
-#                          tasks_limit=-1,
-#                          tasks_executions=-1)
+def basic(project_id):
+    return _update_quota(name="basic",
+                         project_id=project_id,
+                         performance_test_runs=10,
+                         ui_performance_test_runs=10,
+                         sast_scans=10,
+                         dast_scans=1,
+                         public_pool_workers=-1,
+                         storage_space=100,
+                         data_retention_limit=30,
+                         tasks_count=3,
+                         tasks_executions=250)
+
+
+def startup(project_id):
+    return _update_quota(name="startup",
+                         project_id=project_id,
+                         performance_test_runs=100,
+                         ui_performance_test_runs=100,
+                         sast_scans=100,
+                         dast_scans=20,
+                         public_pool_workers=-1,
+                         storage_space=500,
+                         data_retention_limit=90,
+                         tasks_count=5,
+                         tasks_executions=1000)
+
+
+def professional(project_id):
+    return _update_quota(name="professional",
+                         project_id=project_id,
+                         performance_test_runs=1000,
+                         ui_performance_test_runs=1000,
+                         sast_scans=1000,
+                         dast_scans=100,
+                         public_pool_workers=-1,
+                         storage_space=1000,
+                         data_retention_limit=180,
+                         tasks_count=10,
+                         tasks_executions=-1)
+
+
+def enterprise(project_id):
+    return _update_quota(name="enterprise",
+                         project_id=project_id,
+                         performance_test_runs=-1,
+                         ui_performance_test_runs=-1,
+                         sast_scans=-1,
+                         dast_scans=-1,
+                         public_pool_workers=-1,
+                         storage_space=-1,
+                         data_retention_limit=-1,
+                         tasks_count=-1,
+                         tasks_executions=-1)
 
 
 def custom(project_id, performance_test_runs, ui_performance_test_runs,  sast_scans, dast_scans, public_pool_workers, storage_space,
