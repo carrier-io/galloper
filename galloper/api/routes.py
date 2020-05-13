@@ -20,6 +20,7 @@ from .artifacts import BucketsApi, ArtifactApi
 from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
+from .project_secrets import ProjectSecretsAPI, ProjectSecretAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
 from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend
@@ -51,6 +52,8 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ProjectAPI, "/project", "/project/<int:project_id>")
     add_resource_to_api(api, ProjectSessionAPI, "/project-session", "/project-session/<int:project_id>")
     add_resource_to_api(api, ProjectQuotaAPI, "/quota", "/quota/<int:project_id>")
+    add_resource_to_api(api, ProjectSecretsAPI, "/secrets/<int:project_id>")
+    add_resource_to_api(api, ProjectSecretAPI, "/secrets/<int:project_id>/<string:secret>")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")

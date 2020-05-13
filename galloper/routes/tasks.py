@@ -21,7 +21,6 @@ from control_tower import run
 
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
-from galloper.database.models.task_results import Results
 from galloper.utils.auth import project_required
 
 bp = Blueprint("tasks", __name__)

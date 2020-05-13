@@ -20,10 +20,11 @@ from flask_restful import Api
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
 from galloper.api.routes import initialize_api_routes
+from galloper.dal.vault import init_vault
 
 
 def register_blueprints(flask_app: Flask) -> None:
-    from galloper.routes import tasks, observer, artifacts, report, thresholds, projects, planner
+    from galloper.routes import tasks, observer, artifacts, report, thresholds, projects, planner, secrets
     flask_app.register_blueprint(projects.bp)
     flask_app.register_blueprint(tasks.bp)
     flask_app.register_blueprint(observer.bp)
@@ -31,6 +32,7 @@ def register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(report.bp)
     flask_app.register_blueprint(thresholds.bp)
     flask_app.register_blueprint(planner.bp)
+    flask_app.register_blueprint(secrets.bp)
 
 
 def register_api(flask_app: Flask) -> None:
@@ -42,6 +44,7 @@ def create_app(config_class: type = Config) -> Flask:
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_class())
     init_db()
+    init_vault()  # won't do anything is vault is not available
 
     @flask_app.teardown_appcontext
     def shutdown_session(exception=None):

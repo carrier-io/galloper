@@ -10,6 +10,7 @@
                   <h3 class="mb-0">Offline Access Token</h3>
                 </div>
                 <div class="col-4 text-right">
+                    <button onclick="addToSecrets()" class="btn btn-sm btn-primary">Add to Secrets</button>
                     <a href="/" class="btn btn-sm btn-primary">Close</a>
                 </div>
               </div>
@@ -35,5 +36,22 @@
         </div>
       </div>
 {% include 'common/foot.html' %}
+<script>
+    function addToSecrets() {
+        let selectedProjectId = getSelectedProjectId();
+        var secret_data = {
+            secret: $("#token").val()
+        }
+        $.ajax({
+            url: `/api/v1/secrets/${selectedProjectId}/auth_token`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(secret_data),
+            success: function (result) {
+                window.location.href = "/secrets"
+            }
+        });
+    }
+</script>
 </body>
 </html>
