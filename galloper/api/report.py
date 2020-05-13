@@ -350,7 +350,7 @@ class TestSaturation(Resource):
                 return {"message": "error rate exceeded threshold", "code": 1}
             else:
                 return {"message": "not enough results", "code": 0}
-            
+
         response = {
             "ts": ts_array[-1],
             "max_users": max_users,
@@ -368,6 +368,7 @@ class TestSaturation(Resource):
             _, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1s")
             u = user_array.pop()
             start_time = _[0]
+            end_time = _[-1]
             for key, value in users["users"].items():
                 if value > u and max_users >= u:
                     _, data, _ = get_tps(report.build_id, report.name, report.lg_type, start_time, key,
@@ -375,19 +376,36 @@ class TestSaturation(Resource):
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
                     tp = list(filter(lambda a: a != 0, tp))
-                    tp = harmonic_mean(tp)
+                    tp = harmonic_mean(tp) if len(tp) != 0 else 0
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                       start_time, key, "1s", args["sampler"], scope=args["request"],
                                                       status=args["status"])
                     rt = [0 if v is None else v for v in list(data['response'].values())[:-1]]
-                    rt = self.part(rt, args["u_aggr"])
+                    rt = self.part(rt, args["u_aggr"]) if rt else 0
                     uber_array[str(u)] = {
                         "throughput": round(tp, 2),
                         "response_time": round(rt, 2)
                     }
                     start_time = key
                     u = user_array.pop()
-            uber_array[str(max_users)]["throughput"] = response["current_throughput"]
+            if str(max_users) not in list(uber_array.keys()):
+                _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
+                                                  start_time, end_time, "1s", args["sampler"], scope=args["request"],
+                                                  status=args["status"])
+                rt = []
+                started = False
+                for v in list(data['response'].values())[:-1]:
+                    if v and v > 0:
+                        started = True
+                    if started and v and v > 0:
+                        rt.append(v)
+                rt = self.part(rt, args["u_aggr"]) if rt else 0
+                uber_array[str(max_users)] = {
+                    "throughput": response["current_throughput"],
+                    "response_time": round(rt, 2)
+                }
+            else:
+                uber_array[str(max_users)]["throughput"] = response["current_throughput"]
             response["benchmark"] = uber_array
         if args["extended_output"]:
             response["details"] = {}
