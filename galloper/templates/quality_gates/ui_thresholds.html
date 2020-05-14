@@ -7,7 +7,7 @@
           <div class="card-header white border-0">
               <div class="row align-items-center">
                   <div class="col">
-                      <h2 class="text-gray mb-0">Configure Backend Thresholds</h2>
+                      <h2 class="text-gray mb-0">Configure UI Thresholds</h2>
                   </div>
                   <div class="col">
                       <ul id="chart-control" class="nav nav-pills justify-content-end">
@@ -45,17 +45,16 @@
                   data-page-size=10
                   data-page-list=[10,20,50,100]
                   data-pagination="true"
-                  data-unique-id="time">
+                  data-unique-id="id">
                   <thead class="thead-light">
                     <tr>
                       <th scope="col" data-checkbox="true"></th>
-                      <th data-visible="false" data-field="time">time</th>
+                      <th data-visible="false" data-field="id">id</th>
                       <th scope="col" data-sortable="true" data-field="scope">Scope</th>
                       <th scope="col" data-sortable="true" data-field="target">Target</th>
-                      <th scope="col" data-sortable="true" data-field="aggregation">Metric</th>
+                      <th scope="col" data-sortable="true" data-field="aggregation">Aggregation</th>
                       <th scope="col" data-sortable="true" data-field="comparison">Aggregation Rule</th>
-                      <th scope="col" data-sortable="true" data-field="yellow">Yellow Threshold</th>
-                      <th scope="col" data-sortable="true" data-field="red">Red Threshold</th>
+                      <th scope="col" data-sortable="true" data-field="metric">Metric</th>
                       <th scope="col" data-formatter="editAndDelete">Actions</th>
                     </tr>
                   </thead>
@@ -101,12 +100,15 @@
             </td>
             <td class="pl-3">
               <select id="target" class="selectpicker show-tick form-control form-control-sm">
-                <option value="throughput">throughput</option>
-                <option value="error_rate">error_rate</option>
-                <option value="response_time">response_time</option>
+                <option value="total">Total Time</option>
+                <option value="time_to_first_byte">Time To First Bite</option>
+                <option value="time_to_first_paint">Time To First Paint</option>
+                <option value="dom_content_loading">Dom Content Load</option>
+                <option value="dom_processing">Dom Processing</option>
+                <option value="speed_index">Speed Index</option>
               </select>
             </td>
-            <td class="pl-5">Metric you want to be measured against <br /><p style="font-size: 10px; margin-top: 5px; margin-bottom: 5px;">throughput in RPS</p><p style="font-size: 10px; margin-bottom: 5px;">error_rate in %</p><p style="font-size: 10px; margin-bottom: 0px;">response time in ms</p></td>
+            <td class="pl-5">Metric you want to be measured against <br /><p style="font-size: 10px; margin-top: 5px; margin-bottom: 5px;">Speed Index is in points</p><p style="font-size: 10px; margin-bottom: 5px;">Rest is in ms</p></td>
           </tr>
           <tr>
             <td>
@@ -136,17 +138,14 @@
                 <option value="eq">Equal</option>
               </select>
             </td>
-            <td class="pl-5">Rule to be used for gating, e.g. if Greater is selected, whatever is GREATER then RED value would be marked as red threshold violation</td>
+            <td class="pl-5">Rule to be used for gating, e.g. if Greater is selected, whatever is GREATER then Metric value would be marked as threshold violation</td>
           </tr>
           <tr>
             <td>
-              <span> Thresholds: </span>
+              <span>Metric: </span>
             </td>
             <td class="pl-3">
-                <input id="yellow" placeholder="Yellow" class="form-control form-control-sm form-yellow ">
-            </td>
-            <td class="pl-5">
-                <input id="red" placeholder="Red" class="form-control form-control-sm  form-red ">
+                <input id="metric" placeholder="metric" class="form-control form-control-sm form-yellow ">
             </td>
           </tr>
         </table>
@@ -166,7 +165,7 @@
     function renderEnvPicker() {
         let selectedProjectId = getSelectedProjectId();
         $.get(`/api/v1/environment/${selectedProjectId}`,
-          { name: $("#testName").val() },
+          { name: $("#testName").val(), type: "ui" },
           function(data) {
             data.forEach(item => {
                 $("#envName").append(`<option value="${item}">${item}</option>`);
@@ -176,18 +175,18 @@
           });
     }
     function renderTable() {
-        $("#thresholds").bootstrapTable('refresh', {url: "/api/v1/thresholds/backend?name="+$("#testName").val()+"&environment="+$("#envName").val()});
+        let selectedProjectId = getSelectedProjectId();
+        $("#thresholds").bootstrapTable('refresh', {url: `/api/v1/thresholds/${selectedProjectId}/ui?name=${$("#testName").val()}&environment=${$("#envName").val()}`});
     }
 
     function editAndDelete(value, row, index) {
-        var id = row['time'];
-        return `<a href="#" onclick="showEditThreshold('${id}')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
+        return `<a href="#" onclick="showEditThreshold('${row.id}')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('${row.id}')"><i class="fa fa-trash"></i></a>`
     }
 
     $("#addThresholdsModal").on("show.bs.modal", function() {
         let selectedProjectId = getSelectedProjectId();
         $.get(`/api/v1/requests/${selectedProjectId}`,
-          { name: $("#testName").val() },
+          { name: $("#testName").val(), type: "ui" },
           function(data) {
             var scope = $("#scope").val();
             var title = $("#modal_title").html();
@@ -202,8 +201,7 @@
                 $("#target").selectpicker('val', 'throughput');
                 $("#aggregation").selectpicker('val', 'max');
                 $("#comparison").selectpicker('val', 'gte');
-                $("#yellow").val('');
-                $("#red").val('');
+                $("#metric").val('');
                 $("#submit").attr('onclick', 'insertThreshold()');
 			}
 			$("#scope").selectpicker('refresh');
@@ -227,15 +225,15 @@
         $("#target").selectpicker('val', data['target']);
         $("#aggregation").selectpicker('val', data['aggregation']);
         $("#comparison").selectpicker('val', data['comparison']);
-        $("#yellow").val(data['yellow']);
-        $("#red").val(data['red']);
+        $("#metric").val(data['metric']);
         $("#submit").attr('onclick', `editThreshold("${index}")`);
     }
 
 
     function insertThreshold(){
+        let selectedProjectId = getSelectedProjectId();
         $.ajax({
-            url: "/api/v1/thresholds/backend",
+            url: `/api/v1/thresholds/${selectedProjectId}/ui`,
             type: "POST",
             data: JSON.stringify({
                 test: $("#testName").val(),
@@ -244,8 +242,7 @@
                 target: $("#target").val(),
                 aggregation: $("#aggregation").val(),
                 comparison: $("#comparison").val(),
-                yellow: parseInt($("#yellow").val()),
-                red: parseInt($("#red").val())
+                metric: parseInt($("#metric").val())
             }),
             contentType: "application/json",
             dataType: "json",
@@ -257,6 +254,7 @@
     }
 
     function deleteThreshold(id, callback) {
+        let selectedProjectId = getSelectedProjectId();
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
@@ -267,7 +265,7 @@
             comparison: data['comparison']
         });
         $.ajax({
-            url: "/api/v1/thresholds/backend?"+request_params,
+            url: `/api/v1/thresholds/${selectedProjectId}/ui?${request_params}`,
             type: "DELETE",
             success: function(){
                 $("#thresholds").bootstrapTable('refresh');
