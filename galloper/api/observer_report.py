@@ -37,12 +37,12 @@ class UIReportsAPI(Resource):
         project = Project.query.get_or_404(project_id)
 
         report = UIReport(
-            test_name=args["test_name"],
+            name=args["test_name"],
             project_id=project.id,
             start_time=args["time"],
             is_active=True,
             browser=args["browser_name"],
-            env=args["env"],
+            environment=args["env"],
             base_url=args["base_url"]
         )
 

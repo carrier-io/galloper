@@ -15,6 +15,7 @@
 from flask import Blueprint, render_template
 
 from galloper.database.models.api_reports import APIReport
+from galloper.database.models.ui_report import UIReport
 from galloper.database.models.project import Project
 from galloper.utils.auth import project_required
 
@@ -23,6 +24,13 @@ bp = Blueprint("thresholds", __name__)
 
 @bp.route("/thresholds/api", methods=["GET"])
 @project_required
-def report(project: Project):
+def backend_thresholds(project: Project):
     tests = APIReport.query.filter(APIReport.project_id == project.id).with_entities(APIReport.name).distinct()
     return render_template("quality_gates/thresholds.html", tests=[each[0] for each in tests])
+
+
+@bp.route("/thresholds/ui", methods=["GET"])
+@project_required
+def ui_thresholds(project: Project):
+    tests = UIReport.query.filter(UIReport.project_id == project.id).with_entities(UIReport.name).distinct()
+    return render_template("quality_gates/ui_thresholds.html", tests=[each[0] for each in tests])

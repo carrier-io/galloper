@@ -48,9 +48,7 @@ def init_vault():
             )
             vault.insert()
         # Unseal if needed
-        if client.sys.is_sealed():
-            vault = Vault.query.get(consts.VAULT_DB_PK)
-            client.sys.submit_unseal_keys(keys=vault.unseal_json["keys"])
+        unseal(client)
         # Enable AppRole auth method if needed
         client = get_root_client()
         auth_methods = client.sys.list_auth_methods()
@@ -63,10 +61,25 @@ def init_vault():
         return 0
 
 
+def unseal(client):
+    if client.sys.is_sealed():
+        try:
+            vault = Vault.query.get(consts.VAULT_DB_PK)
+            client.sys.submit_unseal_keys(keys=vault.unseal_json["keys"])
+        except AttributeError:
+            init_vault()
+
+
+def create_client():
+    client = hvac.Client(url=consts.VAULT_URL)
+    unseal(client)
+    return client
+
+
 def get_root_client():
     """ Get "root" Vault client instance """
     # Get Vault client
-    client = hvac.Client(url=consts.VAULT_URL)
+    client = create_client()
     # Get root token from DB
     vault = Vault.query.get(consts.VAULT_DB_PK)
     # Add auth info to client
@@ -78,7 +91,7 @@ def get_root_client():
 def get_project_client(project_id):
     """ Get "project" Vault client instance """
     # Get Vault client
-    client = hvac.Client(url=consts.VAULT_URL)
+    client = create_client()
     # Get project from DB
     project = Project.query.get(project_id)
     # Auth to Vault

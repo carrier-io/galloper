@@ -50,7 +50,7 @@ class VisualReportAPI(Resource):
             except ZeroDivisionError:
                 thresholds_missed = 0
 
-            data = dict(id=report.id, project_id=project_id, name=report.test_name, environment=report.env,
+            data = dict(id=report.id, project_id=project_id, name=report.name, environment=report.environment,
                         browser=report.browser,
                         browser_version="12.2.3", resolution="1380x749", url=report.base_url,
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,

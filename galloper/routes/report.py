@@ -45,7 +45,7 @@ def visual(project: Project):
     return render_template("observer/report.html")
 
 
-@bp.route("/security/<int:project_id>/finding", methods=["GET"])
+@bp.route("/security/finding", methods=["GET"])
 @project_required
 def findings(project: Project):
     report_id = request.args.get("id", None)
@@ -106,8 +106,8 @@ def visual_report(project: Project):
     if not ui_report.passed:
         failures = 0
 
-    test_data = dict(id=report_id, project_id=project.id, name=ui_report.test_name,
-                     environment=ui_report.env,
+    test_data = dict(id=report_id, project_id=project.id, name=ui_report.name,
+                     environment=ui_report.environment,
                      browser=ui_report.browser,
                      browser_version=results[0].browser_version.split(" ")[1],
                      resolution=results[0].resolution,
