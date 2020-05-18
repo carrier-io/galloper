@@ -26,7 +26,7 @@ from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend
 from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi, TasksApi, TaskApi
-from .thresholds import ThresholdsAPI, RequestsAPI, EnvironmentsAPI
+from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
 
@@ -36,7 +36,8 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ApiReportsAPI, "/releases/<int:project_id>/reports")
     add_resource_to_api(api, ReleaseApiSaturation, "/release/<int:project_id>/saturation")
 
-    add_resource_to_api(api, ThresholdsAPI, "/thresholds")
+    add_resource_to_api(api, BackendThresholdsAPI, "/thresholds/backend")
+    add_resource_to_api(api, UIThresholdsAPI, "/thresholds/<int:project_id>/ui")
     add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>")
     add_resource_to_api(api, EnvironmentsAPI, "/environment/<int:project_id>")
 
