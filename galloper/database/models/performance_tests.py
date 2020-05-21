@@ -173,8 +173,10 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if output == 'cc':
             return execution_json
         else:
-            return "docker run -e project_id=%s -e galloper_url={{secret.galloper_url}} -e token={{secret.auth_token}}"\
-                   " getcarrier/control_tower:latest --test_id=%s" % (self.project_id, self.test_uid)
+            return "docker run -e project_id=%s -e galloper_url=%s -e token=%s"\
+                   " getcarrier/control_tower:latest --test_id=%s" \
+                   "" % (self.project_id, unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                         unsecret("{{secret.auth_token}}", project_id=self.project_id), self.test_uid)
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()
