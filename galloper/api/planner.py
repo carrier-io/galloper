@@ -135,7 +135,7 @@ class TestApiBackend(Resource):
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
         else:
-            message = [test.configure_execution_json(args.get("type"), execution=args.get("exec"))]
+            message = [{"test_id": test.test_uid}]
         return {"config": message}  # this is cc format
 
     def put(self, project_id, test_id):

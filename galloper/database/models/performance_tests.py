@@ -146,9 +146,17 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value
+        if "loki_host" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
+        if "loki_port" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["loki_port"] = "3100"
         if self.cc_env_vars:
             for key, value in self.cc_env_vars.items():
                 execution_json["cc_env_vars"][key] = value
+        if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
+        if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
         if self.customization:
             for key, value in self.customization.items():
                 if "additional_files" not in execution_json["execution_params"]:
@@ -165,13 +173,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if output == 'cc':
             return execution_json
         else:
-            return "docker run -e project_id=%s -e REDIS_HOST={{secret.redis_host}} " \
-                   "-e loki_host={{secret.loki_host}} -e GALLOPER_WEB_HOOK={{secret.post_processor}} " \
-                   "-e galloper_url={{secret.galloper_url}} getcarrier/control_tower:latest " \
-                   "--container %s --execution_params '%s' " \
-                   "--job_type %s --job_name %s --concurrency %s --bucket %s --artifact %s" \
-                   "" % (self.project_id, self.runner, execution_json['execution_params'], self.job_type,
-                         self.name, execution_json['concurrency'], self.bucket, self.file)
+            return "docker run -e project_id=%s -e galloper_url={{secret.galloper_url}} -e token={{secret.auth_token}}"\
+                   " getcarrier/control_tower:latest --test_id=%s" % (self.project_id, self.test_uid)
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()
