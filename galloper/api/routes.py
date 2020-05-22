@@ -23,7 +23,7 @@ from .project_quota import ProjectQuotaAPI
 from .project_secrets import ProjectSecretsAPI, ProjectSecretAPI
 from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
 from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
-from .planner import TestsApiPerformance, TestApiBackend
+from .planner import TestsApiPerformance, TestApiBackend, TestApi
 from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi, TasksApi, TaskApi
 from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, EnvironmentsAPI
@@ -74,5 +74,6 @@ def initialize_api_routes(api: Api):
                         "/visual/<int:project_id>/<int:report_id>/<string:action>")
 
     add_resource_to_api(api, TestsApiPerformance, "/tests/<int:project_id>/backend")
+    add_resource_to_api(api, TestApi, "/tests/<int:project_id>/<string:test_uuid>")
     add_resource_to_api(api, TestApiBackend, "/tests/<int:project_id>/backend/<int:test_id>",
                                              "/tests/<int:project_id>/backend/<string:test_id>")

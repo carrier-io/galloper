@@ -151,7 +151,7 @@
     function showDockerSnippet(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker`,
+            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker&exec=True`,
             type: 'GET',
             success: function (result) {
                 $("#execution_config").val(result.config);
