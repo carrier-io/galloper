@@ -90,6 +90,22 @@ class TestsApiPerformance(Resource):
         return {"message": "deleted"}
 
 
+class TestApi(Resource):
+
+    def get(self, project_id, test_uuid):
+        project = Project.query.get_or_404(project_id)
+        job_type = "not_found"
+        # check if APIPerformanceTests
+        _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_uuid)
+        test = PerformanceTests.query.filter(_filter).first()
+        if test:
+            job_type = test.job_type
+
+        # TODO add UIPerformanceTests, DAST and SAST
+
+        return {"job_type": job_type}
+
+
 class TestApiBackend(Resource):
     _get_rules = (
         dict(name="raw", type=int, default=0, location="args"),

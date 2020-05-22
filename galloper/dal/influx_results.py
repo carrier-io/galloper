@@ -73,7 +73,8 @@ def get_test_details(build_id, test_name, lg_type):
     test["vusers"] = list(client.query(q_total_users)["api_comparison"])[0]["value"]
     test["environment"] = list(client.query(q_env)["api_comparison"])[0]["value"]
     test["type"] = list(client.query(q_type)["api_comparison"])[0]["value"]
-    test["pct95"] = list(client.query(q_pct95)[test_name])[0]["percentile"]
+    pct95 = list(client.query(q_pct95)[test_name])
+    test["pct95"] = pct95[0]["percentile"] if pct95 else 0
     test["requests"] = [name["value"] for name in client.query(q_requests_name)["api_comparison"]]
     response_data = list(client.query(q_response_codes)['api_comparison'])[0]
     test['total'] = response_data['Total']
