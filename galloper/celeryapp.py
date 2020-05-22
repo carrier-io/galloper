@@ -33,6 +33,7 @@ from galloper.database.models.task import Task
 from galloper.database.models.statistic import Statistic
 from galloper.database.models.project_quota import ProjectQuota
 from werkzeug.exceptions import Forbidden
+from galloper.dal.vault import unsecret
 
 app = Celery('Galloper',
              broker=f'redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
@@ -69,7 +70,7 @@ def run_lambda(task, event):
 
     log = response.decode("utf-8", errors='ignore')
     if container_name == "lambda:python3.7":
-        results = re.search(r'({.+?)}', log).group(0)
+        results = re.findall(r'({.+?})', log)[-1]
     else:
         results = log.split("\n\n")[1]
 
@@ -79,6 +80,9 @@ def run_lambda(task, event):
         "Content-Type": "application/json",
         "Token": task['token']
     }
+    auth_token = unsecret("{{secret.auth_token}}", project_id=task['project_id'])
+    if auth_token:
+        headers['Authorization'] = f'bearer {auth_token}'
     post(f'{APP_HOST}/api/v1/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
     return results
 
@@ -112,6 +116,9 @@ def execute_lambda(self, task, event, *args, **kwargs):
             "Content-Type": "application/json",
             "Token": task['token']
         }
+        auth_token = unsecret("{{secret.auth_token}}", project_id=task['project_id'])
+        if auth_token:
+            headers['Authorization'] = f'bearer {auth_token}'
         post(f'{APP_HOST}/api/v1/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
         raise Forbidden(description="The number of task executions allowed in the project has been exceeded")
     statistic = db_session.query(Statistic).filter(Statistic.project_id == task['project_id']).first()
