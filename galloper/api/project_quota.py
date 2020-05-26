@@ -57,7 +57,7 @@ class ProjectQuotaAPI(Resource):
 
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         data = self._parser_post.parse_args()
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         project_quota = ProjectQuota(
             project_id=project.id, performance_test_runs=data["performance_test_runs"],
             code_repositories=data["code_repositories"], dast_scans=data["dast_scans"],

@@ -1,0 +1,42 @@
+<!-- Modal -->
+<div class="modal fade" id="jiraModal" tabindex="-1" role="dialog" aria-labelledby="jiraModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="jiraModalLabel">Jira integrations</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+            <div class="form-group">
+                <label for="jira_url" class="form-control-label">URL</label>
+                <input class="form-control" type="text" value="URL to Jira API" id="jira_url">
+            </div>
+            <div class="form-group">
+                <label for="jira_login" class="form-control-label">Login</label>
+                <input class="form-control" type="text" value="Jira Login" id="jira_login">
+            </div>
+            <div class="form-group">
+                <label for="jira_password" class="form-control-label">Password</label>
+                <input class="form-control" type="text" value="Jira Password" id="jira_password">
+            </div>
+            <div class="form-group">
+                <label for="project" class="form-control-label">Project</label>
+                <input class="form-control" type="text" value="Jira Project ID" id="project">
+            </div>
+            <div class="form-group">
+                <label for="issue_type" class="form-control-label">Issue Type</label>
+                <input class="form-control" type="text" value="Issue Type: Bug is default" id="issue_type">
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary">Test</button>
+        <button type="button" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

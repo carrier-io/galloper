@@ -39,11 +39,11 @@
                     <thead class="thead-light">
                         <tr>
                             <th scope="col" data-checkbox="true"></th>
-                            <th scope="col" data-visible="false" data-field="id">Id</th>
-                            <th scope="col" data-sortable="false" data-field="name">Name</th>
+                            <th scope="col" data-sortable="false" data-field="name">Project Name</th>
+                            <th scope="col" data-field="id">Project ID</th>
                             <th scope="col" data-sortable="false" data-field="project_owner">Owner</th>
                             <th scope="col" data-sortable="false" data-formatter="checkFormatter">Services</th>
-                            <th scope="col" data-sortable="false" data-formatter="statsFormatter">Stats</th>
+                            <th scope="col" data-sortable="false" data-formatter="statsFormatter">Quotas</th>
                             <th scope="col" data-sortable="false" data-field="package">Package</th>
                             <th scope="col" data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">Actions</th>
                         </tr>
@@ -62,51 +62,34 @@
 
     function statsFormatter(value, row, index) {
         var stats_string = ''
+        var fas_class = {
+            performance_test_runs: 'fa-tachometer-alt',
+            ui_performance_test_runs: 'fa-desktop',
+            sast_scans: 'fa-code',
+            dast_scans: 'fa-laptop-code',
+            storage_space: 'fa-hdd',
+            tasks_count: 'fa-cube',
+            tasks_executions: 'fa-cubes'
+        }
         $.ajax({
             async: false,
             type: "GET",
             url: `/api/v1/statistic/${row.id}`,
             success: function (data) {
                 Object.keys(data).forEach(function(metric) {
-                    fas_class = ''
-                    if (metric == "performance_test_runs") {
-                        fas_class += `<i class="fas fa-tachometer-alt"></i>`
-                    }
-                    else if (metric == "ui_performance_test_runs") {
-                        fas_class += `<i class="fas fa-desktop"></i>`
-                    }
-                    else if (metric == "sast_scans") {
-                        fas_class += `<i class="fas fa-code"></i>`
-                    }
-                    else if (metric == "dast_scans") {
-                        fas_class += `<i class="fas fa-laptop-code"></i>`
-                    }
-                    else if (metric == "storage_space") {
-                        fas_class += `<i class="fas fa-hdd"></i>`
-                    }
-                    else if (metric == "tasks_count") {
-                        fas_class += `<i class="fas fa-cube"></i>`
-                    }
-                    else if (metric == "tasks_executions") {
-                        fas_class += `<i class="fas fa-cubes"></i>`
-                    }
-
                     var rate = 0
                     var quota = data[metric]["quota"]
-                    if (quota == -1) {
-                        quota = 'unlimited'
-                    }
-                    else {
-                        rate = data[metric]["current"]/quota * 100
-                    }
+                    if (quota == -1) { quota = 'unlimited' }
+                    else { rate = data[metric]["current"]/quota * 100 }
+                    var icon = fas_class[metric]
                     if (metric != "data_retention_limit") {
                         if (rate < 80) {
-                            stats_string += `<span class="badge badge-pill badge-success mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                            stats_string += `<span class="badge badge-pill badge-success mr-1" data-toggle="tooltip" data-placement="top" title="${metric}"><i class="fas ${icon}"></i> ${data[metric]["current"]} / ${quota} </span>`
                         }
                         else if (rate < 90) {
-                            stats_string += `<span class="badge badge-pill badge-warning mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                            stats_string += `<span class="badge badge-pill badge-warning mr-1" data-toggle="tooltip" data-placement="top" title="${metric}"><i class="fas ${icon}"></i>  ${data[metric]["current"]} / ${quota} </span>`
                         } else {
-                            stats_string += `<span class="badge badge-pill badge-danger mr-1" data-toggle="tooltip" data-placement="top" title="${metric}">${fas_class}  ${data[metric]["current"]} / ${quota} </span>`
+                            stats_string += `<span class="badge badge-pill badge-danger mr-1" data-toggle="tooltip" data-placement="top" title="${metric}"><i class="fas ${icon}"></i> ${data[metric]["current"]} / ${quota} </span>`
                         }
                     }
                 });

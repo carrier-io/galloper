@@ -108,7 +108,7 @@ class UIThresholdsAPI(Resource):
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
     def get(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self._parser_get.parse_args(strict=False)
         res = UIThresholds.query.filter().filter(
             and_(UIThresholds.project_id == project.id,
@@ -117,7 +117,7 @@ class UIThresholdsAPI(Resource):
         return [th.to_json() for th in res]
 
     def post(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self._parser_post.parse_args(strict=False)
         UIThresholds(project_id=project.id,
                      test=args["test"],
@@ -130,7 +130,7 @@ class UIThresholdsAPI(Resource):
         return {"message": "OK"}
 
     def delete(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self._parser_delete.parse_args(strict=False)
         UIThresholds.query.filter().filter(
             and_(UIThresholds.project_id == project.id,
@@ -176,7 +176,7 @@ class RequestsAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if args.get("type") == "ui":
             return self._get_ui_pages(project.id, args.get("name"))
         else:
@@ -197,7 +197,7 @@ class EnvironmentsAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         model = APIReport
         if args.get("type") == "ui":
             model = UIReport
