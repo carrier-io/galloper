@@ -92,7 +92,7 @@ class SecurityReportAPI(Resource):
 
     def delete(self, project_id: int):
         args = self._parser_delete.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         for each in SecurityReport.query.filter(
             and_(SecurityReport.project_id == project.id, SecurityReport.report_id.in_(args["id[]"]))
         ).order_by(SecurityReport.id.asc()).all():
@@ -105,7 +105,7 @@ class SecurityReportAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         # TODO move sast/dast quota checks to a new endpoint, which will be triggered before the scan
         if args["scan_type"].lower() == 'sast':
             if not ProjectQuota.check_quota(project_id=project_id, quota='sast_scans'):

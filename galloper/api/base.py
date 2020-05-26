@@ -23,7 +23,7 @@ def _calcualte_limit(limit, total):
 
 
 def get(project_id, args, data_model, additional_filter=None):
-    project = Project.query.get_or_404(project_id)
+    project = Project.get_or_404(project_id)
     limit_ = args.get("limit")
     offset_ = args.get("offset")
     if args.get("sort"):
