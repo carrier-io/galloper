@@ -83,7 +83,6 @@ def is_user_part_of_the_project(project_id):
                 headers[header[0]] = header[1]
         headers["Content-Type"] = "application/json"
         user_data = get(f"{APP_HOST}/forward-auth/me", headers=headers).json()
-        current_app.logger.info(user_data)
     if Config().SUPERADMIN_GROUP in user_data["groups"]:
         return True
     else:

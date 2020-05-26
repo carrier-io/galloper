@@ -186,18 +186,13 @@ class TestApiBackend(Resource):
                              "loki_host", "loki_port"])
 
     def post(self, project_id, test_id):
-        current_app.logger.info("Here")
-        current_app.logger.info(request.headers)
         project = Project.get_or_404(project_id)
-        # project = Project.query.get_or_404(project_id)
         args = self.post_parser.parse_args(strict=False)
-        current_app.logger.info(args)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         task = PerformanceTests.query.filter(_filter).first()
-        current_app.logger.info(task.to_json())
         event = list()
         execution = True if args['type'] and args["type"] == "config" else False
         event.append(task.configure_execution_json(output='cc',
