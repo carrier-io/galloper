@@ -21,7 +21,7 @@ from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
-from galloper.utils.auth import SessionProject
+from galloper.utils.auth import SessionProject, SessionUser
 from galloper.dal.vault import initialize_project_space, remove_project_space, set_project_secrets
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
@@ -68,7 +68,7 @@ class ProjectAPI(Resource):
         search_ = args["search"]
 
         if project_id:
-            project = Project.query.get_or_404(project_id)
+            project = Project.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         elif search_:
             projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
@@ -178,7 +178,7 @@ class ProjectAPI(Resource):
         data = self._parser_post.parse_args()
         if not project_id:
             return {"message": "Specify project id"}, 400
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         project.name = data["name"]
         project.project_owner = data["owner"]
         package = data["package"].lower()
@@ -204,21 +204,36 @@ class ProjectAPI(Resource):
 
 
 class ProjectSessionAPI(Resource):
+    post_rules = (
+        dict(name="username", type=str, required=True, location="json"),
+        dict(name="groups", type=list, required=True, location="json")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
     def get(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         if not project_id:
             project_id = SessionProject.get()
         if project_id:
-            project = Project.query.get_or_404(project_id)
+            project = Project.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         return {"message": "No project selected in session"}, 404
 
-    def post(self, project_id: int) -> Tuple[dict, int]:
-        project = Project.query.get_or_404(project_id)
-        SessionProject.set(project.id)
-        return {"message": f"Project with id {project.id} was successfully selected"}, 200
+    def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
+        args = self._parser_post.parse_args()
+        SessionUser.set(dict(username=args["username"], groups=args.get("groups")))
+        if project_id:
+            project = Project.get_or_404(project_id)
+            SessionProject.set(project.id)
+            return {"message": f"Project with id {project.id} was successfully selected"}, 200
+        return {"message": "user session configured"}, 200
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if SessionProject.get() == project.id:
             SessionProject.pop()
         return {"message": f"Project with id {project.id} was successfully unselected"}, 200

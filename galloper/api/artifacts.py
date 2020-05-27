@@ -41,7 +41,7 @@ class BucketsApi(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: int, bucket: str):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         return MinioClient(project=project).list_files(bucket)
 
     def post(self, project_id: int, bucket: str):
@@ -49,7 +49,7 @@ class BucketsApi(Resource):
         expiration_measure = args["expiration_measure"]
         expiration_value = args["expiration_value"]
 
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         data_retention_limit = project.get_data_retention_limit()
         minio_client = MinioClient(project=project)
         days = data_retention_limit or None
@@ -68,7 +68,7 @@ class BucketsApi(Resource):
         return {"message": "Created", "code": 200}
 
     def delete(self, project_id: int, bucket: str):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         MinioClient(project=project).remove_bucket(bucket)
         return {"message": "Deleted", "code": 200}
 
@@ -85,21 +85,21 @@ class ArtifactApi(Resource):
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
     def get(self, project_id: int, bucket: str, filename: str):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         current_app.logger.info(f"Bucket: {bucket}      File: {filename}")
         fobj = MinioClient(project=project).download_file(bucket, filename)
         return send_file(BytesIO(fobj), attachment_filename=filename)
 
 
     def post(self, project_id: int, bucket: str, filename: str):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if "file" in request.files:
             upload_file(bucket, request.files["file"], project)
         return {"message": "Done", "code": 200}
 
     def delete(self, project_id: int, bucket: str, filename: str):
         args = self._parser_delete.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         for filename in args.get("fname[]", ()) or ():
             MinioClient(project=project).remove_file(bucket, filename)
         return {"message": "Deleted", "code": 200}

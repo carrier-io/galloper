@@ -14,12 +14,12 @@
 
 import logging
 from typing import Optional
-
+from flask import abort, current_app
 from sqlalchemy import String, Column, Integer, JSON, Boolean
 
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base, db_session
-from galloper.utils.auth import SessionProject
+from galloper.utils.auth import SessionProject, is_user_part_of_the_project
 
 
 class Project(AbstractBaseMixin, Base):
@@ -63,6 +63,13 @@ class Project(AbstractBaseMixin, Base):
         project_quota = ProjectQuota.query.filter_by(project_id=self.id).first()
         if project_quota and project_quota.storage_space:
             return project_quota.storage_space
+
+    @staticmethod
+    def get_or_404(project_id):
+        project = Project.query.get_or_404(project_id)
+        if not is_user_part_of_the_project(project.id):
+            abort(404, description="User not a part of project")
+        return project
 
     @classmethod
     def apply_full_delete_by_pk(cls, pk: int) -> None:

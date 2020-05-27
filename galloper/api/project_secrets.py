@@ -36,7 +36,7 @@ class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
 
     def get(self, project_id: int) -> Tuple[dict, int]:  # pylint: disable=R0201,C0111
         # Check project_id for validity
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         # Get secrets
         secrets_dict = get_project_secrets(project.id)
         resp = []
@@ -47,7 +47,7 @@ class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
     def post(self, project_id: int) -> Tuple[dict, int]:  # pylint: disable=C0111
         data = self._parser_post.parse_args()
         # Check project_id for validity
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         # Set secrets
         set_project_secrets(project.id, data["secrets"])
         return {"message": f"Project secrets were saved"}, 200
@@ -66,7 +66,7 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
 
     def get(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=R0201,C0111
         # Check project_id for validity
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         # Get secret
         secrets = get_project_secrets(project.id)
         return {"secret": secrets.get(secret, None)}, 200
@@ -74,7 +74,7 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
     def post(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
         data = self._parser_post.parse_args()
         # Check project_id for validity
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         # Set secret
         secrets = get_project_secrets(project.id)
         secrets[secret] = data["secret"]
@@ -82,7 +82,7 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
         return {"message": f"Project secret was saved"}, 200
 
     def delete(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         secrets = get_project_secrets(project.id)
         if secret in secrets:
             del secrets[secret]

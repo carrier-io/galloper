@@ -90,7 +90,7 @@ class ReportAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if not ProjectQuota.check_quota(project_id=project_id, quota='performance_test_runs'):
             return {"Forbidden": "The number of performance test runs allowed in the project has been exceeded"}
         report = APIReport(name=args["test_name"],
@@ -123,7 +123,7 @@ class ReportAPI(Resource):
 
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         test_data = get_test_details(build_id=args["build_id"], test_name=args["test_name"], lg_type=args["lg_type"])
         report = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.build_id == args["build_id"])
@@ -146,7 +146,7 @@ class ReportAPI(Resource):
 
     def delete(self, project_id: int):
         args = self._parser_delete.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         query_result = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.id.in_(args["id[]"]))
         ).all()
@@ -300,7 +300,7 @@ class TestSaturation(Resource):
 
     def get(self):
         args = self._parser_get.parse_args(strict=False)
-        project = Project.query.get_or_404(args["project_id"])
+        project = Project.get_or_404(args["project_id"])
         report = APIReport.query.filter(
             and_(APIReport.id == args['test_id'], APIReport.project_id == project.id)
         ).first()

@@ -32,7 +32,7 @@ class TestsApiPerformance(Resource):
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
         dict(name="customization", type=str, location='form'),
-        dict(name="java_opts", type=str, location='form')
+        dict(name="cc_env_vars", type=str, location='form')
     )
 
     _delete_rules = (
@@ -58,7 +58,7 @@ class TestsApiPerformance(Resource):
     def post(self, project_id: int):
         current_app.logger.info(request.form)
         args = self.post_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
@@ -74,20 +74,36 @@ class TestsApiPerformance(Resource):
                                 params=loads(args["params"]),
                                 env_vars=loads(args["env_vars"]),
                                 customization=loads(args["customization"]),
-                                java_opts=args["java_opts"])
+                                cc_env_vars=loads(args["cc_env_vars"]))
         test.insert()
         current_app.logger.info(test.to_json())
         return test.to_json(exclude_fields=("id",))
 
     def delete(self, project_id: int):
         args = self.delete_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         query_result = PerformanceTests.query.filter(
             and_(PerformanceTests.project_id == project.id, PerformanceTests.id.in_(args["id[]"]))
         ).all()
         for each in query_result:
             each.delete()
         return {"message": "deleted"}
+
+
+class TestApi(Resource):
+
+    def get(self, project_id, test_uuid):
+        project = Project.get_or_404(project_id)
+        job_type = "not_found"
+        # check if APIPerformanceTests
+        _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_uuid)
+        test = PerformanceTests.query.filter(_filter).first()
+        if test:
+            job_type = test.job_type
+
+        # TODO add UIPerformanceTests, DAST and SAST
+
+        return {"job_type": job_type}
 
 
 class TestApiBackend(Resource):
@@ -102,13 +118,14 @@ class TestApiBackend(Resource):
         dict(name="params", type=str, default="{}", required=False, location='json'),
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
-        dict(name="java_opts", type=str, required=False, location='json')
+        dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
+        dict(name="reporter", type=list, required=False, location='json')
     )
 
     _post_rules = _put_rules + (
         dict(name="test_type", type=str, required=False, location='json'),
-        dict(name="reporter", type=str, required=False, location='json'),
-        dict(name="runner", type=str, required=False, location='json')
+        dict(name="runner", type=str, required=False, location='json'),
+        dict(name="type", type=str, default=None, required=False, location='json')
     )
 
     def __init__(self):
@@ -121,7 +138,7 @@ class TestApiBackend(Resource):
 
     def get(self, project_id, test_id):
         args = self.get_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
@@ -134,34 +151,33 @@ class TestApiBackend(Resource):
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
         else:
-            message = [test.configure_execution_json(args.get("type"), execution=args.get("exec"))]
+            message = [{"test_id": test.test_uid}]
         return {"config": message}  # this is cc format
 
     def put(self, project_id, test_id):
-        project = Project.query.get_or_404(project_id)
+        default_params = ["influx.port", "influx.host", "galloper_url", "influx.db", "test_name", "comparison_db",
+                          "loki_host", "loki_port", "test.type", "test_type"]
+        project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         task = PerformanceTests.query.filter(_filter).first()
-        params = deepcopy(task.params)
-        for key, value in loads(args.get("params")).items():
-            if key not in params or params[key] != value:
-                params[key] = value
-        task.params = params
-        params = deepcopy(task.env_vars)
-        for key, value in loads(args.get("env_vars")).items():
-            if key not in params or params[key] != value:
-                params[key] = value
-        task.env_vars = params
-        params = deepcopy(task.customization)
-        for key, value in loads(args.get("customization")).items():
-            if key not in params or params[key] != value:
-                params[key] = value
-        task.customization = params
-        if args.get("java_opts"):
-            task.java_opts = args.get("java_opts")
+
+        for each in ["params", "env_vars", "customization", "cc_env_vars"]:
+            params = deepcopy(getattr(task, each))
+            for key in list(params.keys()):
+                if key not in loads(args.get(each)).keys() and key not in default_params:
+                    del params[key]
+            for key, value in loads(args.get(each)).items():
+                if key not in params or params[key] != value:
+                    params[key] = value
+            setattr(task, each, params)
+
+        if args.get("reporter"):
+            task.reporting = args["reporter"]
+
         if args.get("parallel"):
             task.parallel = args.get("parallel")
         task.commit()
@@ -170,7 +186,7 @@ class TestApiBackend(Resource):
                              "loki_host", "loki_port"])
 
     def post(self, project_id, test_id):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self.post_parser.parse_args(strict=False)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
@@ -178,14 +194,18 @@ class TestApiBackend(Resource):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         task = PerformanceTests.query.filter(_filter).first()
         event = list()
+        execution = True if args['type'] and args["type"] == "config" else False
         event.append(task.configure_execution_json(output='cc',
                                                    test_type=args.get("test_type"),
                                                    params=loads(args.get("params", None)),
                                                    env_vars=loads(args.get("env_vars", None)),
-                                                   reporting=args.get("reporting", None),
+                                                   reporting=args.get("reporter", None),
                                                    customization=loads(args.get("customization", None)),
-                                                   java_opts=args.get("java_opts", None),
-                                                   parallel=args.get("parallel", None)))
+                                                   cc_env_vars=loads(args.get("cc_env_vars", None)),
+                                                   parallel=args.get("parallel", None),
+                                                   execution=execution))
+        if args['type'] and args["type"] == "config":
+            return event[0]
         response = run_task(project.id, event)
         response["redirect"] = f'/task/{response["task_id"]}/results'
         return response

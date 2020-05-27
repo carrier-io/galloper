@@ -34,7 +34,7 @@ class UIReportsAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args()
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
 
         report = UIReport(
             name=args["test_name"],

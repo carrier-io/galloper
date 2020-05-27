@@ -1,0 +1,34 @@
+<!-- Modal -->
+<div class="modal fade" id="rpModal" tabindex="-1" role="dialog" aria-labelledby="rpModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="rpModalLabel">ReportPortal integration</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <label for="rp_host" class="form-control-label">Host</label>
+                    <input class="form-control" type="text" value="URL to ReportPortal.io deployment" id="rp_host">
+                </div>
+                <div class="form-group">
+                    <label for="rp_token" class="form-control-label">Auth Token</label>
+                    <input class="form-control" type="text" value="RP Authentication token" id="rp_token">
+                </div>
+                <div class="form-group">
+                    <label for="project" class="form-control-label">Project</label>
+                    <input class="form-control" type="text" value="RP Project Name" id="project">
+                </div>
+            </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" onclick="testIntegration('jira')">Test</button>
+        <button type="button" class="btn btn-primary" onclick="saveIntegration('jira')">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

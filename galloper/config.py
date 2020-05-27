@@ -27,11 +27,13 @@ class Config(metaclass=SingletonABC):
     DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
     UPLOAD_FOLDER: str = os.environ.get("TASKS_UPLOAD_FOLDER", "/tmp/tasks")
     DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+    SUPERADMIN_GROUP = "/superadmin"
 
     DATABASE_SCHEMA: Optional[str] = None
 
     SECRET_KEY = os.environ.get("SECRET_KEY", ":iMHK_F`4hyrE;Wfr;+Ui8l&R3wYiB")
     PROJECT_CACHE_KEY = os.environ.get("PROJECT_CACHE_KEY", "project_cache_key")
+    USER_CACHE_KEY = os.environ.get("USER_CACHE_KEY", "user_session")
 
     def __init__(self) -> None:
 
