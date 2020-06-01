@@ -58,7 +58,7 @@ class TestsApiPerformance(Resource):
     def post(self, project_id: int):
         current_app.logger.info(request.form)
         args = self.post_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
@@ -81,7 +81,7 @@ class TestsApiPerformance(Resource):
 
     def delete(self, project_id: int):
         args = self.delete_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         query_result = PerformanceTests.query.filter(
             and_(PerformanceTests.project_id == project.id, PerformanceTests.id.in_(args["id[]"]))
         ).all()
@@ -93,7 +93,7 @@ class TestsApiPerformance(Resource):
 class TestApi(Resource):
 
     def get(self, project_id, test_uuid):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         job_type = "not_found"
         # check if APIPerformanceTests
         _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_uuid)
@@ -138,7 +138,7 @@ class TestApiBackend(Resource):
 
     def get(self, project_id, test_id):
         args = self.get_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
         else:
@@ -157,7 +157,7 @@ class TestApiBackend(Resource):
     def put(self, project_id, test_id):
         default_params = ["influx.port", "influx.host", "galloper_url", "influx.db", "test_name", "comparison_db",
                           "loki_host", "loki_port", "test.type", "test_type"]
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
@@ -186,7 +186,7 @@ class TestApiBackend(Resource):
                              "loki_host", "loki_port"])
 
     def post(self, project_id, test_id):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         args = self.post_parser.parse_args(strict=False)
         if isinstance(test_id, int):
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)

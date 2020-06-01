@@ -11,6 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
+import string
 from os import path
 from uuid import uuid4
 from json import dumps
@@ -19,8 +20,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
-from galloper.constants import APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
-from galloper.dal.vault import get_project_secrets, unsecret
+from galloper.dal.vault import unsecret
 
 class PerformanceTests(AbstractBaseMixin, Base):
     __tablename__ = "performance_tests"
@@ -68,9 +68,15 @@ class PerformanceTests(AbstractBaseMixin, Base):
         self.last_run = ts
         self.commit()
 
+    @staticmethod
+    def sanitize(val):
+        valid_chars = "_%s%s" % (string.ascii_letters, string.digits)
+        return ''.join(c for c in val if c in valid_chars)
+
     def insert(self):
         if self.runner not in self.container_mapping.keys():
             return False
+        self.name = self.sanitize(self.name)
         if not self.test_uid:
             self.test_uid = str(uuid4())
         if "influx.port" not in self.params.keys():

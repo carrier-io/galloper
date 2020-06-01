@@ -25,5 +25,5 @@ class Results(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     task_id = Column(String(128), unique=False, nullable=False)
     ts = Column(Integer, unique=False, nullable=False)
-    results = Column(String(512), unique=False, nullable=False)
+    results = Column(Text, unique=False, nullable=False)
     log = Column(Text, unique=False, nullable=False)

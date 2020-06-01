@@ -16,9 +16,16 @@
               </div>
             </div>
             {% include 'projects/create_edit_project_piece.html' %}
+            {% include 'projects/integrations/integrations.html' %}
+            {% include 'projects/quotas/quotas.html' %}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+{% include 'projects/integrations/jiramodal.html' %}
+{% include 'projects/integrations/rpmodal.html' %}
 {% include 'common/foot.html' %}
 <script>
     function repaintProjects(data) {
@@ -383,6 +390,10 @@
         $("#data_retention_limit").text(retention_limit_current_value);
         disablePackageSelector()
     })
+
+    function showModal(modalID) {
+        $(`#${modalID}`).modal('show');
+    }
 
     $(document).ready(function() {
         getProjectDetails();

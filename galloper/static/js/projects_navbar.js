@@ -47,17 +47,45 @@
         fillSelectedProject(projectData);
     }
 
+    function setUserSession() {
+        try {
+            let req = new XMLHttpRequest();
+            req.open("GET", `/forward-auth/me`, false);
+            req.send();
+            if (req.status === 200) {
+                let request = new XMLHttpRequest();
+                request.open("POST", `/api/v1/project-session`, false);  // `false` makes the request synchronous
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(req.responseText);
+                if (request.status === 200) {
+                    return false;
+                }
+            }
+            return false;
+        } catch (err) {
+            console.log("Request Error :-S", err);
+        }
+    }
+
+
     function selectSessionProject(projectData) {
         try {
-            let request = new XMLHttpRequest();
-            request.open("POST", `/api/v1/project-session/${projectData.id}`, false);  // `false` makes the request synchronous
-            request.send();
-            if (request.status === 200) {
-                projectData = JSON.parse(request.responseText);
-                initProjectDropdown(projectData);
-                window.location.reload();
-                return false;
+            let req = new XMLHttpRequest();
+            req.open("GET", `/forward-auth/me`, false);
+            req.send();
+            if (req.status === 200) {
+                let request = new XMLHttpRequest();
+                request.open("POST", `/api/v1/project-session/${projectData.id}`, false);  // `false` makes the request synchronous
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(req.responseText);
+                if (request.status === 200) {
+                    projectData = JSON.parse(request.responseText);
+                    initProjectDropdown(projectData);
+                    window.location.reload();
+                    return false;
+                }
             }
+            return false;
         } catch (err) {
             console.log("Request Error :-S", err);
         }
@@ -93,6 +121,7 @@
     }
 
     initProjectDropdown();
+    setUserSession();
     projectsDropdown.addEventListener("click", fillDropdown, false);
 
     window.getSelectedProjectId = function () {

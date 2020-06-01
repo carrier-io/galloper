@@ -52,7 +52,7 @@ class TasksApi(Resource):
 
     def post(self, project_id: int):
         args = self.post_parser.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if args.get("file"):
             file = args["file"]
             if file.filename == "":
@@ -83,14 +83,14 @@ class TaskApi(Resource):
     def get(self, project_id: int, task_id: str):
         args = self.get_parser.parse_args(strict=False)
         task = Task.query.filter_by(task_id=task_id).first()
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if args.get("exec"):
             return unsecret(task.to_json(), project_id=project.id)
         return task.to_json()
 
     def post(self, project_id: int, task_id: str):
         task = Task.query.filter_by(task_id=task_id).first()
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         event = request.get_json()
         return run_task(project.id, event, task.task_id)
 
