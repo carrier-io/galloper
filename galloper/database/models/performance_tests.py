@@ -275,6 +275,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                    "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999'}
 
         return f'docker run -t --rm -e project_id={self.project_id} ' \
+               f'-e REDIS_HOST={unsecret("{{secret.redis_host}}", project_id=self.project_id)} ' \
                f'-e galloper_url={unsecret("{{secret.galloper_url}}", project_id=self.project_id)} ' \
                f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
                f'getcarrier/control_tower:latest --test_id={self.test_uid} ' \
