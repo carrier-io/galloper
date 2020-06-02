@@ -30,7 +30,7 @@ class UITestsApiPerformance(Resource):
         dict(name="name", type=str, location='form'),
         dict(name="entrypoint", type=str, location='form'),
         dict(name="reporter", type=str, location='form'),
-        dict(name="runner", type=str, location='form'),
+        dict(name="browser", type=str, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
         dict(name="customization", type=str, location='form'),
@@ -58,15 +58,14 @@ class UITestsApiPerformance(Resource):
         return {"total": total, "rows": reports}
 
     def post(self, project_id: int):
-        current_app.logger.info("Create new UI test")
-        current_app.logger.info(request.form)
         args = self.post_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
-        browser = args["runner"]
-        job_type = f"observer_{browser}"
+        browser = args["browser"]
+        runner = "getcarrier/observer:latest"
+        job_type = "observer"
 
         test = UIPerformanceTests(project_id=project.id,
                                   test_uid=str(uuid4()),
@@ -74,7 +73,9 @@ class UITestsApiPerformance(Resource):
                                   bucket=bucket,
                                   file=file_name,
                                   entrypoint=args["entrypoint"],
-                                  runner=args["runner"],
+                                  runner=runner,
+                                  browser=browser,
+                                  parallel=1,
                                   reporting=args["reporter"].split(","),
                                   params=loads(args["params"]),
                                   env_vars=loads(args["env_vars"]),
