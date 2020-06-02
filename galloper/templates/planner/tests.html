@@ -122,6 +122,7 @@
     }
 
     $(document).ready(function() {
+        $("#CR").attr("href",`tests/${page_params.get("type")}`)
         $("#title").text(`${page_params.get("type")} Tests`);
         refreshTable();
         filters();
@@ -140,7 +141,7 @@
         elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
         elem.classList.add("disabled");
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}`,
             type: 'POST',
             success: function (result) {
                 window.location.href = `/report`;
@@ -151,7 +152,7 @@
     function showDockerSnippet(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker&exec=True`,
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=docker&exec=True`,
             type: 'GET',
             success: function (result) {
                 $("#execution_config").val(result.config);
@@ -163,7 +164,7 @@
     function showExecutionConfig(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=cc`,
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=cc`,
             type: 'GET',
             success: function (result) {
                 $("#execution_config").val(JSON.stringify(result.config, null, 4));
@@ -182,6 +183,10 @@
             return "<img src=\"{{ url_for('static', filename='img/icons/jmeter.png')}}\" width=\"25\">"
         } else if (row.job_type === "perfgun") {
             return "<img src=\"{{ url_for('static', filename='img/icons/gatling.png') }}\" width=\"25\">"
+        } else if (row.job_type === "observer_chrome") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/chrome.png') }}\" width=\"25\">"
+        } else if (row.job_type === "observer_firefox") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/firefox.png') }}\" width=\"25\">"
         } else {
             return value
         }
@@ -198,7 +203,7 @@
 
     function deleteTasks(id) {
         var project_id = $("#selected-project-id").text();
-        var reports = `/api/v1/tests/${project_id}/backend?`;
+        var reports = `/api/v1/tests/${project_id}/${page_params.get("type")}?`;
         if (id == undefined){
             $("#results").bootstrapTable('getSelections').forEach(item => {
                 reports += "id[]=" + item["id"] + "&"
