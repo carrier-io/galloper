@@ -148,10 +148,10 @@ class TestApiFrontend(Resource):
         project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id == test_id)
         else:
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
-        task = PerformanceTests.query.filter(_filter).first()
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_id)
+        task = UIPerformanceTests.query.filter(_filter).first()
 
         for each in ["params", "env_vars", "customization", "cc_env_vars"]:
             params = deepcopy(getattr(task, each))
@@ -166,12 +166,8 @@ class TestApiFrontend(Resource):
         if args.get("reporter"):
             task.reporting = args["reporter"]
 
-        if args.get("parallel"):
-            task.parallel = args.get("parallel")
         task.commit()
-        return task.to_json(["influx.port", "influx.host", "galloper_url",
-                             "test_name", "influx.db", "comparison_db",
-                             "loki_host", "loki_port"])
+        return task.to_json()
 
     def post(self, project_id, test_id):
         project = Project.get_or_404(project_id)
