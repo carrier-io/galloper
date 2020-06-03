@@ -224,14 +224,21 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             params = self.params
 
         for key, value in params.items():
-            pass
+            print(key, value)
 
         execution_json = {
             "container": self.runner,
             "execution_params": {
-                "cmd": cmd
+                "cmd": cmd,
+                "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
+                "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999',
             },
-            "cc_env_vars": {},
+            "cc_env_vars": {
+                "galloper_url": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                "project_id": str(self.project_id),
+                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id),
+                "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id)
+            },
             "bucket": self.bucket,
             "job_name": self.name,
             "artifact": self.file,
@@ -255,20 +262,14 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             for key, value in self.cc_env_vars.items():
                 execution_json["cc_env_vars"][key] = value
 
-        if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
-
-        if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
-
         if self.customization:
             for key, value in self.customization.items():
                 if "additional_files" not in execution_json["execution_params"]:
                     execution_json["execution_params"]["additional_files"] = dict()
                 execution_json["execution_params"]["additional_files"][key] = value
 
+        execution_json["execution_params"] = dumps(execution_json["execution_params"])
         if output == 'cc':
-            execution_json["execution_params"] = dumps(execution_json["execution_params"])
             return execution_json
 
         command = {"cmd": cmd, "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',

@@ -173,10 +173,10 @@ class TestApiFrontend(Resource):
         project = Project.get_or_404(project_id)
         args = self.post_parser.parse_args(strict=False)
         if isinstance(test_id, int):
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id == test_id)
         else:
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
-        task = PerformanceTests.query.filter(_filter).first()
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_id)
+        task = UIPerformanceTests.query.filter(_filter).first()
         event = list()
         execution = True if args['type'] and args["type"] == "config" else False
         event.append(task.configure_execution_json(output='cc',

@@ -144,11 +144,17 @@
         var project_id = getSelectedProjectId();
         elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
         elem.classList.add("disabled");
+
+        var type = page_params.get("type")
         $.ajax({
-            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}`,
+            url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
             type: 'POST',
             success: function (result) {
-                window.location.href = `/report`;
+                if(type === "frontend"){
+                    window.location.href = `/visual`;
+                } else {
+                    window.location.href = `/report`;
+                }
             }
         });
     }
