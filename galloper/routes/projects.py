@@ -28,7 +28,7 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.utils.auth import project_required
+from galloper.utils.auth import project_required, superadmin_required
 
 bp = Blueprint("projects", __name__)
 
@@ -39,6 +39,7 @@ def list():
 
 
 @bp.route("/project/add", methods=["GET", "POST"])
+@superadmin_required
 def add():
     return render_template("projects/add_project.html")
 
