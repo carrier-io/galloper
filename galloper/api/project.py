@@ -16,6 +16,7 @@ from json import dumps
 from typing import Optional, Union, Tuple
 from flask import current_app
 from flask_restful import Resource
+from sqlalchemy import and_, or_
 
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
@@ -29,6 +30,7 @@ from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP,
                                 EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT)
 
 from datetime import datetime
+from galloper.utils.auth import only_users_projects, superadmin_required
 
 
 class ProjectAPI(Resource):
@@ -66,19 +68,27 @@ class ProjectAPI(Resource):
         offset_ = args["offset"]
         limit_ = args["limit"]
         search_ = args["search"]
-
+        allowed_project_ids = only_users_projects()
+        _filter = None
+        if "all" not in allowed_project_ids:
+            _filter = Project.id.in_(allowed_project_ids)
         if project_id:
             project = Project.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         elif search_:
-            projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
+            filter_ = Project.name.ilike(f"%{search_}%")
+            if _filter is not None:
+                filter_ = and_(_filter, filter_)
+            projects = Project.query.filter(filter_).limit(limit_).offset(offset_).all()
         else:
-            projects = Project.query.limit(limit_).offset(offset_).all()
+            if _filter is not None:
+                projects = Project.query.filter(_filter).limit(limit_).offset(offset_).all()
+            else:
+                projects = Project.query.limit(limit_).offset(offset_).all()
 
-        return [
-                   project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects
-               ], 200
+        return [project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects], 200
 
+    @superadmin_required
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         data = self._parser_post.parse_args()
         name_ = data["name"]
