@@ -14,7 +14,7 @@ class VisualReportAPI(Resource):
         dict(name="offset", type=int, default=0, location="args"),
         dict(name="limit", type=int, default=0, location="args"),
         dict(name="search", type=str, default="", location="args"),
-        dict(name="sort", type=str, default="", location="args"),
+        dict(name="sort", type=str, default="start_time", location="args"),
         dict(name="order", type=str, default="", location="args"),
         dict(name="name", type=str, location="args"),
         dict(name="filter", type=str, location="args")
