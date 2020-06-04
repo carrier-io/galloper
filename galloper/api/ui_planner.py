@@ -2,14 +2,15 @@ from copy import deepcopy
 from json import loads
 from uuid import uuid4
 
-from flask import current_app, request
+from flask import current_app
 from flask_restful import Resource
 from sqlalchemy import and_
 from werkzeug.datastructures import FileStorage
 
 from galloper.api.base import upload_file, get, run_task
-from galloper.database.models.performance_tests import PerformanceTests, UIPerformanceTests
+from galloper.database.models.performance_tests import UIPerformanceTests
 from galloper.database.models.project import Project
+from galloper.database.models.statistic import Statistic
 from galloper.utils.api_utils import build_req_parser, str2bool
 
 
@@ -192,4 +193,9 @@ class TestApiFrontend(Resource):
             return event[0]
         response = run_task(project.id, event)
         response["redirect"] = f'/task/{response["task_id"]}/results'
+
+        statistic = Statistic.query.filter_by(project_id=project_id).first()
+        statistic.ui_performance_test_runs += 1
+        statistic.commit()
+
         return response
