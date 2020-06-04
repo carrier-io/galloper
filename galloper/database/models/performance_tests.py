@@ -220,12 +220,6 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
 
         cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint}"
 
-        if not params:
-            params = self.params
-
-        for key, value in params.items():
-            print(key, value)
-
         execution_json = {
             "container": self.runner,
             "execution_params": {
@@ -233,12 +227,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
                 "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999',
             },
-            "cc_env_vars": {
-                "galloper_url": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
-                "project_id": str(self.project_id),
-                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id),
-                "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id)
-            },
+            "cc_env_vars": {},
             "bucket": self.bucket,
             "job_name": self.name,
             "artifact": self.file,
