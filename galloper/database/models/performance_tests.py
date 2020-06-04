@@ -220,12 +220,6 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
 
         cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint}"
 
-        if not params:
-            params = self.params
-
-        for key, value in params.items():
-            print(key, value)
-
         execution_json = {
             "container": self.runner,
             "execution_params": {
