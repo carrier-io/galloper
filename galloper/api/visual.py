@@ -91,10 +91,14 @@ class VisualResultAPI(Resource):
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
 
+            status = "passed" if result.thresholds_failed == 0 else "failed"
+
             nodes.append({
                 "data": {
                     "id": target_node_id,
                     "name": result.name,
+                    "type": result.type,
+                    "status": status,
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
