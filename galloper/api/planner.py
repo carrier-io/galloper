@@ -62,6 +62,7 @@ class TestsApiPerformance(Resource):
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
+        reporting = args["reporter"].split(",") if args["reporter"] else []
         test = PerformanceTests(project_id=project.id,
                                 test_uid=str(uuid4()),
                                 name=args["name"],
@@ -70,7 +71,7 @@ class TestsApiPerformance(Resource):
                                 file=file_name,
                                 entrypoint=args["entrypoint"],
                                 runner=args["runner"],
-                                reporting=args["reporter"].split(","),
+                                reporting=reporting,
                                 params=loads(args["params"]),
                                 env_vars=loads(args["env_vars"]),
                                 customization=loads(args["customization"]),

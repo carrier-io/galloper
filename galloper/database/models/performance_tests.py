@@ -149,6 +149,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["quality_gate"] = "True"
             if "perfreports" in self.reporting:
                 execution_json["save_reports"] = "True"
+            if "jira" in self.reporting:
+                execution_json["jira"] = "True"
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value

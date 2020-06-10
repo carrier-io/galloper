@@ -1,28 +1,28 @@
 {% include 'common/head.html' %}
 {% include 'common/nav.html' %}
 {% include 'common/page_nav.html' %}
-      <div class="row">
-        <div class="col">
-          <div class="card shadow">
+<div class="row">
+    <div class="col">
+        <div class="card shadow">
             <div class="card-header bg-white border-0">
-              <div class="row align-items-center">
-                <div class="col-8">
-                  <h3 class="mb-0">Project Settings</h3>
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h3 class="mb-0">Project Settings</h3>
+                    </div>
+                    <div class="col-4 text-right">
+                        <a href="#" onclick="submit()" class="btn btn-sm btn-primary">Save</a>
+                        <a href="/" class="btn btn-sm btn-primary">Cancel</a>
+                    </div>
                 </div>
-                <div class="col-4 text-right">
-                    <a href="#" onclick="submit()" class="btn btn-sm btn-primary">Save</a>
-                    <a href="/" class="btn btn-sm btn-primary">Cancel</a>
-                </div>
-              </div>
             </div>
             {% include 'projects/create_edit_project_piece.html' %}
             {% include 'projects/integrations/integrations.html' %}
             {% include 'projects/quotas/quotas.html' %}
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
+</div>
+</div>
 
 {% include 'projects/integrations/jiramodal.html' %}
 {% include 'projects/integrations/rpmodal.html' %}
@@ -52,6 +52,30 @@
             document.getElementById("input-slider-package").noUiSlider.set(4);
             enablePackageSelector();
         }
+    }
+    function saveIntegration(integration) {
+        let project_id = getSelectedProjectId();
+        let settings = {}
+        if (integration == "jira") {
+            settings = {
+                "secret": {
+                    jira_url: $("#jira_url").val(),
+                    jira_login: $("#jira_login").val(),
+                    jira_password: $("#jira_password").val(),
+                    jira_project: $("#jira_project").val(),
+                    issue_type: $("#issue_type").val()
+                }
+            }
+        }
+        $.ajax({
+            url: `/api/v1/secrets/${project_id}/${integration}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(settings),
+            success: function (result) {
+                $(`#${integration}`).modal('hide');
+            }
+        });
     }
 
     function getProjectDetails() {
@@ -392,6 +416,23 @@
     })
 
     function showModal(modalID) {
+        let project_id = getSelectedProjectId();
+        if (modalID == "jiraModal") {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/jira`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    let data = JSON.parse(result["secret"].split("'").join("\""))
+                    console.log(data)
+                    $("#jira_url").val(data["jira_url"]),
+                    $("#jira_login").val(data["jira_login"]),
+                    $("#jira_password").val(data["jira_password"]),
+                    $("#jira_project").val(data["jira_project"]),
+                    $("#issue_type").val(data["issue_type"])
+                }
+            });
+        }
         $(`#${modalID}`).modal('show');
     }
 
