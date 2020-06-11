@@ -22,6 +22,7 @@ from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret
 
+
 class PerformanceTests(AbstractBaseMixin, Base):
     __tablename__ = "performance_tests"
     id = Column(Integer, primary_key=True)
@@ -117,7 +118,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 pairs[pair][0] = pairs[pair][1]
             else:
                 for each in list(pairs[pair][0].keys()) + list(set(pairs[pair][1].keys()) - set(pairs[pair][0].keys())):
-                    pairs[pair][0][each] = pairs[pair][0][each] if each in list(pairs[pair][0].keys())\
+                    pairs[pair][0][each] = pairs[pair][0][each] if each in list(pairs[pair][0].keys()) \
                         else pairs[pair][1][each]
         cmd = ''
         if not params:
@@ -181,7 +182,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if output == 'cc':
             return execution_json
         else:
-            return "docker run -e project_id=%s -e galloper_url=%s -e token=%s"\
+            return "docker run -e project_id=%s -e galloper_url=%s -e token=%s" \
                    " getcarrier/control_tower:latest --test_id=%s" \
                    "" % (self.project_id, unsecret("{{secret.galloper_url}}", project_id=self.project_id),
                          unsecret("{{secret.auth_token}}", project_id=self.project_id), self.test_uid)
@@ -196,4 +197,83 @@ class PerformanceTests(AbstractBaseMixin, Base):
         return test_param
 
 
+class UIPerformanceTests(AbstractBaseMixin, Base):
+    __tablename__ = "ui_performance_tests"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
+    test_uid = Column(String(128), unique=True, nullable=False)
+    name = Column(String(128), nullable=False)
+    bucket = Column(String(128), nullable=False)
+    file = Column(String(128), nullable=False)
+    entrypoint = Column(String(128), nullable=False)
+    runner = Column(String(128), nullable=False)
+    browser = Column(String(128), nullable=False)
+    reporting = Column(ARRAY(String), nullable=False)
+    parallel = Column(Integer, nullable=False)
+    params = Column(JSON)
+    env_vars = Column(JSON)
+    customization = Column(JSON)
+    cc_env_vars = Column(JSON)
+    last_run = Column(Integer)
+    job_type = Column(String(20))
 
+    def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
+                                 customization=None, cc_env_vars=None, parallel=None, execution=False):
+
+        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint}"
+
+        execution_json = {
+            "container": self.runner,
+            "execution_params": {
+                "cmd": cmd,
+                "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
+                "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999',
+            },
+            "cc_env_vars": {},
+            "bucket": self.bucket,
+            "job_name": self.name,
+            "artifact": self.file,
+            "job_type": self.job_type,
+            "concurrency": 1
+        }
+
+        if self.reporting:
+            if "junit" in self.reporting:
+                execution_json["junit"] = "True"
+            if "quality" in self.reporting:
+                execution_json["quality_gate"] = "True"
+            if "perfreports" in self.reporting:
+                execution_json["save_reports"] = "True"
+
+        if self.env_vars:
+            for key, value in self.env_vars.items():
+                execution_json["execution_params"][key] = value
+
+        if self.cc_env_vars:
+            for key, value in self.cc_env_vars.items():
+                execution_json["cc_env_vars"][key] = value
+
+        if self.customization:
+            for key, value in self.customization.items():
+                if "additional_files" not in execution_json["execution_params"]:
+                    execution_json["execution_params"]["additional_files"] = dict()
+                execution_json["execution_params"]["additional_files"][key] = value
+
+        execution_json["execution_params"] = dumps(execution_json["execution_params"])
+        if output == 'cc':
+            return execution_json
+
+        command = {"cmd": cmd, "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
+                   "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999'}
+
+        return f'docker run -t --rm -e project_id={self.project_id} ' \
+               f'-e REDIS_HOST={unsecret("{{secret.redis_host}}", project_id=self.project_id)} ' \
+               f'-e galloper_url={unsecret("{{secret.galloper_url}}", project_id=self.project_id)} ' \
+               f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
+               f'getcarrier/control_tower:latest ' \
+               f'-c {self.runner} ' \
+               f"-e '{dumps(command)}' " \
+               f"-t {self.job_type} " \
+               f"-j {'true' if 'junit' in self.reporting else 'false'} " \
+               f"-r {self.parallel} -q {self.parallel} " \
+               f"-n {self.name}"

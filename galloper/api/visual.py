@@ -14,7 +14,7 @@ class VisualReportAPI(Resource):
         dict(name="offset", type=int, default=0, location="args"),
         dict(name="limit", type=int, default=0, location="args"),
         dict(name="search", type=str, default="", location="args"),
-        dict(name="sort", type=str, default="", location="args"),
+        dict(name="sort", type=str, default="start_time", location="args"),
         dict(name="order", type=str, default="", location="args"),
         dict(name="name", type=str, location="args"),
         dict(name="filter", type=str, location="args")
@@ -91,10 +91,14 @@ class VisualResultAPI(Resource):
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
 
+            status = "passed" if result.thresholds_failed == 0 else "failed"
+
             nodes.append({
                 "data": {
                     "id": target_node_id,
                     "name": result.name,
+                    "type": result.type,
+                    "status": status,
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
