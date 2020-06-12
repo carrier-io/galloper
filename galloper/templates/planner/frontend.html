@@ -293,6 +293,7 @@
 
           var project_id = $("#selected-project-id").text();
           event.preventDefault();
+          $('#loops').val('1')
 
           var data = new FormData();
           data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
