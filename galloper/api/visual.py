@@ -83,27 +83,37 @@ class VisualResultAPI(Resource):
         report = UIReport.query.get_or_404(report_id)
         results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
 
-        table = []
         nodes = _action_mapping["chart"]["nodes"]
         edges = _action_mapping["chart"]["edges"]
 
+        graph_aggregation = {}
         for result in results:
+            if result.name in graph_aggregation.keys():
+                graph_aggregation[result.name].append(result)
+            else:
+                graph_aggregation[result.name] = [result]
+
+        for name, values in graph_aggregation.items():
+            aggregated_total = max([d.total for d in values])
+
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
 
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": result.name,
-                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                    "name": name,
+                    # "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
 
             edges.append({
                 "data": {"source": source_node_id, "target": target_node_id,
-                         "time": f"{round(result.total / 1000, 2)} sec"}
+                         "time": f"{round(aggregated_total / 1000, 2)} sec"}
             })
 
+        table = []
+        for result in results:
             data = {
                 "name": result.name,
                 "speed_index": result.speed_index,

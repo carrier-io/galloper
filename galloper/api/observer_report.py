@@ -19,7 +19,7 @@ class UIReportsAPI(Resource):
     put_rules = (
         dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
-        dict(name="visited_pages", type=int, location="json"),
+        dict(name="visited_pages", type=int, default=0, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
         dict(name="exception", type=str, location="json")
