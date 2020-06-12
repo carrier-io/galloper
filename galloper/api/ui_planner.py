@@ -34,7 +34,7 @@ class UITestsApiPerformance(Resource):
         dict(name="browser", type=str, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
-        dict(name="loops", type=int, location='form'),
+        dict(name="loops", type=int, location='form', default=1),
         dict(name="customization", type=str, location='form'),
         dict(name="cc_env_vars", type=str, location='form')
     )
