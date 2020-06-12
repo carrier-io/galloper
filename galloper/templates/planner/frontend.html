@@ -10,7 +10,7 @@
                   <h3 class="mb-0">{{title}}</h3>
                 </div>
                 <div class="col-4 text-right">
-                  <a href="/tests?type=backend" class="btn btn-sm btn-primary">Cancel</a>
+                  <a href="/tests?type=frontend" class="btn btn-sm btn-primary">Cancel</a>
                 </div>
               </div>
             </div>
@@ -25,11 +25,11 @@
                         <p><small>Enter a name that describes the purpose of your test.</small></p>
                         <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
                       </div>
-                      <div class="form-group">
-                        <label class="form-control-label" for="parallel">Parallel runners</label>
-                        <p><small>How many test agents you need to execute test</small></p>
-                        <input type="text" id="parallel" class="form-control form-control-alternative" placeholder="# of Runners">
-                      </div>
+<!--                      <div class="form-group">-->
+<!--                        <label class="form-control-label" for="parallel">Parallel runners</label>-->
+<!--                        <p><small>How many test agents you need to execute test</small></p>-->
+<!--                        <input type="text" id="parallel" class="form-control form-control-alternative" placeholder="# of Runners">-->
+<!--                      </div>-->
                       <div class="form-group" id="reporters">
                             <label class="form-control-label">Reporting</label>
                             <p><small>Specify expected report types</small></p>
@@ -68,27 +68,19 @@
                         </div>
                         <div class="form-group">
                             <label class="form-control-label" for="entrypoint">Entry point</label>
-                            <p><small>File for jMeter and class for gatling</small></p>
-                        <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. some.jmx or some.Test)">
+                            <p><small>Scenario file name </small></p>
+                            <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. demo.side)">
                       </div>
                       <div class="form-group" id="testrunners">
-                        <label class="form-control-label">Test runner</label>
-                        <p><small>Choose the runner for the test.</small></p>
+                        <label class="form-control-label">Browser</label>
+                        <p><small>Choose the browser for the test.</small></p>
                         <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="jmeter5" name="runner" class="custom-control-input">
-                              <label class="custom-control-label" for="jmeter5">JMeter 5.x</label>
+                              <input type="radio" id="chrome" name="browser" class="custom-control-input">
+                              <label class="custom-control-label" for="chrome">Chrome</label>
                         </div>
                         <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="jmeter4" name="runner" class="custom-control-input">
-                              <label class="custom-control-label" for="jmeter4">JMeter 4.x</label>
-                        </div>
-                        <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="gatling3" name="runner" class="custom-control-input">
-                              <label class="custom-control-label" for="gatling3">Gatling 3.x</label>
-                        </div>
-                        <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="gatling2" name="runner" class="custom-control-input">
-                              <label class="custom-control-label" for="gatling2">Gatling 2.x</label>
+                              <input type="radio" id="firefox" name="browser" class="custom-control-input">
+                              <label class="custom-control-label" for="firefox">Firefox</label>
                         </div>
                       </div>
                     </div>
@@ -160,7 +152,7 @@
                     <div class="col-lg-12">
                         <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
                         <a href="javascript:void(0)" class="btn btn-warning">Test</a>
-                        <a href="/tests?type=backend" class="btn btn-danger">Cancel</a>
+                        <a href="/tests?type=frontend" class="btn btn-danger">Cancel</a>
                     </div>
                   </div>
                 </div>
@@ -185,7 +177,7 @@
         if (test_id !== null) {
             var project_id = $("#selected-project-id").text();
             $.get(
-                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1 }, function( data ) {
+                `/api/v1/tests/${project_id}/frontend/${test_id}`, { raw: 1 }, function( data ) {
                     $('#submit').attr("onclick", "updateTest()");
                     $('#submit').text("Edit");
                     $('#testname').val(data.name);
@@ -277,18 +269,16 @@
             'env_vars': JSON.stringify(params[1]),
             'cc_env_vars': JSON.stringify(params[3]),
             'customization': JSON.stringify(params[2]),
-            'java_opts': $("#javaopts").val(),
-            'parallel': $('#parallel').val(),
             'reporter': checked
         }
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            url: `/api/v1/tests/${project_id}/frontend/${test_id}`,
             data: JSON.stringify(data),
             cache: false,
             contentType: 'application/json',
             type: 'PUT',
             success: function(data){
-                window.location.href = "/tests?type=backend";
+                window.location.href = "/tests?type=frontend";
             }
         });
     }
@@ -308,22 +298,22 @@
           data.append('name', $('#testname').val());
           data.append('parallel', $('#parallel').val());
           data.append('entrypoint', $('#entrypoint').val());
-          data.append('runner', $( "#testrunners input:checked" ).attr("id"));
+          data.append('browser', $( "#testrunners input:checked" ).attr("id"));
           data.append('reporter', checked);
           data.append('params', JSON.stringify(params[0]));
           data.append('env_vars', JSON.stringify(params[1]));
           data.append('customization', JSON.stringify(params[2]));
           data.append('cc_env_vars', JSON.stringify(params[3]));
-          console.log(data);
+
           $.ajax({
-              url: `/api/v1/tests/${project_id}/backend`,
+              url: `/api/v1/tests/${project_id}/frontend`,
               data: data,
               cache: false,
               contentType: false,
               processData: false,
               method: 'POST',
               success: function(data){
-                window.location.href = "/tests?type=backend";
+                window.location.href = "/tests?type=frontend";
               }
             }
           );

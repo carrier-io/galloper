@@ -114,7 +114,9 @@ def visual_report(project: Project):
                      url=ui_report.base_url,
                      end_time=ui_report.stop_time, start_time=ui_report.start_time,
                      duration=ui_report.duration,
-                     failures=failures, total=len(results),
+                     failures=failures,
+                     total=len(results),
+                     aggregation=ui_report.aggregation,
                      thresholds_missed=thresholds_missed,
                      avg_page_load=round(avg_page_load / 1000, 2),
                      avg_step_duration=0, build_id=str(uuid4()), release_id=1)

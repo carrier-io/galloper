@@ -21,5 +21,12 @@
             "target-arrow-shape": "triangle",
             "font-size": "10px"
         }
+    },
+    {
+        "selector": "node[id = 'start'], node[type = 'action']",
+        "css": {
+            "width": 12,
+            "height": 12
+        }
     }
 ]

@@ -34,3 +34,11 @@ def backend(project: Project):
     if request.args.get("test"):
         return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"))
     return render_template("planner/backend.html", title="Add performance tests", test_id="null")
+
+
+@bp.route("/tests/frontend", methods=["GET", "POST"])
+@project_required
+def frontend(project: Project):
+    if request.args.get("test"):
+        return render_template("planner/frontend.html", title="Edit performance tests", test_id=request.args.get("test"))
+    return render_template("planner/frontend.html", title="Add performance tests", test_id="null")

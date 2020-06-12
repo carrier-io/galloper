@@ -11,6 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
+import string
 from os import path
 from uuid import uuid4
 from json import dumps
@@ -19,8 +20,8 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
-from galloper.constants import APP_IP, APP_HOST, EXTERNAL_LOKI_HOST
-from galloper.dal.vault import get_project_secrets, unsecret
+from galloper.dal.vault import unsecret
+
 
 class PerformanceTests(AbstractBaseMixin, Base):
     __tablename__ = "performance_tests"
@@ -37,7 +38,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
     params = Column(JSON)
     env_vars = Column(JSON)
     customization = Column(JSON)
-    java_opts = Column(Text)
+    cc_env_vars = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
 
@@ -68,9 +69,15 @@ class PerformanceTests(AbstractBaseMixin, Base):
         self.last_run = ts
         self.commit()
 
+    @staticmethod
+    def sanitize(val):
+        valid_chars = "_%s%s" % (string.ascii_letters, string.digits)
+        return ''.join(c for c in val if c in valid_chars)
+
     def insert(self):
         if self.runner not in self.container_mapping.keys():
             return False
+        self.name = self.sanitize(self.name)
         if not self.test_uid:
             self.test_uid = str(uuid4())
         if "influx.port" not in self.params.keys():
@@ -83,8 +90,6 @@ class PerformanceTests(AbstractBaseMixin, Base):
             self.params["influx.db"] = self.container_mapping[self.runner]['influx_db']
         if "test_name" not in self.params.keys():
             self.params["test_name"] = self.name  # TODO: add sanitization
-        if "test.type" not in self.params.keys():
-            self.params["test.type"] = 'default'
         if "comparison_db" not in self.params.keys():
             self.params["comparison_db"] = 'comparison'
         if "loki_host" not in self.env_vars.keys():
@@ -92,31 +97,36 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "loki_port" not in self.env_vars.keys():
             self.params["loki_port"] = "{{secret.loki_port}}"
         self.job_type = self.container_mapping[self.runner]['job_type']
+        test_type = "test.type" if self.job_type == "perfmeter" else "test_type"
+        if test_type not in self.params.keys():
+            self.params[test_type] = 'default'
         self.runner = self.container_mapping[self.runner]['container']  # here because influx_db
 
         super().insert()
 
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
-                                 customization=None, java_opts=None, parallel=None, execution=False):
-        if not java_opts:
-            java_opts = self.java_opts
+                                 customization=None, cc_env_vars=None, parallel=None, execution=False):
         pairs = {
             "customization": [customization, self.customization],
             "params": [params, self.params],
             "env_vars": [env_vars, self.env_vars],
+            "cc_env_vars": [cc_env_vars, self.cc_env_vars],
             "reporting": [reporting, self.reporting]
         }
         for pair in pairs.keys():
             if not pairs[pair][0]:
                 pairs[pair][0] = pairs[pair][1]
             else:
-                for each in set(self.pairs[pair][1].keys()) - set(pairs[pair][0].keys()):
-                    pairs[pair][0][each] = self.pairs[pair][1][each]
+                for each in list(pairs[pair][0].keys()) + list(set(pairs[pair][1].keys()) - set(pairs[pair][0].keys())):
+                    pairs[pair][0][each] = pairs[pair][0][each] if each in list(pairs[pair][0].keys()) \
+                        else pairs[pair][1][each]
         cmd = ''
+        if not params:
+            params = self.params
         if self.job_type == 'perfmeter':
             entrypoint = self.entrypoint if path.exists(self.entrypoint) else path.join('/mnt/jmeter', self.entrypoint)
             cmd = f"-n -t {entrypoint}"
-            for key, value in self.params.items():
+            for key, value in params.items():
                 if test_type and key == "test.type":
                     cmd += f" -Jtest.type={test_type}"
                 else:
@@ -126,16 +136,34 @@ class PerformanceTests(AbstractBaseMixin, Base):
             "execution_params": {
                 "cmd": cmd
             },
+            "cc_env_vars": {},
             "bucket": self.bucket,
+            "job_name": self.name,
             "artifact": self.file,
             "job_type": self.job_type,
             "concurrency": self.parallel if not parallel else parallel
         }
+        if self.reporting:
+            if "junit" in self.reporting:
+                execution_json["junit"] = "True"
+            if "quality" in self.reporting:
+                execution_json["quality_gate"] = "True"
+            if "perfreports" in self.reporting:
+                execution_json["save_reports"] = "True"
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value
-        if java_opts:
-            execution_json["execution_params"]['JVM_ARGS'] = java_opts
+        if "loki_host" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
+        if "loki_port" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["loki_port"] = "3100"
+        if self.cc_env_vars:
+            for key, value in self.cc_env_vars.items():
+                execution_json["cc_env_vars"][key] = value
+        if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
+        if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
         if self.customization:
             for key, value in self.customization.items():
                 if "additional_files" not in execution_json["execution_params"]:
@@ -144,7 +172,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if self.job_type == "perfgun":
             execution_json["execution_params"]['test'] = self.entrypoint
             execution_json["execution_params"]["GATLING_TEST_PARAMS"] = ""
-            for key, value in self.params.items():
+            for key, value in params.items():
                 execution_json["execution_params"]["GATLING_TEST_PARAMS"] += f"-D{key}={value} "
         execution_json["execution_params"] = dumps(execution_json["execution_params"])
         if execution:
@@ -152,22 +180,98 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if output == 'cc':
             return execution_json
         else:
-            return "docker run -e project_id=%s -e REDIS_HOST={{secret.redis_host}} " \
-                   "-e loki_host={{secret.loki_host}} -e GALLOPER_WEB_HOOK={{secret.post_processor}} " \
-                   "-e galloper_url={{secret.galloper_url}} getcarrier/control_tower:latest " \
-                   "--container %s --execution_params '%s' " \
-                   "--job_type %s --job_name %s --concurrency %s --bucket %s --artifact %s" \
-                   "" % (self.project_id, self.runner, execution_json['execution_params'], self.job_type,
-                         self.name, execution_json['concurrency'], self.bucket, self.file)
+            return "docker run -e project_id=%s -e galloper_url=%s -e token=%s" \
+                   " getcarrier/control_tower:latest --test_id=%s" \
+                   "" % (self.project_id, unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                         unsecret("{{secret.auth_token}}", project_id=self.project_id), self.test_uid)
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()
         for key in exclude_fields:
             if self.params.get(key):
                 del test_param['params'][key]
-            else:
+            elif key in test_param.keys():
                 del test_param[key]
         return test_param
 
 
+class UIPerformanceTests(AbstractBaseMixin, Base):
+    __tablename__ = "ui_performance_tests"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, unique=False, nullable=False)
+    test_uid = Column(String(128), unique=True, nullable=False)
+    name = Column(String(128), nullable=False)
+    bucket = Column(String(128), nullable=False)
+    file = Column(String(128), nullable=False)
+    entrypoint = Column(String(128), nullable=False)
+    runner = Column(String(128), nullable=False)
+    browser = Column(String(128), nullable=False)
+    reporting = Column(ARRAY(String), nullable=False)
+    parallel = Column(Integer, nullable=False)
+    params = Column(JSON)
+    env_vars = Column(JSON)
+    customization = Column(JSON)
+    cc_env_vars = Column(JSON)
+    last_run = Column(Integer)
+    job_type = Column(String(20))
 
+    def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
+                                 customization=None, cc_env_vars=None, parallel=None, execution=False):
+
+        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint}"
+
+        execution_json = {
+            "container": self.runner,
+            "execution_params": {
+                "cmd": cmd,
+                "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
+                "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999',
+            },
+            "cc_env_vars": {},
+            "bucket": self.bucket,
+            "job_name": self.name,
+            "artifact": self.file,
+            "job_type": self.job_type,
+            "concurrency": 1
+        }
+
+        if self.reporting:
+            if "junit" in self.reporting:
+                execution_json["junit"] = "True"
+            if "quality" in self.reporting:
+                execution_json["quality_gate"] = "True"
+            if "perfreports" in self.reporting:
+                execution_json["save_reports"] = "True"
+
+        if self.env_vars:
+            for key, value in self.env_vars.items():
+                execution_json["execution_params"][key] = value
+
+        if self.cc_env_vars:
+            for key, value in self.cc_env_vars.items():
+                execution_json["cc_env_vars"][key] = value
+
+        if self.customization:
+            for key, value in self.customization.items():
+                if "additional_files" not in execution_json["execution_params"]:
+                    execution_json["execution_params"]["additional_files"] = dict()
+                execution_json["execution_params"]["additional_files"][key] = value
+
+        execution_json["execution_params"] = dumps(execution_json["execution_params"])
+        if output == 'cc':
+            return execution_json
+
+        command = {"cmd": cmd, "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
+                   "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999'}
+
+        return f'docker run -t --rm -e project_id={self.project_id} ' \
+               f'-e REDIS_HOST={unsecret("{{secret.redis_host}}", project_id=self.project_id)} ' \
+               f'-e galloper_url={unsecret("{{secret.galloper_url}}", project_id=self.project_id)} ' \
+               f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
+               f'getcarrier/control_tower:latest ' \
+               f'-c {self.runner} ' \
+               f"-e '{dumps(command)}' " \
+               f"-t {self.job_type} " \
+               f"-j {'true' if 'junit' in self.reporting else 'false'} " \
+               f"-r {self.parallel} -q {self.parallel} " \
+               f"-n {self.name}"

@@ -16,7 +16,6 @@ class UIReport(AbstractBaseMixin, Base):
     browser = Column(String(128), unique=False)
     environment = Column(String(128), unique=False, nullable=True)
     base_url = Column(String(128), unique=False)
-    visited_pages = Column(Integer, unique=False, nullable=True)
     thresholds_total = Column(Integer, unique=False, nullable=True, default=0)
     thresholds_failed = Column(Integer, unique=False, nullable=True, default=0)
     exception = Column(String(1024), unique=False)

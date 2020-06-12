@@ -122,6 +122,7 @@
     }
 
     $(document).ready(function() {
+        $("#CR").attr("href",`tests/${page_params.get("type")}`)
         $("#title").text(`${page_params.get("type")} Tests`);
         refreshTable();
         filters();
@@ -129,21 +130,31 @@
 
     function actionFormatter(value, row, index) {
         return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="runTask(this, '${row.id}')"><i class="fas fa-play"></i></a>
-        <a class="mr-1 ml-1 btn btn-sm" href="/tests/backend?test=${row.id}"><i class="fas fa-cog"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="editItem('${row.id}')"><i class="fas fa-cog"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-ship"></i></a></span>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showDockerSnippet('${row.id}')"><i class="fab fa-docker"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="deleteTasks('${row.id}')"><i class="fa fa-trash-alt"></i></a>`
+    }
+
+    function editItem(rowId){
+        window.location.href = `/tests/${page_params.get("type")}?test=${rowId}`
     }
 
     function runTask(elem, test_id) {
         var project_id = getSelectedProjectId();
         elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
         elem.classList.add("disabled");
+
+        var type = page_params.get("type")
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}`,
+            url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
             type: 'POST',
             success: function (result) {
-                window.location.href = `/report`;
+                if(type === "frontend"){
+                    window.location.href = `/visual`;
+                } else {
+                    window.location.href = `/report`;
+                }
             }
         });
     }
@@ -151,7 +162,7 @@
     function showDockerSnippet(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=docker`,
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=docker&exec=True`,
             type: 'GET',
             success: function (result) {
                 $("#execution_config").val(result.config);
@@ -163,7 +174,7 @@
     function showExecutionConfig(test_id) {
         var project_id = getSelectedProjectId();
         $.ajax({
-            url: `/api/v1/tests/${project_id}/backend/${test_id}?type=cc`,
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=cc`,
             type: 'GET',
             success: function (result) {
                 $("#execution_config").val(JSON.stringify(result.config, null, 4));
@@ -182,6 +193,10 @@
             return "<img src=\"{{ url_for('static', filename='img/icons/jmeter.png')}}\" width=\"25\">"
         } else if (row.job_type === "perfgun") {
             return "<img src=\"{{ url_for('static', filename='img/icons/gatling.png') }}\" width=\"25\">"
+        } else if (row.job_type === "observer" && row.browser === "chrome") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/chrome.png') }}\" width=\"25\">"
+        } else if (row.job_type === "observer" && row.browser === "firefox") {
+            return "<img src=\"{{ url_for('static', filename='img/icons/firefox.png') }}\" width=\"25\">"
         } else {
             return value
         }
@@ -198,7 +213,7 @@
 
     function deleteTasks(id) {
         var project_id = $("#selected-project-id").text();
-        var reports = `/api/v1/tests/${project_id}/backend?`;
+        var reports = `/api/v1/tests/${project_id}/${page_params.get("type")}?`;
         if (id == undefined){
             $("#results").bootstrapTable('getSelections').forEach(item => {
                 reports += "id[]=" + item["id"] + "&"

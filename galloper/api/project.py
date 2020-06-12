@@ -16,12 +16,13 @@ from json import dumps
 from typing import Optional, Union, Tuple
 from flask import current_app
 from flask_restful import Resource
+from sqlalchemy import and_, or_
 
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
-from galloper.utils.auth import SessionProject
+from galloper.utils.auth import SessionProject, SessionUser
 from galloper.dal.vault import initialize_project_space, remove_project_space, set_project_secrets
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
@@ -29,6 +30,7 @@ from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP,
                                 EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT)
 
 from datetime import datetime
+from galloper.utils.auth import only_users_projects, superadmin_required
 
 
 class ProjectAPI(Resource):
@@ -66,19 +68,27 @@ class ProjectAPI(Resource):
         offset_ = args["offset"]
         limit_ = args["limit"]
         search_ = args["search"]
-
+        allowed_project_ids = only_users_projects()
+        _filter = None
+        if "all" not in allowed_project_ids:
+            _filter = Project.id.in_(allowed_project_ids)
         if project_id:
-            project = Project.query.get_or_404(project_id)
+            project = Project.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         elif search_:
-            projects = Project.query.filter(Project.name.ilike(f"%{search_}%")).limit(limit_).offset(offset_).all()
+            filter_ = Project.name.ilike(f"%{search_}%")
+            if _filter is not None:
+                filter_ = and_(_filter, filter_)
+            projects = Project.query.filter(filter_).limit(limit_).offset(offset_).all()
         else:
-            projects = Project.query.limit(limit_).offset(offset_).all()
+            if _filter is not None:
+                projects = Project.query.filter(_filter).limit(limit_).offset(offset_).all()
+            else:
+                projects = Project.query.limit(limit_).offset(offset_).all()
 
-        return [
-                   project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects
-               ], 200
+        return [project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects], 200
 
+    @superadmin_required
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         data = self._parser_post.parse_args()
         name_ = data["name"]
@@ -178,7 +188,7 @@ class ProjectAPI(Resource):
         data = self._parser_post.parse_args()
         if not project_id:
             return {"message": "Specify project id"}, 400
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         project.name = data["name"]
         project.project_owner = data["owner"]
         package = data["package"].lower()
@@ -204,21 +214,36 @@ class ProjectAPI(Resource):
 
 
 class ProjectSessionAPI(Resource):
+    post_rules = (
+        dict(name="username", type=str, required=True, location="json"),
+        dict(name="groups", type=list, required=True, location="json")
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
     def get(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         if not project_id:
             project_id = SessionProject.get()
         if project_id:
-            project = Project.query.get_or_404(project_id)
+            project = Project.get_or_404(project_id)
             return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS), 200
         return {"message": "No project selected in session"}, 404
 
-    def post(self, project_id: int) -> Tuple[dict, int]:
-        project = Project.query.get_or_404(project_id)
-        SessionProject.set(project.id)
-        return {"message": f"Project with id {project.id} was successfully selected"}, 200
+    def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
+        args = self._parser_post.parse_args()
+        SessionUser.set(dict(username=args["username"], groups=args.get("groups")))
+        if project_id:
+            project = Project.get_or_404(project_id)
+            SessionProject.set(project.id)
+            return {"message": f"Project with id {project.id} was successfully selected"}, 200
+        return {"message": "user session configured"}, 200
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         if SessionProject.get() == project.id:
             SessionProject.pop()
         return {"message": f"Project with id {project.id} was successfully unselected"}, 200

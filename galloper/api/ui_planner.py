@@ -1,17 +1,20 @@
 from copy import deepcopy
-from uuid import uuid4
-from flask_restful import Resource
 from json import loads
-from werkzeug.datastructures import FileStorage
-from flask import request, current_app
+from uuid import uuid4
+
+from flask import current_app
+from flask_restful import Resource
 from sqlalchemy import and_
-from galloper.api.base import get, upload_file, run_task
+from werkzeug.datastructures import FileStorage
+
+from galloper.api.base import upload_file, get, run_task
+from galloper.database.models.performance_tests import UIPerformanceTests
 from galloper.database.models.project import Project
-from galloper.database.models.performance_tests import PerformanceTests
+from galloper.database.models.statistic import Statistic
 from galloper.utils.api_utils import build_req_parser, str2bool
 
 
-class TestsApiPerformance(Resource):
+class UITestsApiPerformance(Resource):
     _get_rules = (
         dict(name="offset", type=int, default=0, location="args"),
         dict(name="limit", type=int, default=0, location="args"),
@@ -19,16 +22,16 @@ class TestsApiPerformance(Resource):
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
         dict(name="name", type=str, location="args"),
-        dict(name="filter", type=str, location="args")
+        dict(name="filter", type=str, location="args"),
+        dict(name="type", type=str, location="args")
     )
 
     _post_rules = (
         dict(name="file", type=FileStorage, location='files'),
         dict(name="name", type=str, location='form'),
         dict(name="entrypoint", type=str, location='form'),
-        dict(name="parallel", type=int, location='form'),
         dict(name="reporter", type=str, location='form'),
-        dict(name="runner", type=str, location='form'),
+        dict(name="browser", type=str, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
         dict(name="customization", type=str, location='form'),
@@ -50,31 +53,36 @@ class TestsApiPerformance(Resource):
     def get(self, project_id: int):
         args = self.get_parser.parse_args(strict=False)
         reports = []
-        total, res = get(project_id, args, PerformanceTests)
+        total, res = get(project_id, args, UIPerformanceTests)
         for each in res:
             reports.append(each.to_json())
         return {"total": total, "rows": reports}
 
     def post(self, project_id: int):
-        current_app.logger.info(request.form)
         args = self.post_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
-        test = PerformanceTests(project_id=project.id,
-                                test_uid=str(uuid4()),
-                                name=args["name"],
-                                parallel=args["parallel"],
-                                bucket=bucket,
-                                file=file_name,
-                                entrypoint=args["entrypoint"],
-                                runner=args["runner"],
-                                reporting=args["reporter"].split(","),
-                                params=loads(args["params"]),
-                                env_vars=loads(args["env_vars"]),
-                                customization=loads(args["customization"]),
-                                cc_env_vars=loads(args["cc_env_vars"]))
+        browser = args["browser"]
+        runner = "getcarrier/observer:latest"
+        job_type = "observer"
+
+        test = UIPerformanceTests(project_id=project.id,
+                                  test_uid=str(uuid4()),
+                                  name=args["name"],
+                                  bucket=bucket,
+                                  file=file_name,
+                                  entrypoint=args["entrypoint"],
+                                  runner=runner,
+                                  browser=browser,
+                                  parallel=1,
+                                  reporting=args["reporter"].split(","),
+                                  params=loads(args["params"]),
+                                  env_vars=loads(args["env_vars"]),
+                                  customization=loads(args["customization"]),
+                                  cc_env_vars=loads(args["cc_env_vars"]),
+                                  job_type=job_type)
         test.insert()
         current_app.logger.info(test.to_json())
         return test.to_json(exclude_fields=("id",))
@@ -82,31 +90,15 @@ class TestsApiPerformance(Resource):
     def delete(self, project_id: int):
         args = self.delete_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
-        query_result = PerformanceTests.query.filter(
-            and_(PerformanceTests.project_id == project.id, PerformanceTests.id.in_(args["id[]"]))
+        query_result = UIPerformanceTests.query.filter(
+            and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id.in_(args["id[]"]))
         ).all()
         for each in query_result:
             each.delete()
         return {"message": "deleted"}
 
 
-class TestApi(Resource):
-
-    def get(self, project_id, test_uuid):
-        project = Project.get_or_404(project_id)
-        job_type = "not_found"
-        # check if APIPerformanceTests
-        _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_uuid)
-        test = PerformanceTests.query.filter(_filter).first()
-        if test:
-            job_type = test.job_type
-
-        # TODO add UIPerformanceTests, DAST and SAST
-
-        return {"job_type": job_type}
-
-
-class TestApiBackend(Resource):
+class TestApiFrontend(Resource):
     _get_rules = (
         dict(name="raw", type=int, default=0, location="args"),
         dict(name="type", type=str, default='cc', location="args"),
@@ -114,7 +106,6 @@ class TestApiBackend(Resource):
     )
 
     _put_rules = (
-        dict(name="parallel", type=int, required=False, location='json'),
         dict(name="params", type=str, default="{}", required=False, location='json'),
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
@@ -140,14 +131,12 @@ class TestApiBackend(Resource):
         args = self.get_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
         if isinstance(test_id, int):
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id == test_id)
         else:
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
-        test = PerformanceTests.query.filter(_filter).first()
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_id)
+        test = UIPerformanceTests.query.filter(_filter).first()
         if args.raw:
-            return test.to_json(["influx.port", "influx.host", "galloper_url",
-                                 "test_name", "influx.db", "comparison_db",
-                                 "loki_host", "loki_port"])
+            return test.to_json(["galloper_url"])
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
         else:
@@ -160,10 +149,10 @@ class TestApiBackend(Resource):
         project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id == test_id)
         else:
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
-        task = PerformanceTests.query.filter(_filter).first()
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_id)
+        task = UIPerformanceTests.query.filter(_filter).first()
 
         for each in ["params", "env_vars", "customization", "cc_env_vars"]:
             params = deepcopy(getattr(task, each))
@@ -178,21 +167,17 @@ class TestApiBackend(Resource):
         if args.get("reporter"):
             task.reporting = args["reporter"]
 
-        if args.get("parallel"):
-            task.parallel = args.get("parallel")
         task.commit()
-        return task.to_json(["influx.port", "influx.host", "galloper_url",
-                             "test_name", "influx.db", "comparison_db",
-                             "loki_host", "loki_port"])
+        return task.to_json()
 
     def post(self, project_id, test_id):
         project = Project.get_or_404(project_id)
         args = self.post_parser.parse_args(strict=False)
         if isinstance(test_id, int):
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.id == test_id)
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.id == test_id)
         else:
-            _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
-        task = PerformanceTests.query.filter(_filter).first()
+            _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_id)
+        task = UIPerformanceTests.query.filter(_filter).first()
         event = list()
         execution = True if args['type'] and args["type"] == "config" else False
         event.append(task.configure_execution_json(output='cc',
@@ -208,4 +193,9 @@ class TestApiBackend(Resource):
             return event[0]
         response = run_task(project.id, event)
         response["redirect"] = f'/task/{response["task_id"]}/results'
+
+        statistic = Statistic.query.filter_by(project_id=project_id).first()
+        statistic.ui_performance_test_runs += 1
+        statistic.commit()
+
         return response

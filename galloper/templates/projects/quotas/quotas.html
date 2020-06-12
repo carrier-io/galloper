@@ -1,0 +1,295 @@
+<hr class="my-4"/>
+<div class="pl-lg-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="heading-small text-muted mb-4">Project Quotas</h5>
+            <p>
+                <small><b>Package</b></small>
+                <span id="selected_package" class="badge badge-pill badge-success mr-1">Basic</span>
+            </p>
+            <div class="col-md-3">
+                <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                    <input class="custom-control-input" id="package_selector" type="checkbox"
+                           onchange="packageSelector()">
+                    <label class="custom-control-label"
+                           for="package_selector"><b>Custom package</b></label>
+                </div>
+            </div>
+            <div class="input-slider-container-package">
+                <div id="input-slider-package" class="input-slider" data-range-value-min="1"
+                     data-range-value-max="4"></div>
+                <div class="row mt-3 d-none">
+                    <div class="col-6"><span id="selected_package_name" class="range-slider-value"
+                                             data-range-value-low="1"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+        </div>
+    </div>
+    <div class="row">
+        <table border="0" width="100%" cellpadding="5">
+            <tr>
+                <td style="width: 25%;">
+                    <p>
+                        <small><b>Performance tests</b></small>
+                        <span id="performance_test_runs" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+
+                </td>
+                <td style="width: 25%;">
+                    <p>
+                        <small><b>UI Performance tests</b></small>
+                        <span id="ui_performance_test_runs" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+                <td style="width: 25%;">
+                    <p>
+                        <small><b>SAST scans</b></small>
+                        <span id="sast_scans" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                <td style="width: 25%;">
+                    <p>
+                        <small><b>DAST scans</b></small>
+                        <span id="dast_scans" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>
+                        <small> The number of performance test runs allowed in the project per month</small>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small> The number of ui performance test runs allowed in the project per month</small>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small> The number of SAST scans allowed in the project per month</small>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small> The number of DAST scans allowed in the project per month</small>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="performance_test_runs_unlimited" type="checkbox"
+                                   onchange="disableSlider('performance_test_runs_unlimited', 'input-slider-performance_test_runs', 'performance_test_runs')">
+                            <label class="custom-control-label"
+                                   for="performance_test_runs_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container" style="margin-right: 3%">
+                        <div id="input-slider-performance_test_runs" class="input-slider" data-range-value-min="1"
+                             data-range-value-max="1000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                                    <span id="performance_test_runs_value" class="range-slider-value"
+                                          data-range-value-low="10"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="ui_performance_test_runs_unlimited"
+                                   type="checkbox"
+                                   onchange="disableSlider('ui_performance_test_runs_unlimited', 'input-slider-ui_performance_test_runs', 'ui_performance_test_runs')">
+                            <label class="custom-control-label"
+                                   for="ui_performance_test_runs_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container" style="margin-right: 3%">
+                        <div id="input-slider-ui_performance_test_runs" class="input-slider"
+                             data-range-value-min="1"
+                             data-range-value-max="1000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                                    <span id="ui_performance_test_runs_value" class="range-slider-value"
+                                          data-range-value-low="10"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="sast_scans_unlimited" type="checkbox"
+                                   onchange="disableSlider('sast_scans_unlimited', 'input-slider-sast_scans', 'sast_scans')">
+                            <label class="custom-control-label" for="sast_scans_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container" style="margin-right: 3%">
+                        <div id="input-slider-sast_scans" class="input-slider" data-range-value-min="1"
+                             data-range-value-max="1000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                                    <span id="sast_scans_value" class="range-slider-value"
+                                          data-range-value-low="10"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="dast_scans_unlimited" type="checkbox"
+                                   onchange="disableSlider('dast_scans_unlimited', 'input-slider-dast_scans', 'dast_scans')">
+                            <label class="custom-control-label" for="dast_scans_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container" style="margin-right: 3%">
+                        <div id="input-slider-dast_scans" class="input-slider" data-range-value-min="1"
+                             data-range-value-max="1000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                                    <span id="dast_scans_value" class="range-slider-value"
+                                          data-range-value-low="1"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>
+                        <small><b>Tasks count</b></small>
+                        <span id="tasks_count" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small><b>Task executions</b></small>
+                        <span id="tasks_executions" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small><b>Storage space</b></small>
+                        <span id="storage_space" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small><b>Data retention limit</b></small>
+                        <span id="data_retention_limit" class="badge badge-pill badge-success mr-1"></span>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>
+                        <small> The number of tasks that can be created within the project</small>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small> The number of task executions allowed in the project per month</small>
+                    </p>
+                </td>
+                <td>
+                    <p>
+                        <small> The storage space limit allowed in the project</small>
+                    </p>
+
+                </td>
+                <td>
+                    <p>
+                        <small> The data retention limit allowed in the project</small>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="tasks_count_unlimited" type="checkbox"
+                                   onchange="disableSlider('tasks_count_unlimited', 'input-slider-tasks_count', 'tasks_count')">
+                            <label class="custom-control-label" for="tasks_count_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container_tasks_count" style="margin-right: 3%">
+                        <div id="input-slider-tasks_count" class="input-slider" data-range-value-min="1"
+                             data-range-value-max="20"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                                    <span id="tasks_count_value" class="range-slider-value"
+                                          data-range-value-low="3"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="tasks_executions_unlimited" type="checkbox"
+                                   onchange="disableSlider('tasks_executions_unlimited', 'input-slider-tasks_executions', 'tasks_executions')">
+                            <label class="custom-control-label"
+                                   for="tasks_executions_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container" style="margin-right: 3%">
+                        <div id="input-slider-tasks_executions" class="input-slider" data-range-value-min="1"
+                             data-range-value-max="1000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                        <span id="tasks_executions_value" class="range-slider-value"
+                              data-range-value-low="250"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="storage_space_unlimited" type="checkbox"
+                                   onchange="disableSlider('storage_space_unlimited', 'input-slider-storage_space', 'storage_space')">
+                            <label class="custom-control-label"
+                                   for="storage_space_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container_storage_space" style="margin-right: 3%">
+                        <div id="input-slider-storage_space" class="input-slider" data-range-value-min="100"
+                             data-range-value-max="100000"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                        <span id="storage_space_value" class="range-slider-value"
+                              data-range-value-low="100"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col-md-3">
+                        <div class="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <input class="custom-control-input" id="data_retention_limit_unlimited" type="checkbox"
+                                   onchange="disableSlider('data_retention_limit_unlimited', 'input-slider-data_retention_limit', 'data_retention_limit')">
+                            <label class="custom-control-label"
+                                   for="data_retention_limit_unlimited"><b>Unlimited</b></label>
+                        </div>
+                    </div>
+                    <div class="input-slider-container_data_retention_limit" style="margin-right: 3%">
+                        <div id="input-slider-data_retention_limit" class="input-slider" data-range-value-min="30"
+                             data-range-value-max="365"></div>
+                        <div class="row mt-3 d-none">
+                            <div class="col-6">
+                        <span id="data_retention_limit_value" class="range-slider-value"
+                              data-range-value-low="30"></span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

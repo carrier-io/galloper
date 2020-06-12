@@ -42,14 +42,14 @@ class ReleaseAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
 
     def get(self, project_id: int):
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         return [
             each.to_json() for each in APIRelease.query.filter_by(project_id=project.id)
         ]
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         release = APIRelease(
             project_id=project.id,
             release_date=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
@@ -60,7 +60,7 @@ class ReleaseAPI(Resource):
 
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         updated_reports = []
 
         query_params = and_(APIReport.id.in_(args["reports"]), APIReport.project_id == project.id)
@@ -86,7 +86,7 @@ class ApiReportsAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         try:
             if args.get("release_name"):
                 release_id = APIRelease.query.filter(
@@ -129,7 +129,7 @@ class ReleaseApiSaturation(Resource):
         error_rate = []
         global_error_rate = []
         users = []
-        project = Project.query.get_or_404(project_id)
+        project = Project.get_or_404(project_id)
         try:
             if args.get("release_name"):
                 release_id = APIRelease.query.filter(

@@ -14,7 +14,8 @@ class UIResultsAPI(Resource):
         dict(name="locators", default=[], type=list, location="json"),
         dict(name="resolution", type=str, location="json"),
         dict(name="browser_version", type=str, location="json"),
-        dict(name="name", type=str, location="json")
+        dict(name="name", type=str, location="json"),
+        dict(name="type", type=str, location="json"),
     )
 
     put_rules = (
@@ -37,6 +38,7 @@ class UIResultsAPI(Resource):
             project_id=project_id,
             report_id=report_id,
             name=args["name"],
+            type=args["type"],
             bucket_name=args["bucket_name"],
             file_name=args["file_name"],
             thresholds_total=args["thresholds_total"],

@@ -21,7 +21,6 @@ class UIReportsAPI(Resource):
     put_rules = (
         dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
-        dict(name="visited_pages", type=int, default=0, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
         dict(name="exception", type=str, location="json")
@@ -60,7 +59,6 @@ class UIReportsAPI(Resource):
         report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
         report.is_active = False
         report.stop_time = args["time"]
-        report.visited_pages = args["visited_pages"]
         report.thresholds_total = args["thresholds_total"],
         report.thresholds_failed = args["thresholds_failed"]
         report.duration = self.__diffdates(report.start_time, args["time"]).seconds
