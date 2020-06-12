@@ -35,6 +35,7 @@ class UITestsApiPerformance(Resource):
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
         dict(name="loops", type=int, location='form', default=1),
+        dict(name="aggregation", type=str, location='form', default="max"),
         dict(name="customization", type=str, location='form'),
         dict(name="cc_env_vars", type=str, location='form')
     )
@@ -84,7 +85,8 @@ class UITestsApiPerformance(Resource):
                                   customization=loads(args["customization"]),
                                   cc_env_vars=loads(args["cc_env_vars"]),
                                   job_type=job_type,
-                                  loops=args['loops']
+                                  loops=args['loops'],
+                                  aggregation=args['aggregation']
                                   )
         test.insert()
         current_app.logger.info(test.to_json())
