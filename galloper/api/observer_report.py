@@ -13,7 +13,9 @@ class UIReportsAPI(Resource):
         dict(name="time", type=str, location="json"),
         dict(name="browser_name", type=str, location="json"),
         dict(name="env", type=str, location="json"),
-        dict(name="base_url", type=str, location="json")
+        dict(name="base_url", type=str, location="json"),
+        dict(name="loops", type=int, location="json"),
+        dict(name="aggregation", type=str, location="json")
     )
 
     put_rules = (
@@ -33,7 +35,7 @@ class UIReportsAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args()
-        project = Project.get_or_404(project_id)
+        project = Project.query.get_or_404(project_id)
 
         report = UIReport(
             name=args["test_name"],
@@ -42,7 +44,9 @@ class UIReportsAPI(Resource):
             is_active=True,
             browser=args["browser_name"],
             environment=args["env"],
-            base_url=args["base_url"]
+            base_url=args["base_url"],
+            loops=args["loops"],
+            aggregation=args["aggregation"]
         )
 
         report.insert()
