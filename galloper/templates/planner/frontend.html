@@ -25,14 +25,14 @@
                         <p><small>Enter a name that describes the purpose of your test.</small></p>
                         <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
                       </div>
-<!--                      <div class="form-group">-->
-<!--                        <label class="form-control-label" for="parallel">Parallel runners</label>-->
-<!--                        <p><small>How many test agents you need to execute test</small></p>-->
-<!--                        <input type="text" id="parallel" class="form-control form-control-alternative" placeholder="# of Runners">-->
-<!--                      </div>-->
+                      <div class="form-group">
+                        <label class="form-control-label" for="loops">Number of loops</label>
+                        <p><small>How many times to repeat scenario execution.</small></p>
+                        <input type="text" id="loops" class="form-control form-control-alternative" placeholder="# of loops">
+                      </div>
                       <div class="form-group" id="reporters">
                             <label class="form-control-label">Reporting</label>
-                            <p><small>Specify expected report types</small></p>
+                            <p><small>Specify expected report types.</small></p>
                             <div class="custom-control custom-checkbox custom-control-inline">
                               <input type="checkbox" class="custom-control-input" id="junit">
                               <label class="custom-control-label" for="junit">jUnit Report</label>
@@ -68,7 +68,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-control-label" for="entrypoint">Entry point</label>
-                            <p><small>Scenario file name </small></p>
+                            <p><small>Scenario file name.</small></p>
                             <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. demo.side)">
                       </div>
                       <div class="form-group" id="testrunners">
@@ -188,7 +188,8 @@
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
                     $('#entrypoint').prop("disabled", true);
-                    $('#parallel').val(data.parallel);
+                    $('#loops').val(data.loops);
+
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
                     });
@@ -296,7 +297,7 @@
           var data = new FormData();
           data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
           data.append('name', $('#testname').val());
-          data.append('parallel', $('#parallel').val());
+          data.append('loops', $('#loops').val());
           data.append('entrypoint', $('#entrypoint').val());
           data.append('browser', $( "#testrunners input:checked" ).attr("id"));
           data.append('reporter', checked);
