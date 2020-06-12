@@ -112,6 +112,15 @@ class VisualResultAPI(Resource):
                          "time": f"{round(aggregated_total / 1000, 2)} sec"}
             })
 
+        if report.loops > 1:
+            source_node_id = nodes[-1]["data"]["id"]
+            target_node_id = nodes[0]["data"]["id"]
+
+            edges.append({
+                "data": {"source": source_node_id, "target": target_node_id,
+                         "time": ""}
+            })
+
         table = []
         for result in results:
             data = {

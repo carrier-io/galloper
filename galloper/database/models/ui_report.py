@@ -21,3 +21,4 @@ class UIReport(AbstractBaseMixin, Base):
     thresholds_failed = Column(Integer, unique=False, nullable=True, default=0)
     exception = Column(String(1024), unique=False)
     passed = Column(Boolean, unique=False, default=True)
+    loops = Column(Integer, unique=False, nullable=True)
