@@ -270,7 +270,8 @@
             'env_vars': JSON.stringify(params[1]),
             'cc_env_vars': JSON.stringify(params[3]),
             'customization': JSON.stringify(params[2]),
-            'reporter': checked
+            'reporter': checked,
+            'loops': $('#loops').val()
         }
         $.ajax({
             url: `/api/v1/tests/${project_id}/frontend/${test_id}`,

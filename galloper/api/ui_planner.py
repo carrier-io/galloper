@@ -113,7 +113,8 @@ class TestApiFrontend(Resource):
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
-        dict(name="reporter", type=list, required=False, location='json')
+        dict(name="reporter", type=list, required=False, location='json'),
+        dict(name="loops", type=int, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -169,7 +170,7 @@ class TestApiFrontend(Resource):
 
         if args.get("reporter"):
             task.reporting = args["reporter"]
-
+        task.loops = args['loops']
         task.commit()
         return task.to_json()
 
