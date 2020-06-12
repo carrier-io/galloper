@@ -4,6 +4,7 @@ from uuid import uuid4
 from flask_restful import Resource
 
 from galloper.api.base import get
+from galloper.data_utils.arrays import get_aggregated_data
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
@@ -83,31 +84,46 @@ class VisualResultAPI(Resource):
         report = UIReport.query.get_or_404(report_id)
         results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
 
-        table = []
         nodes = _action_mapping["chart"]["nodes"]
         edges = _action_mapping["chart"]["edges"]
 
+        graph_aggregation = {}
         for result in results:
+            if result.name in graph_aggregation.keys():
+                graph_aggregation[result.name].append(result)
+            else:
+                graph_aggregation[result.name] = [result]
+
+        for name, values in graph_aggregation.items():
+            aggregated_total = get_aggregated_data(report.aggregation, values)
+
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
-
-            status = "passed" if result.thresholds_failed == 0 else "failed"
 
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": result.name,
-                    "type": result.type,
-                    "status": status,
-                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                    "name": name,
+                    # "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
 
             edges.append({
                 "data": {"source": source_node_id, "target": target_node_id,
-                         "time": f"{round(result.total / 1000, 2)} sec"}
+                         "time": f"{round(aggregated_total / 1000, 2)} sec"}
             })
 
+        if report.loops > 1:
+            source_node_id = nodes[-1]["data"]["id"]
+            target_node_id = nodes[0]["data"]["id"]
+
+            edges.append({
+                "data": {"source": source_node_id, "target": target_node_id,
+                         "time": "0 sec"}
+            })
+
+        table = []
+        for result in results:
             data = {
                 "name": result.name,
                 "speed_index": result.speed_index,

@@ -34,6 +34,8 @@ class UITestsApiPerformance(Resource):
         dict(name="browser", type=str, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
+        dict(name="loops", type=int, location='form', default=1),
+        dict(name="aggregation", type=str, location='form', default="max"),
         dict(name="customization", type=str, location='form'),
         dict(name="cc_env_vars", type=str, location='form')
     )
@@ -82,7 +84,10 @@ class UITestsApiPerformance(Resource):
                                   env_vars=loads(args["env_vars"]),
                                   customization=loads(args["customization"]),
                                   cc_env_vars=loads(args["cc_env_vars"]),
-                                  job_type=job_type)
+                                  job_type=job_type,
+                                  loops=args['loops'],
+                                  aggregation=args['aggregation']
+                                  )
         test.insert()
         current_app.logger.info(test.to_json())
         return test.to_json(exclude_fields=("id",))
@@ -110,7 +115,8 @@ class TestApiFrontend(Resource):
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
-        dict(name="reporter", type=list, required=False, location='json')
+        dict(name="reporter", type=list, required=False, location='json'),
+        dict(name="loops", type=int, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -166,7 +172,7 @@ class TestApiFrontend(Resource):
 
         if args.get("reporter"):
             task.reporting = args["reporter"]
-
+        task.loops = args['loops']
         task.commit()
         return task.to_json()
 
