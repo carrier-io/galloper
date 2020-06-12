@@ -22,3 +22,4 @@ class UIReport(AbstractBaseMixin, Base):
     exception = Column(String(1024), unique=False)
     passed = Column(Boolean, unique=False, default=True)
     loops = Column(Integer, unique=False, nullable=True)
+    aggregation = Column(String(128), unique=False)

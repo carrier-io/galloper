@@ -4,6 +4,7 @@ from uuid import uuid4
 from flask_restful import Resource
 
 from galloper.api.base import get
+from galloper.data_utils.arrays import get_aggregated_data
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
@@ -94,7 +95,7 @@ class VisualResultAPI(Resource):
                 graph_aggregation[result.name] = [result]
 
         for name, values in graph_aggregation.items():
-            aggregated_total = max([d.total for d in values])
+            aggregated_total = get_aggregated_data(report.aggregation, values)
 
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
@@ -118,7 +119,7 @@ class VisualResultAPI(Resource):
 
             edges.append({
                 "data": {"source": source_node_id, "target": target_node_id,
-                         "time": ""}
+                         "time": "0 sec"}
             })
 
         table = []

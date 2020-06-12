@@ -14,7 +14,8 @@ class UIReportsAPI(Resource):
         dict(name="browser_name", type=str, location="json"),
         dict(name="env", type=str, location="json"),
         dict(name="base_url", type=str, location="json"),
-        dict(name="loops", type=int, location="json")
+        dict(name="loops", type=int, location="json"),
+        dict(name="aggregation", type=str, location="json")
     )
 
     put_rules = (
@@ -45,7 +46,8 @@ class UIReportsAPI(Resource):
             browser=args["browser_name"],
             environment=args["env"],
             base_url=args["base_url"],
-            loops=args["loops"]
+            loops=args["loops"],
+            aggregation=args["aggregation"]
         )
 
         report.insert()
