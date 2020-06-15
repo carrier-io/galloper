@@ -28,5 +28,17 @@
             "width": 12,
             "height": 12
         }
+    },
+    {
+        "selector": "node[status = 'passed']",
+        "css": {
+            "color": "#329e2b"
+        }
+    },
+    {
+        "selector": "node[status = 'failed']",
+        "css": {
+            "color": "#c10d26"
+        }
     }
 ]
