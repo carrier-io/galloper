@@ -32,13 +32,13 @@
     {
         "selector": "node[status = 'passed']",
         "css": {
-            "color": "#329e2b"
+            "background-color": "#329e2b"
         }
     },
     {
         "selector": "node[status = 'failed']",
         "css": {
-            "color": "#c10d26"
+            "background-color": "#c10d26"
         }
     }
 ]

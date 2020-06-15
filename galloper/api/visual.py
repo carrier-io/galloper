@@ -101,18 +101,29 @@ class VisualResultAPI(Resource):
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
 
+            thresholds_failed = sum([d.thresholds_failed for d in values])
+
+            status = "passed"
+            if thresholds_failed > 0:
+                status = "failed"
+
             nodes.append({
                 "data": {
                     "id": target_node_id,
                     "name": name,
                     "type": values[0].type,
+                    "status": status,
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
 
             edges.append({
-                "data": {"source": source_node_id, "target": target_node_id,
-                         "time": f"{round(aggregated_total / 1000, 2)} sec"}
+                "data": {
+                    "source": source_node_id,
+                    "target": target_node_id,
+                    "time": f"{round(aggregated_total / 1000, 2)} sec"
+                },
+                "classes": status
             })
 
         if report.loops > 1:
