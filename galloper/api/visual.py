@@ -4,7 +4,7 @@ from uuid import uuid4
 from flask_restful import Resource
 
 from galloper.api.base import get
-from galloper.data_utils.arrays import get_aggregated_data
+from galloper.data_utils.arrays import get_aggregated_data, closest
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
@@ -96,21 +96,34 @@ class VisualResultAPI(Resource):
 
         for name, values in graph_aggregation.items():
             aggregated_total = get_aggregated_data(report.aggregation, values)
+            result = closest(values, aggregated_total)
 
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
+
+            thresholds_failed = sum([d.thresholds_failed for d in values])
+
+            status = "passed"
+            if thresholds_failed > 0:
+                status = "failed"
 
             nodes.append({
                 "data": {
                     "id": target_node_id,
                     "name": name,
-                    # "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                    "type": values[0].type,
+                    "status": status,
+                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
 
             edges.append({
-                "data": {"source": source_node_id, "target": target_node_id,
-                         "time": f"{round(aggregated_total / 1000, 2)} sec"}
+                "data": {
+                    "source": source_node_id,
+                    "target": target_node_id,
+                    "time": f"{round(aggregated_total / 1000, 2)} sec"
+                },
+                "classes": status
             })
 
         if report.loops > 1:

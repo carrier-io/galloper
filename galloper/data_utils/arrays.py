@@ -41,3 +41,7 @@ def get_aggregated_data(aggregation, values):
         return min(totals)
     elif aggregation == "avg":
         return sum(totals) / len(totals)
+
+
+def closest(lst, val):
+    return lst[min(range(len(lst)), key=lambda i: abs(lst[i].total - val))]
