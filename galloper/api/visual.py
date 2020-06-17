@@ -2,9 +2,11 @@ from typing import Optional
 from uuid import uuid4
 
 from flask_restful import Resource
+from sqlalchemy import and_
 
 from galloper.api.base import get
 from galloper.data_utils.arrays import get_aggregated_data, closest
+from galloper.database.models.project import Project
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
@@ -21,11 +23,16 @@ class VisualReportAPI(Resource):
         dict(name="filter", type=str, location="args")
     )
 
+    delete_rules = (
+        dict(name="id[]", type=int, action="append", location="args"),
+    )
+
     def __init__(self):
         self.__init_req_parsers()
 
     def __init_req_parsers(self):
         self._parser_get = build_req_parser(rules=self.get_rules)
+        self._parser_delete = build_req_parser(rules=self.delete_rules)
 
     def __calcualte_limit(self, limit, total):
         return len(total) if limit == 'All' else limit
@@ -65,6 +72,23 @@ class VisualReportAPI(Resource):
         for each in res:
             each["start_time"] = each["start_time"].replace("T", " ").replace("Z", "")
         return {"total": total, "rows": res}
+
+    def delete(self, project_id: int):
+        args = self._parser_delete.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        query_result = UIReport.query.filter(
+            and_(UIReport.project_id == project.id, UIReport.id.in_(args["id[]"]))
+        ).all()
+
+        for each in query_result:
+            self.__delete_report_results(project_id, each.id)
+            each.delete()
+        return {"message": "deleted"}
+
+    def __delete_report_results(self, project_id, report_id):
+        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).order_by(UIResult.id).all()
+        for result in results:
+            result.delete()
 
 
 class VisualResultAPI(Resource):
