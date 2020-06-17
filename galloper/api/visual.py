@@ -82,7 +82,7 @@ class VisualResultAPI(Resource):
         }
 
         report = UIReport.query.get_or_404(report_id)
-        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).all()
+        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).order_by(UIResult.id).all()
 
         nodes = _action_mapping["chart"]["nodes"]
         edges = _action_mapping["chart"]["edges"]
@@ -138,6 +138,7 @@ class VisualResultAPI(Resource):
         table = []
         for result in results:
             data = {
+                "id": result.id,
                 "name": result.name,
                 "speed_index": result.speed_index,
                 "total_time": round(result.total / 1000, 2),
