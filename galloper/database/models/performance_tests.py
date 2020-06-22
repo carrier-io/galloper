@@ -35,6 +35,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
     entrypoint = Column(String(128), nullable=False)
     runner = Column(String(128), nullable=False)
     reporting = Column(ARRAY(String), nullable=False)
+    emails = Column(Text)
     params = Column(JSON)
     env_vars = Column(JSON)
     customization = Column(JSON)
@@ -105,7 +106,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         super().insert()
 
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
-                                 customization=None, cc_env_vars=None, parallel=None, execution=False):
+                                 customization=None, cc_env_vars=None, parallel=None, execution=False, emails=None):
         pairs = {
             "customization": [customization, self.customization],
             "params": [params, self.params],
@@ -150,6 +151,23 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["quality_gate"] = "True"
             if "perfreports" in self.reporting:
                 execution_json["save_reports"] = "True"
+            if "jira" in self.reporting:
+                execution_json["jira"] = "True"
+            if "email" in self.reporting:
+                execution_json["email"] = "True"
+            if "rp" in self.reporting:
+                execution_json["report_portal"] = "True"
+            if "ado" in self.reporting:
+                execution_json["azure_devops"] = "True"
+        if emails:
+            _emails = self.emails
+            for each in emails.split(","):
+                if each not in _emails:
+                    _emails += f",{each}"
+            execution_json["email_recipients"] = _emails
+        else:
+            execution_json["email_recipients"] = self.emails
+
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value

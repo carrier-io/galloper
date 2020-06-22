@@ -347,7 +347,7 @@ class TestSaturation(Resource):
             return {"message": "not enough results", "code": 0}
         except IndexError:
             if error_rate > args["max_errors"]:
-                return {"message": "error rate exceeded threshold", "code": 1}
+                return {"message": f"error rate reached 100% for {args['request']} transaction", "code": 1}
             else:
                 return {"message": "not enough results", "code": 0}
 
@@ -369,6 +369,8 @@ class TestSaturation(Resource):
             u = user_array.pop()
             start_time = _[0]
             end_time = _[-1]
+            response["test_start"] = start_time
+            response["test_end"] = end_time
             for key, value in users["users"].items():
                 if value > u and max_users >= u:
                     _, data, _ = get_tps(report.build_id, report.name, report.lg_type, start_time, key,

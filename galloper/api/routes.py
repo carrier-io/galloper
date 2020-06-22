@@ -30,6 +30,7 @@ from .task import TaskActionApi, TasksApi, TaskApi
 from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, EnvironmentsAPI
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
+from .reporters import ReportersAPI
 
 
 def initialize_api_routes(api: Api):
@@ -56,6 +57,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ProjectQuotaAPI, "/quota", "/quota/<int:project_id>")
     add_resource_to_api(api, ProjectSecretsAPI, "/secrets/<int:project_id>")
     add_resource_to_api(api, ProjectSecretAPI, "/secrets/<int:project_id>/<string:secret>")
+    add_resource_to_api(api, ReportersAPI, "/reporters/<int:project_id>")
 
     add_resource_to_api(api, BucketsApi, "/artifacts/<int:project_id>/<string:bucket>")
     add_resource_to_api(api, ArtifactApi, "/artifacts/<int:project_id>/<string:bucket>/<string:filename>")

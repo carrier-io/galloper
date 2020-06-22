@@ -126,8 +126,12 @@ def only_users_projects():
 
 def is_superadmin():
     user_data = _get_user_data()
+    current_app.logger.info(str(user_data))
+    current_app.logger.info("Is admin")
     if Config().SUPERADMIN_GROUP in user_data["groups"]:
+        current_app.logger.info("True")
         return True
+    current_app.logger.info("False")
     return False
 
 
