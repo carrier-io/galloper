@@ -99,7 +99,6 @@
     }
 
     function saveIntegration(integration) {
-        console.log(`#${integration}_save_button`)
         $(`#${integration}_save_button`).html(`<span class="spinner-border spinner-border-sm"></span>`);
         $(`#${integration}_save_button`).addClass("disabled");
         let project_id = getSelectedProjectId();
