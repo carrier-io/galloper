@@ -12,30 +12,33 @@
         <form>
             <div class="form-group">
                 <label for="jira_url" class="form-control-label">URL</label>
-                <input class="form-control" type="text" value="URL to Jira API" id="jira_url">
+                <input class="form-control" type="text" placeholder="URL to Jira API" value="" id="jira_url">
             </div>
             <div class="form-group">
                 <label for="jira_login" class="form-control-label">Login</label>
-                <input class="form-control" type="text" value="Jira Login" id="jira_login">
+                <input class="form-control" type="text" placeholder="Jira Login" value="" id="jira_login">
             </div>
             <div class="form-group">
                 <label for="jira_password" class="form-control-label">Password</label>
-                <input class="form-control" type="text" value="Jira Password" id="jira_password">
+                <input class="form-control" type="password" placeholder="Jira Password" value="" id="jira_password">
             </div>
             <div class="form-group">
-                <label for="project" class="form-control-label">Project</label>
-                <input class="form-control" type="text" value="Jira Project ID" id="project">
+                <label for="jira_project" class="form-control-label">Project</label>
+                <input class="form-control" type="text" placeholder="Jira Project ID" value="" id="jira_project">
             </div>
             <div class="form-group">
                 <label for="issue_type" class="form-control-label">Issue Type</label>
-                <input class="form-control" type="text" value="Issue Type: Bug is default" id="issue_type">
+                <input class="form-control" type="text" placeholder="Issue Type: Bug is default" value="" id="issue_type">
+            </div>
+            <div class="form-group">
+                <span id="jira_status">Not Configured</span>
             </div>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-secondary">Test</button>
-        <button type="button" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="testIntegration('jira')">Test</button>
+        <button type="button" class="btn btn-primary" onclick="saveIntegration('jira')">Save</button>
       </div>
     </div>
   </div>

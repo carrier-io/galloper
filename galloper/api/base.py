@@ -85,6 +85,12 @@ def create_task(project, file, args):
     return task
 
 
+def update_task(task_id, env_vars):
+    task = Task.query.filter(and_(Task.task_id == task_id)).first()
+    task.env_vars = env_vars
+    task.commit()
+
+
 def run_task(project_id, event, task_id=None):
     secrets = get_project_secrets(project_id)
     task_id = task_id if task_id else secrets["control_tower_id"]
