@@ -31,6 +31,7 @@ EXTERNAL_LOKI_HOST = f"{_url.scheme}://{_url.netloc.split('@')[1]}" if "@" in AP
 APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
 POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/raw/master/package/post_processing.zip"
 CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/raw/master/package/control-tower.zip"
+EMAIL_NOTIFICATION_PATH = "https://github.com/hunkom/performance_email_notification/raw/master/package/email_notifications.zip"
 MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://localhost:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')

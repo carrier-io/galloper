@@ -28,8 +28,8 @@ RUN apk add --update --no-cache \
   docker \
   git \
   bash \
-  python-dev \
-  py-pip \
+  python3-dev \
+  py3-pip \
   jpeg-dev \
   zlib-dev \
   musl-dev \

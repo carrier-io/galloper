@@ -46,10 +46,6 @@
                               <label class="custom-control-label" for="perfreports">Tool Reports</label>
                             </div>
                             <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="email">
-                              <label class="custom-control-label" for="email">Email</label>
-                            </div>
-                            <div class="custom-control custom-checkbox custom-control-inline">
                               <input type="checkbox" class="custom-control-input" id="jira">
                               <label class="custom-control-label" for="jira">Jira</label>
                             </div>
@@ -57,6 +53,18 @@
                               <input type="checkbox" class="custom-control-input" id="rp">
                               <label class="custom-control-label" for="rp">RP</label>
                             </div>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="ado">
+                              <label class="custom-control-label" for="ado">ADO</label>
+                            </div>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                              <input type="checkbox" class="custom-control-input" id="email">
+                              <label class="custom-control-label" for="email">Email</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
+                          <input type="text" id="emails" class="form-control form-control-alternative" placeholder="Email recipients">
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -205,6 +213,7 @@
                     $('#entrypoint').val(data.entrypoint);
                     $('#entrypoint').prop("disabled", true);
                     $('#parallel').val(data.parallel);
+                    $('#emails').val(data.emails);
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
                     });
@@ -287,8 +296,10 @@
             'customization': JSON.stringify(params[2]),
             'java_opts': $("#javaopts").val(),
             'parallel': $('#parallel').val(),
-            'reporter': checked
+            'reporter': checked,
+            'emails': $('#emails').val()
         }
+        console.log(data);
         $.ajax({
             url: `/api/v1/tests/${project_id}/backend/${test_id}`,
             data: JSON.stringify(data),
@@ -318,6 +329,7 @@
           data.append('entrypoint', $('#entrypoint').val());
           data.append('runner', $( "#testrunners input:checked" ).attr("id"));
           data.append('reporter', checked);
+          data.append('emails', $('#emails').val());
           data.append('params', JSON.stringify(params[0]));
           data.append('env_vars', JSON.stringify(params[1]));
           data.append('customization', JSON.stringify(params[2]));

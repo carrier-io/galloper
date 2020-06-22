@@ -28,6 +28,7 @@ class TestsApiPerformance(Resource):
         dict(name="entrypoint", type=str, location='form'),
         dict(name="parallel", type=int, location='form'),
         dict(name="reporter", type=str, location='form'),
+        dict(name="emails", type=str, location='form'),
         dict(name="runner", type=str, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
@@ -72,6 +73,7 @@ class TestsApiPerformance(Resource):
                                 entrypoint=args["entrypoint"],
                                 runner=args["runner"],
                                 reporting=reporting,
+                                emails=args["emails"],
                                 params=loads(args["params"]),
                                 env_vars=loads(args["env_vars"]),
                                 customization=loads(args["customization"]),
@@ -120,7 +122,8 @@ class TestApiBackend(Resource):
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
-        dict(name="reporter", type=list, required=False, location='json')
+        dict(name="reporter", type=list, required=False, location='json'),
+        dict(name="emails", type=str, required=False, location='json')
     )
 
     _post_rules = _put_rules + (
@@ -179,6 +182,9 @@ class TestApiBackend(Resource):
         if args.get("reporter"):
             task.reporting = args["reporter"]
 
+        if args.get("emails"):
+            task.emails = args["emails"]
+
         if args.get("parallel"):
             task.parallel = args.get("parallel")
         task.commit()
@@ -204,7 +210,7 @@ class TestApiBackend(Resource):
                                                    customization=loads(args.get("customization", None)),
                                                    cc_env_vars=loads(args.get("cc_env_vars", None)),
                                                    parallel=args.get("parallel", None),
-                                                   execution=execution))
+                                                   execution=execution, emails=args.get("emails", None)))
         if args['type'] and args["type"] == "config":
             return event[0]
         response = run_task(project.id, event)

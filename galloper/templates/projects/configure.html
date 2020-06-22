@@ -26,6 +26,7 @@
 
 {% include 'projects/integrations/jiramodal.html' %}
 {% include 'projects/integrations/rpmodal.html' %}
+{% include 'projects/integrations/smtpmodal.html' %}
 {% include 'common/foot.html' %}
 <script>
     function repaintProjects(data) {
@@ -53,12 +54,17 @@
             enablePackageSelector();
         }
     }
-    function saveIntegration(integration) {
+
+    function testIntegration(integration) {
+        $(`#${integration}_test_button`).html(`<span class="spinner-border spinner-border-sm"></span>`);
+        $(`#${integration}_test_button`).addClass("disabled");
         let project_id = getSelectedProjectId();
         let settings = {}
         if (integration == "jira") {
             settings = {
-                "secret": {
+                "integration": integration,
+                "test": "True",
+                "config": {
                     jira_url: $("#jira_url").val(),
                     jira_login: $("#jira_login").val(),
                     jira_password: $("#jira_password").val(),
@@ -66,16 +72,80 @@
                     issue_type: $("#issue_type").val()
                 }
             }
+            status_message = "#jira_status"
+        } else if (integration == "smtp") {
+            settings = {
+                "integration": integration,
+                "test": "True",
+                "config": {
+                    smtp_host: $("#smtp_host").val(),
+                    smtp_port: $("#smtp_port").val(),
+                    smtp_user: $("#smtp_user").val(),
+                    smtp_password: $("#smtp_password").val(),
+                    smtp_sender: $("#smtp_sender").val()
+                }
+            }
+            status_message = "#smtp_status"
         }
         $.ajax({
-            url: `/api/v1/secrets/${project_id}/${integration}`,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(settings),
-            success: function (result) {
-                $(`#${integration}`).modal('hide');
+                url: `/api/v1/reporters/${project_id}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(settings),
+                success: function (data) { 
+                    $(`${status_message}`).text(data["message"]); 
+                }
+            });
+    }
+
+    function saveIntegration(integration) {
+        console.log(`#${integration}_save_button`)
+        $(`#${integration}_save_button`).html(`<span class="spinner-border spinner-border-sm"></span>`);
+        $(`#${integration}_save_button`).addClass("disabled");
+        let project_id = getSelectedProjectId();
+        let settings = {}
+        if (integration == "jira") {
+            settings = {
+                "integration": integration,
+                "test": "False",
+                "config": {
+                    jira_url: $("#jira_url").val(),
+                    jira_login: $("#jira_login").val(),
+                    jira_password: $("#jira_password").val(),
+                    jira_project: $("#jira_project").val(),
+                    issue_type: $("#issue_type").val()
+                }
             }
-        });
+            modal = "#jiraModal"
+            status_message = "#jira_status"
+        } else if (integration == "smtp") {
+            settings = {
+                "integration": integration,
+                "test": "False",
+                "config": {
+                    smtp_host: $("#smtp_host").val(),
+                    smtp_port: $("#smtp_port").val(),
+                    smtp_user: $("#smtp_user").val(),
+                    smtp_password: $("#smtp_password").val(),
+                    smtp_sender: $("#smtp_sender").val()
+                }
+            }
+            modal = "#smtpModal"
+            status_message = "#smtp_status"
+        }
+        $.ajax({
+                url: `/api/v1/reporters/${project_id}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(settings),
+                success: function (data) {
+                    if (data["message"].includes("Failed")) {
+                        $(`${status_message}`).text(data["message"]);
+                    } else {
+                        $(`${modal}`).modal('toggle');
+                    }
+                }
+            });
     }
 
     function getProjectDetails() {
@@ -423,13 +493,32 @@
                 type: 'GET',
                 contentType: 'application/json',
                 success: function (result) {
-                    let data = JSON.parse(result["secret"].split("'").join("\""))
-                    console.log(data)
-                    $("#jira_url").val(data["jira_url"]),
-                    $("#jira_login").val(data["jira_login"]),
-                    $("#jira_password").val(data["jira_password"]),
-                    $("#jira_project").val(data["jira_project"]),
-                    $("#issue_type").val(data["issue_type"])
+                    if (result["secret"] != null) {
+                        $("#jira_status").text("");
+                        let data = JSON.parse(result["secret"])
+                        $("#jira_url").val(data["jira_url"])
+                        $("#jira_login").val(data["jira_login"])
+                        $("#jira_password").val(data["jira_password"])
+                        $("#jira_project").val(data["jira_project"])
+                        $("#issue_type").val(data["issue_type"])
+                    }   
+                }
+            });
+        } else if (modalID == "smtpModal") {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/smtp`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result["secret"] != null) {
+                        $("#smtp_status").text("");
+                        let data = JSON.parse(result["secret"])
+                        $("#smtp_host").val(data["smtp_host"])
+                        $("#smtp_port").val(data["smtp_port"])
+                        $("#smtp_user").val(data["smtp_user"])
+                        $("#smtp_password").val(data["smtp_password"])
+                        $("#smtp_sender").val(data["smtp_sender"])
+                    }   
                 }
             });
         }
