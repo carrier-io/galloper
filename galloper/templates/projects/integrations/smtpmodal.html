@@ -1,0 +1,46 @@
+<!-- Modal -->
+<div class="modal fade" id="smtpModal" tabindex="-1" role="dialog" aria-labelledby="smtpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="smtpModalLabel">SMTP integrations</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+              <div class="form-group">
+                  <label for="smtp_host" class="form-control-label">Host</label>
+                  <input class="form-control" type="text" placeholder="SMTP host" value="" id="smtp_host">
+              </div>
+              <div class="form-group">
+                  <label for="smtp_port" class="form-control-label">PORT</label>
+                  <input class="form-control" type="text" placeholder="SMTP port" value="" id="smtp_port">
+              </div>
+              <div class="form-group">
+                  <label for="smtp_user" class="form-control-label">User</label>
+                  <input class="form-control" type="text" placeholder="SMTP user" value="" id="smtp_user">
+              </div>
+              <div class="form-group">
+                  <label for="smtp_password" class="form-control-label">Password</label>
+                  <input class="form-control" type="password" placeholder="SMTP password" value="" id="smtp_password">
+              </div>
+              <div class="form-group">
+                  <label for="smtp_sender" class="form-control-label">Sender</label>
+                  <input class="form-control" type="text" placeholder="SMTP Sender. Optional, by default the emails are sent as smtp user" value="" id="smtp_sender">
+              </div>
+              <div class="form-group">
+                  <span id="smtp_status">Not Configured</span>
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="smtp_test_button" class="btn btn-secondary" onclick="testIntegration('smtp')">Test</button>
+          <button type="button" id="smtp_save_button" class="btn btn-primary" onclick="saveIntegration('smtp')">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  

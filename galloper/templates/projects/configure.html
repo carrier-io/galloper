@@ -92,14 +92,13 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(settings),
-                success: function (data) { 
-                    $(`${status_message}`).text(data["message"]); 
+                success: function (data) {
+                    $(`${status_message}`).text(data["message"]);
                 }
             });
     }
 
     function saveIntegration(integration) {
-        console.log(`#${integration}_save_button`)
         $(`#${integration}_save_button`).html(`<span class="spinner-border spinner-border-sm"></span>`);
         $(`#${integration}_save_button`).addClass("disabled");
         let project_id = getSelectedProjectId();
@@ -501,7 +500,7 @@
                         $("#jira_password").val(data["jira_password"])
                         $("#jira_project").val(data["jira_project"])
                         $("#issue_type").val(data["issue_type"])
-                    }   
+                    }
                 }
             });
         } else if (modalID == "smtpModal") {
@@ -518,7 +517,7 @@
                         $("#smtp_user").val(data["smtp_user"])
                         $("#smtp_password").val(data["smtp_password"])
                         $("#smtp_sender").val(data["smtp_sender"])
-                    }   
+                    }
                 }
             });
         }
