@@ -233,7 +233,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     last_run = Column(Integer)
     job_type = Column(String(20))
     loops = Column(Integer)
-    aggregation=Column(String(20))
+    aggregation = Column(String(20))
 
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, cc_env_vars=None, parallel=None, execution=False):
@@ -262,6 +262,9 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 execution_json["quality_gate"] = "True"
             if "perfreports" in self.reporting:
                 execution_json["save_reports"] = "True"
+            if "jira" in self.reporting:
+                execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
+                cmd = f"{cmd} -r jira"
 
         if self.env_vars:
             for key, value in self.env_vars.items():
