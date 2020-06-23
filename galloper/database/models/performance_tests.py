@@ -264,7 +264,6 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 execution_json["save_reports"] = "True"
             if "jira" in self.reporting:
                 execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
-                cmd = f"{cmd} -r jira"
 
         if self.env_vars:
             for key, value in self.env_vars.items():
