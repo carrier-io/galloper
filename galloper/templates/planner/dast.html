@@ -1,0 +1,127 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+      <div class="row">
+        <div class="col">
+          <div class="card shadow">
+            <div class="card-header bg-white border-0">
+              <div class="row align-items-center">
+                <div class="col-8">
+                  <h3 class="mb-0">{{title}}</h3>
+                </div>
+                <div class="col-4 text-right">
+                  <a href="/tests?type=dast" class="btn btn-sm btn-primary">Cancel</a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <form id="crtask">
+                <h6 class="heading-small text-muted mb-4">Test Details</h6>
+                <!-- General settings -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
+                      <!-- Test name -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="testname">Test Name</label>
+                        <p><small>Enter a name that describes the purpose of your test.</small></p>
+                        <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- DAST target URL -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="dast_target_url">DAST target</label>
+                        <p><small>URL to scan</small></p>
+                        <input type="text" id="dast_target_url" class="form-control form-control-alternative" placeholder="DAST target URL (e.g. https://mysite.example.com/)">
+                      </div>
+                      <!-- Test ID -->
+                      <div class="form-group" id="testid" style="display:none">
+                        <label class="form-control-label" for="file">Test UUID</label>
+                        <p><small>UUID of the tests, may be used to refer it</small></p>
+                        <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Controls -->
+                <div class="pl-lg-4 mt-4">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
+                      <!-- <a href="javascript:void(0)" class="btn btn-warning">Test</a> -->
+                      <a href="/tests?type=dast" class="btn btn-danger">Cancel</a>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% include 'common/foot.html' %}
+<script>
+  var test_id = {{test_id}};
+
+  $(document).ready(function() {
+    if (test_id !== null) {
+      var project_id = $("#selected-project-id").text();
+      //
+      $.get(`/api/v1/tests/${project_id}/dast/${test_id}`, { raw: 1 }, function( data ) {
+        $('#submit').attr("onclick", "updateTest()");
+        $('#submit').text("Edit");
+        $('#testname').val(data.name);
+        $('#testname').prop("disabled", true);
+        $("#testid").css("display", "block");
+        $("#testuuid").val(data.test_uid);
+        $("#dast_target_url").val(data.dast_target_url);
+      });
+    }
+  });
+
+  function submitForm() {
+    var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var data = new FormData();
+    data.append('name', $('#testname').val());
+    data.append('dast_target_url', $('#dast_target_url').val());
+    console.log(data);
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/dast`,
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      method: 'POST',
+      success: function(data){
+        window.location.href = "/tests?type=dast";
+      }
+    });
+  }
+
+  function updateTest() {
+    var project_id = $("#selected-project-id").text();
+    //
+    var data = {
+      'dast_target_url': $('#dast_target_url').val()
+    }
+    console.log(data);
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/dast/${test_id}`,
+      data: JSON.stringify(data),
+      cache: false,
+      contentType: 'application/json',
+      type: 'PUT',
+      success: function(data){
+        window.location.href = "/tests?type=dast";
+      }
+    });
+  }
+</script>
+</body>
+</html>

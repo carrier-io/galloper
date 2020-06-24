@@ -39,6 +39,7 @@ def init_db():
     from .models import security_details
     from .models import security_reports
     from .models import security_results
+    from .models import security_tests
     from .models import task
     from .models import task_results
     from .models import statistic
