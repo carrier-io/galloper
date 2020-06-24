@@ -170,7 +170,6 @@ class TestApiFrontend(Resource):
                     params[key] = value
             setattr(task, each, params)
 
-        # if args.get("reporter"):
         task.reporting = args["reporter"]
         task.loops = args['loops']
         task.commit()
