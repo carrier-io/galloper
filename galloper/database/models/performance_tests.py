@@ -238,7 +238,11 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, cc_env_vars=None, parallel=None, execution=False):
 
-        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -a {self.aggregation}"
+        reports = []
+        for report in self.reporting:
+            reports.append(f"-r {report}")
+
+        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -a {self.aggregation} {' '.join(reports)}"
 
         execution_json = {
             "container": self.runner,
@@ -255,15 +259,8 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             "concurrency": 1
         }
 
-        if self.reporting:
-            if "junit" in self.reporting:
-                execution_json["junit"] = "True"
-            if "quality" in self.reporting:
-                execution_json["quality_gate"] = "True"
-            if "perfreports" in self.reporting:
-                execution_json["save_reports"] = "True"
-            if "jira" in self.reporting:
-                execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
+        if self.reporting and "jira" in self.reporting:
+            execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
 
         if self.env_vars:
             for key, value in self.env_vars.items():
