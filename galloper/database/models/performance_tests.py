@@ -259,7 +259,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             "concurrency": 1
         }
 
-        if self.reporting and "jira" in self.reporting:
+        if "jira" in self.reporting:
             execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
 
         if self.env_vars:
