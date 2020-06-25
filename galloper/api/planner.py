@@ -7,7 +7,7 @@ from flask import request, current_app
 from sqlalchemy import and_
 from galloper.api.base import get, upload_file, run_task
 from galloper.database.models.project import Project
-from galloper.database.models.performance_tests import PerformanceTests
+from galloper.database.models.performance_tests import PerformanceTests, UIPerformanceTests
 from galloper.utils.api_utils import build_req_parser, str2bool
 
 
@@ -101,6 +101,11 @@ class TestApi(Resource):
         # check if APIPerformanceTests
         _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_uuid)
         test = PerformanceTests.query.filter(_filter).first()
+        if test:
+            job_type = test.job_type
+
+        _filter = and_(UIPerformanceTests.project_id == project.id, UIPerformanceTests.test_uid == test_uuid)
+        test = UIPerformanceTests.query.filter(_filter).first()
         if test:
             job_type = test.job_type
 
