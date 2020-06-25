@@ -262,6 +262,11 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         if "jira" in self.reporting:
             execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
 
+        if "quality" in self.reporting:
+            execution_json["quality_gate"] = True
+        if "junit" in self.reporting:
+            execution_json["junit"] = True
+
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value
@@ -293,4 +298,4 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                f"-t {self.job_type} " \
                f"-j {'true' if 'junit' in self.reporting else 'false'} " \
                f"-r {self.parallel} -q {self.parallel} " \
-               f"-n {self.name}"
+               f"-n {self.name} -tid {self.test_uid}"
