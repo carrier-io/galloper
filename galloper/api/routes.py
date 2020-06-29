@@ -25,6 +25,9 @@ from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, 
 from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend, TestApi
 from .ui_planner import UITestsApiPerformance, TestApiFrontend
+from .security_planner import SecuritySeedDispatcher
+from .security_planner import TestsApiSecurityDAST, TestApiSecurityDAST
+# from .security_planner import TestsApiSecuritySAST, TestApiSecuritySAST
 from .visual import VisualReportAPI, VisualResultAPI
 from .task import TaskActionApi, TasksApi, TaskApi
 from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, EnvironmentsAPI
@@ -84,3 +87,13 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, UITestsApiPerformance, "/tests/<int:project_id>/frontend")
     add_resource_to_api(api, TestApiFrontend, "/tests/<int:project_id>/frontend/<int:test_id>",
                         "/tests/<int:project_id>/frontend/<string:test_id>")
+
+    add_resource_to_api(api, SecuritySeedDispatcher, "/tests/<int:project_id>/security/<string:seed>")
+
+    add_resource_to_api(api, TestsApiSecurityDAST, "/tests/<int:project_id>/dast")
+    add_resource_to_api(api, TestApiSecurityDAST, "/tests/<int:project_id>/dast/<int:test_id>",
+                        "/tests/<int:project_id>/dast/<string:test_id>")
+
+    # add_resource_to_api(api, TestsApiSecuritySAST, "/tests/<int:project_id>/sast")
+    # add_resource_to_api(api, TestApiSecuritySAST, "/tests/<int:project_id>/sast/<int:test_id>",
+    #                     "/tests/<int:project_id>/sast/<string:test_id>")

@@ -42,3 +42,19 @@ def frontend(project: Project):
     if request.args.get("test"):
         return render_template("planner/frontend.html", title="Edit performance tests", test_id=request.args.get("test"))
     return render_template("planner/frontend.html", title="Add performance tests", test_id="null")
+
+
+@bp.route("/tests/dast", methods=["GET", "POST"])
+@project_required
+def dast(project: Project):
+    if request.args.get("test"):
+        return render_template("planner/dast.html", title="Edit security tests", test_id=request.args.get("test"))
+    return render_template("planner/dast.html", title="Add security tests", test_id="null")
+
+
+@bp.route("/tests/sast", methods=["GET", "POST"])
+@project_required
+def sast(project: Project):
+    if request.args.get("test"):
+        return render_template("planner/sast.html", title="Edit security tests", test_id=request.args.get("test"))
+    return render_template("planner/sast.html", title="Add security tests", test_id="null")
