@@ -57,12 +57,12 @@ class PerformanceTests(AbstractBaseMixin, Base):
         "gatling2": {
             "container": "getcarrier/perfgun:2.3",
             "job_type": "perfgun",
-            "influx_db": "jmeter"
+            "influx_db": "gatling"
         },
         "gatling3": {
             "container": "getcarrier/perfgun:latest",
             "job_type": "perfgun",
-            "influx_db": "jmeter"
+            "influx_db": "gatling"
         }
     }
 
@@ -171,6 +171,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value
+        if "influxdb_host" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_host"] = "{{secret.influx_ip}}"
         if "loki_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in execution_json["execution_params"].keys():
