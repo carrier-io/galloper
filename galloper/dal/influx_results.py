@@ -301,18 +301,17 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
         scope_addon = f"and request_name='{scope}'"
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    hits_query = f"select time, response_time from {lg_type}..{test_name} where " \
+    hits_query = f"select hit from {lg_type}..{test_name} where " \
                  f"time>='{start_time}' and time<='{end_time}'{status_addon} and sampler_type='{sampler}' and" \
                  f" build_id='{build_id}' {scope_addon}"
     results = {"hits": {}}
-    for _ in timestamps:
-        results['hits'][_] = 0
     res = get_client().query(hits_query)[test_name]
     for _ in res:
-        timestamp = str_to_timestamp(_['time'])
-        hit_time = datetime.fromtimestamp(timestamp - float(_["response_time"]) / 1000.0, tz=timezone.utc)
+        hit_time = datetime.fromtimestamp(float(_["hit"]), tz=timezone.utc)
         if hit_time.strftime("%Y-%m-%dT%H:%M:%SZ") in results['hits']:
             results['hits'][hit_time.strftime("%Y-%m-%dT%H:%M:%SZ")] += 1
+        else:
+            results['hits'][hit_time.strftime("%Y-%m-%dT%H:%M:%SZ")] = 1
     # aggregation of hits
     _tmp = []
     if 'm' in aggregation:
