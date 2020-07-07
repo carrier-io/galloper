@@ -109,24 +109,23 @@ function setInterval() {
   elem = null
 }
 
-function drawGauge(number, element_id) {
+function drawGauge(number, element_id, label) {
   const opts = {
     percent: number,
-    stroke: 7,
+    stroke: 3,
     colorName: getColorName(number)
   };
-
-  createDonut(document.getElementById(element_id), opts);
+  createDonut(document.getElementById(element_id), opts, label);
 }
 
 function getColorName(number) {
   let color = "green";
-
   if (number > 60 && 90 > number) {
     color = "yellow"
-  } else if (60 > number) {
+  } else if (60 > number && number > 0 ) {
     color = "red"
+  }  else if (number === 0) {
+    color = "gray"
   }
-
   return color;
 }

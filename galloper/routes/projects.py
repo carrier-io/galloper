@@ -28,7 +28,7 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.utils.auth import project_required, superadmin_required
+from galloper.utils.auth import project_required, superadmin_required, filter_projects
 
 bp = Blueprint("projects", __name__)
 
@@ -36,6 +36,12 @@ bp = Blueprint("projects", __name__)
 @bp.route("/projects", methods=["GET"])
 def list():
     return render_template("projects/projects.html")
+
+
+@bp.route("/projects/health", methods=["GET"])
+@filter_projects
+def project_health(project_list: list):
+    return render_template("projects/projects_health.html")
 
 
 @bp.route("/project/add", methods=["GET", "POST"])

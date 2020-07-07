@@ -274,13 +274,12 @@ class TestSaturation(Resource):
         dict(name='max_errors', type=float, default=100.0, location="args"),
         dict(name='aggregation', type=str, default="1m", location="args"),
         dict(name='status', type=str, default='ok', location="args"),
-        dict(name="calculation", type=str, default="pct95", location="args"),
+        dict(name="calculation", type=str, default="sum", location="args"),
         dict(name="deviation", type=float, default=0.02, location="args"),
         dict(name="max_deviation", type=float, default=0.05, location="args"),
         dict(name="extended_output", type=bool, default=False, location="args"),
         dict(name="u", type=int, action="append", location="args"),
         dict(name="u_aggr", type=int, default=2, location="args"),
-        dict(name="ss", type=int, default=42, location="args")
     )
 
     def __init__(self):
@@ -320,16 +319,26 @@ class TestSaturation(Resource):
         tps = list()
         usrs = list()
         errors = list()
-        ss = args['ss']
+        if 'm' in args["aggregation"]:
+            ss = int(args["aggregation"].replace('m', '')) * 60
+        elif 's' in args["aggregation"]:
+            ss = int(args["aggregation"].replace('s', ''))
+        else:
+            ss = 60
+        calculation_mapping = {
+            'max': max,
+            'min': min,
+            'mean': mean,
+            'sum': sum
+        }
+        calculation = args['calculation'] if args['calculation'] in list(args['calculation'].keys()) else 'sum'
         for index, _ in enumerate(data["responses"].values()):
-            if _ and _ > 0:
-                _tmp.append(_)
             if len(_tmp) and (len(_tmp) % ss) == 0:
-                tps.append(round(harmonic_mean(_tmp)))
+                tps.append(round(calculation_mapping[calculation](_tmp)))
                 usrs.append(users[index])
                 _tmp = []
         if _tmp:
-            tps.append(round(harmonic_mean(_tmp)))
+            tps.append(round(calculation_mapping[calculation](_tmp)))
             usrs.append(users[-1])
             _tmp = []
         _, data, _ = get_errors(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
@@ -377,8 +386,7 @@ class TestSaturation(Resource):
                                          "1s", args["sampler"], scope=args["request"],
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
-                    tp = list(filter(lambda a: a != 0, tp))
-                    tp = harmonic_mean(tp) if len(tp) != 0 else 0
+                    tp = calculation_mapping[calculation](tp) if len(tp) != 0 else 0
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                       start_time, key, "1s", args["sampler"], scope=args["request"],
                                                       status=args["status"])
