@@ -25,6 +25,7 @@ def non_decreasing(data, deviation=None, val=False):
             return data[-1], index
 
 
+
 def monotonic(data):
     return non_increasing(data) or non_decreasing(data)
 
