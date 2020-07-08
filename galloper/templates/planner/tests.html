@@ -150,8 +150,12 @@
             url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
             type: 'POST',
             success: function (result) {
-                if(type === "frontend"){
+                if (type === "frontend"){
                     window.location.href = `/visual`;
+                } else if (type === "dast") {
+                    window.location.href = `/security`;
+                } else if (type === "sast") {
+                    window.location.href = `/security`;
                 } else {
                     window.location.href = `/report`;
                 }

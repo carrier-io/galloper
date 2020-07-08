@@ -8,6 +8,7 @@ from sqlalchemy import and_
 from galloper.api.base import get, upload_file, run_task
 from galloper.database.models.project import Project
 from galloper.database.models.performance_tests import PerformanceTests, UIPerformanceTests
+from galloper.database.models.security_tests import SecurityTestsDAST, SecurityTestsSAST
 from galloper.utils.api_utils import build_req_parser, str2bool
 
 
@@ -109,7 +110,19 @@ class TestApi(Resource):
         if test:
             job_type = test.job_type
 
-        # TODO add UIPerformanceTests, DAST and SAST
+        _filter = and_(
+            SecurityTestsDAST.project_id == project.id, SecurityTestsDAST.test_uid == test_uuid
+        )
+        test = SecurityTestsDAST.query.filter(_filter).first()
+        if test:
+            job_type = "dast"
+
+        _filter = and_(
+            SecurityTestsSAST.project_id == project.id, SecurityTestsSAST.test_uid == test_uuid
+        )
+        test = SecurityTestsSAST.query.filter(_filter).first()
+        if test:
+            job_type = "sast"
 
         return {"job_type": job_type}
 
