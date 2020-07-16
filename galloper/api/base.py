@@ -10,8 +10,7 @@ from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
 from galloper.dal.vault import get_project_secrets, unsecret
-import zipfile
-import shutil
+
 from werkzeug.exceptions import Forbidden
 from werkzeug.utils import secure_filename
 
@@ -19,7 +18,7 @@ from botocore.exceptions import ClientError
 
 from control_tower import run
 import docker
-from docker.types import Mount
+
 
 
 def _calcualte_limit(limit, total):
