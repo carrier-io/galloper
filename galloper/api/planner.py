@@ -5,7 +5,7 @@ from json import loads
 from werkzeug.datastructures import FileStorage
 from flask import request, current_app
 from sqlalchemy import and_
-from galloper.api.base import get, upload_file, run_task
+from galloper.api.base import get, upload_file, run_task, compile_tests
 from galloper.database.models.project import Project
 from galloper.database.models.performance_tests import PerformanceTests, UIPerformanceTests
 from galloper.utils.api_utils import build_req_parser, str2bool
@@ -30,6 +30,7 @@ class TestsApiPerformance(Resource):
         dict(name="reporter", type=str, location='form'),
         dict(name="emails", type=str, location='form'),
         dict(name="runner", type=str, location='form'),
+        dict(name="compile", type=str2bool, location='form'),
         dict(name="params", type=str, location='form'),
         dict(name="env_vars", type=str, location='form'),
         dict(name="customization", type=str, location='form'),
@@ -63,6 +64,9 @@ class TestsApiPerformance(Resource):
         file_name = args["file"].filename
         bucket = "tests"
         upload_file(bucket, args["file"], project, create_if_not_exists=True)
+        if args["compile"] and "gatling" in args["runner"]:
+            compile_tests(project.id, file_name, args["runner"])
+
         reporting = args["reporter"].split(",") if args["reporter"] else []
         test = PerformanceTests(project_id=project.id,
                                 test_uid=str(uuid4()),
