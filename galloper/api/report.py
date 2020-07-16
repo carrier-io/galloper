@@ -315,6 +315,7 @@ class TestSaturation(Resource):
             return {"message": "not enough results", "code": 0}
         ts_array, data, users = get_tps(report.build_id, report.name, report.lg_type, str_start_time, str_current_time,
                                         "1s", args["sampler"], scope=args["request"], status=args["status"])
+        users = list(users["users"].values())
         _tmp = []
         tps = list()
         usrs = list()
@@ -331,8 +332,10 @@ class TestSaturation(Resource):
             'mean': mean,
             'sum': sum
         }
-        calculation = args['calculation'] if args['calculation'] in list(args['calculation'].keys()) else 'sum'
+        calculation = args['calculation'] if args['calculation'] in list(calculation_mapping.keys()) else 'sum'
         for index, _ in enumerate(data["responses"].values()):
+            if isinstance(_, int):
+                _tmp.append(_)
             if len(_tmp) and (len(_tmp) % ss) == 0:
                 tps.append(round(calculation_mapping[calculation](_tmp)))
                 usrs.append(users[index])
@@ -352,11 +355,17 @@ class TestSaturation(Resource):
         try:
             max_tp, user_index = arrays.non_decreasing(tps[:-1], deviation=args["deviation"], val=True)
             max_users = usrs[user_index]
+            current_users = usrs[user_index + 1]
+            if current_users == max_users:
+                current_users += 1
+            if current_users == 0:
+                current_users = max_users + 1
         except TypeError:
             return {"message": "not enough results", "code": 0}
         except IndexError:
             if error_rate > args["max_errors"]:
-                return {"message": f"error rate reached 100% for {args['request']} transaction", "code": 1}
+                return {"message": f"error rate reached 100% for {args['request']} transaction", "errors_rate": 100.0,
+                        "code": 1}
             else:
                 return {"message": "not enough results", "code": 0}
 
@@ -364,6 +373,7 @@ class TestSaturation(Resource):
             "ts": ts_array[-1],
             "max_users": max_users,
             "max_throughput": round(max(tps[:-1]), 2),
+            "current_users": current_users,
             "current_throughput": round(max_tp, 2),
             "errors_rate": round(error_rate, 2)
         }
@@ -371,6 +381,8 @@ class TestSaturation(Resource):
             user_array = args["u"]
             if max_users not in user_array:
                 user_array.append(max_users)
+            if current_users not in user_array:
+                user_array.append(current_users)
             user_array.sort()
             user_array.reverse()
             uber_array = {}
@@ -387,10 +399,19 @@ class TestSaturation(Resource):
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
                     tp = calculation_mapping[calculation](tp) if len(tp) != 0 else 0
+                    if round(tp, 2) > response["max_throughput"] and u != current_users:
+                        response["max_throughput"] = round(tp, 2)
+                        response["max_users"] = u
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                       start_time, key, "1s", args["sampler"], scope=args["request"],
                                                       status=args["status"])
-                    rt = [0 if v is None else v for v in list(data['response'].values())[:-1]]
+                    rt = []
+                    started = False
+                    for v in list(data['response'].values())[:-1]:
+                        if v and v > 0:
+                            started = True
+                        if started and v and v > 0:
+                            rt.append(v)
                     rt = self.part(rt, args["u_aggr"]) if rt else 0
                     uber_array[str(u)] = {
                         "throughput": round(tp, 2),
@@ -398,7 +419,7 @@ class TestSaturation(Resource):
                     }
                     start_time = key
                     u = user_array.pop()
-            if str(max_users) not in list(uber_array.keys()):
+            if str(response["max_users"]) not in list(uber_array.keys()):
                 _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                   start_time, end_time, "1s", args["sampler"], scope=args["request"],
                                                   status=args["status"])
@@ -411,11 +432,19 @@ class TestSaturation(Resource):
                         rt.append(v)
                 rt = self.part(rt, args["u_aggr"]) if rt else 0
                 uber_array[str(max_users)] = {
-                    "throughput": response["current_throughput"],
+                    "throughput": response["max_throughput"],
                     "response_time": round(rt, 2)
                 }
             else:
-                uber_array[str(max_users)]["throughput"] = response["current_throughput"]
+                uber_array[str(response["max_users"])]["throughput"] = response["max_throughput"]
+            if str(current_users) not in list(uber_array.keys()):
+
+                uber_array[str(current_users)] = {
+                    "throughput": response["current_throughput"],
+                    "response_time": uber_array.get(str(max_users), list(uber_array.values())[-1])["response_time"]
+                }
+            else:
+                uber_array[str(current_users)]["throughput"] = response["current_throughput"]
             response["benchmark"] = uber_array
         if args["extended_output"]:
             response["details"] = {}

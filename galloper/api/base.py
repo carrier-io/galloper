@@ -17,6 +17,9 @@ from werkzeug.utils import secure_filename
 from botocore.exceptions import ClientError
 
 from control_tower import run
+import docker
+
+
 
 def _calcualte_limit(limit, total):
     return len(total) if limit == 'All' else limit
@@ -43,6 +46,19 @@ def get(project_id, args, data_model, additional_filter=None):
     res = data_model.query.filter(filter_).order_by(sort_rule).limit(
         _calcualte_limit(limit_, total)).offset(offset_).all()
     return total, res
+
+
+def compile_tests(project_id, file_name, runner):
+    client = docker.from_env()
+    container_mapper = {
+        "gatling2": "getcarrier/perfgun:2.3",
+        "gatling3": "getcarrier/perfgun:latest"
+    }
+    container_name = container_mapper.get(runner)
+    secrets = get_project_secrets(project_id)
+    env_vars = {"artifact": file_name, "bucket": "tests", "galloper_url": secrets["galloper_url"],
+                "token": secrets["auth_token"], "project_id": project_id, "compile": "true"}
+    client.containers.run(container_name, stderr=True, remove=True, environment=env_vars, tty=True, user='0:0')
 
 
 def upload_file(bucket, f, project, create_if_not_exists=False):
