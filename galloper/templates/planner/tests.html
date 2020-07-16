@@ -17,7 +17,7 @@
                                 </a>
                             </li>
                             <li class="nav-item mr-2 mr-md-0">
-                                <button id="DR" onclick="deleteReports()" class="btn btn-primary btn-sm" disabled>
+                                <button id="DR" onclick="deleteTasks()" class="btn btn-primary btn-sm" disabled>
                                     <span class="d-none d-md-block"><i class="fa fa-trash-alt"></i></span>
                                 </button>
                             </li>
@@ -150,8 +150,12 @@
             url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
             type: 'POST',
             success: function (result) {
-                if(type === "frontend"){
+                if (type === "frontend"){
                     window.location.href = `/visual`;
+                } else if (type === "dast") {
+                    window.location.href = `/security`;
+                } else if (type === "sast") {
+                    window.location.href = `/security`;
                 } else {
                     window.location.href = `/report`;
                 }

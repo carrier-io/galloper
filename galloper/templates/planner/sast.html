@@ -17,6 +17,45 @@
             <div class="card-body">
               <form id="crtask">
                 <h6 class="heading-small text-muted mb-4">Test Details</h6>
+                <!-- General settings -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
+                      <!-- Test name -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="testname">Test Name</label>
+                        <p><small>Enter a name that describes the purpose of your test.</small></p>
+                        <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
+                      </div>
+                      <!-- Test ID -->
+                      <div class="form-group" id="testid" style="display:none">
+                        <label class="form-control-label" for="file">Test UUID</label>
+                        <p><small>UUID of the tests, may be used to refer it</small></p>
+                        <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- SAST target repo -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="sast_target_repo">SAST target</label>
+                        <p><small>Git repo to scan</small></p>
+                        <input type="text" id="sast_target_repo" class="form-control form-control-alternative" placeholder="SAST target repo URL (e.g. https://github.com/carrier-io/dusty.git)">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Controls -->
+                <div class="pl-lg-4 mt-4">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
+                      <!-- <a href="javascript:void(0)" class="btn btn-warning">Test</a> -->
+                      <a href="/tests?type=sast" class="btn btn-danger">Cancel</a>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
           </div>
@@ -24,7 +63,68 @@
       </div>
 {% include 'common/foot.html' %}
 <script>
-    var test_id = {{test_id}};
+  var test_id = {{test_id}};
+
+  $(document).ready(function() {
+    if (test_id !== null) {
+      var project_id = $("#selected-project-id").text();
+      //
+      $.get(`/api/v1/tests/${project_id}/sast/${test_id}`, { raw: 1 }, function( data ) {
+        $('#submit').attr("onclick", "updateTest()");
+        $('#submit').text("Edit");
+        $('#testname').val(data.name);
+        $('#testname').prop("disabled", true);
+        $("#testid").css("display", "block");
+        $("#testuuid").val(data.test_uid);
+        $("#sast_target_repo").val(data.sast_settings.sast_target_repo);
+      });
+    }
+  });
+
+  function submitForm() {
+    var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var data = new FormData();
+    data.append('name', $('#testname').val());
+    data.append('sast_settings', JSON.stringify({
+      'sast_target_repo': $('#sast_target_repo').val()
+    }));
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/sast`,
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      method: 'POST',
+      success: function(data) {
+        window.location.href = "/tests?type=sast";
+      }
+    });
+  }
+
+  function updateTest() {
+    var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var data = {
+      'sast_settings': JSON.stringify({
+        'sast_target_repo': $('#sast_target_repo').val()
+      })
+    }
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/sast/${test_id}`,
+      data: JSON.stringify(data),
+      cache: false,
+      contentType: 'application/json',
+      type: 'PUT',
+      success: function(data) {
+        window.location.href = "/tests?type=sast";
+      }
+    });
+  }
 </script>
 </body>
 </html>
