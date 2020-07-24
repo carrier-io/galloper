@@ -279,7 +279,7 @@ class TestSaturation(Resource):
         dict(name="max_deviation", type=float, default=0.05, location="args"),
         dict(name="extended_output", type=bool, default=False, location="args"),
         dict(name="u", type=int, action="append", location="args"),
-        dict(name="u_aggr", type=int, default=2, location="args"),
+        dict(name="u_aggr", type=int, default=5, location="args"),
     )
 
     def __init__(self):
@@ -354,12 +354,13 @@ class TestSaturation(Resource):
         error_rate = float(sum(errors))/float(total) * 100
         try:
             max_tp, user_index = arrays.non_decreasing(tps[:-1], deviation=args["deviation"], val=True)
-            max_users = usrs[user_index]
-            current_users = usrs[user_index + 1]
+            max_users = args["u_aggr"] * round(usrs[user_index]/args["u_aggr"])
+            max_tp = tps[user_index]
+            current_users = args["u_aggr"] * round(usrs[user_index+1]/args["u_aggr"])
             if current_users == max_users:
-                current_users += 1
+                current_users += args["u_aggr"]
             if current_users == 0:
-                current_users = max_users + 1
+                current_users = max_users + args["u_aggr"]
         except TypeError:
             return {"message": "not enough results", "code": 0}
         except IndexError:
@@ -372,9 +373,9 @@ class TestSaturation(Resource):
         response = {
             "ts": ts_array[-1],
             "max_users": max_users,
-            "max_throughput": round(max(tps[:-1]), 2),
+            "max_throughput": round(max_tp, 2),
             "current_users": current_users,
-            "current_throughput": round(max_tp, 2),
+            "current_throughput": round(tps[user_index], 2),
             "errors_rate": round(error_rate, 2)
         }
         if args["u"]:
@@ -398,7 +399,13 @@ class TestSaturation(Resource):
                                          "1s", args["sampler"], scope=args["request"],
                                          status=args["status"])
                     tp = [0 if v is None else v for v in list(data['responses'].values())[:-1]]
+                    array_size = len(tp)
                     tp = calculation_mapping[calculation](tp) if len(tp) != 0 else 0
+                    if array_size != ss:
+                        coefficient = float(array_size/ss)
+                    else:
+                        coefficient = 1
+                    tp = int(tp / coefficient)
                     if round(tp, 2) > response["max_throughput"] and u != current_users:
                         response["max_throughput"] = round(tp, 2)
                         response["max_users"] = u
