@@ -114,9 +114,9 @@ class VisualResultAPI(Resource):
         graph_aggregation = {}
         for result in results:
             if result.name in graph_aggregation.keys():
-                graph_aggregation[result.name].append(result)
+                graph_aggregation[result.identifier].append(result)
             else:
-                graph_aggregation[result.name] = [result]
+                graph_aggregation[result.identifier] = [result]
 
         for name, values in graph_aggregation.items():
             aggregated_total = get_aggregated_data(report.aggregation, values)
