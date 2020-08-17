@@ -17,7 +17,7 @@
             <div class="card-body">
               <form id="crtask">
                 <h6 class="heading-small text-muted mb-4">Test Details</h6>
-                <!-- General settings -->
+                <!-- General test settings -->
                 <div class="pl-lg-4">
                   <div class="row">
                     <!-- Left column -->
@@ -31,17 +31,107 @@
                     </div>
                     <!-- Right column -->
                     <div class="col-lg-6">
+                      <!-- Test ID -->
+                      <div class="form-group" id="testid" style="display:none">
+                        <label class="form-control-label" for="file">Test UUID</label>
+                        <p><small>UUID of the tests, may be used to refer it</small></p>
+                        <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Separator -->
+                <hr class="my-4" />
+                <!-- Scan settings -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
                       <!-- DAST target URL -->
                       <div class="form-group">
                         <label class="form-control-label" for="dast_target_url">DAST target</label>
                         <p><small>URL to scan</small></p>
                         <input type="text" id="dast_target_url" class="form-control form-control-alternative" placeholder="DAST target URL (e.g. https://mysite.example.com/)">
                       </div>
-                      <!-- Test ID -->
-                      <div class="form-group" id="testid" style="display:none">
-                        <label class="form-control-label" for="file">Test UUID</label>
-                        <p><small>UUID of the tests, may be used to refer it</small></p>
-                        <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- Scanners selection -->
+                      <div class="form-group" id="scanners">
+                        <label class="form-control-label">Scanners</label>
+                        <p><small>Specify scanners to use.</small></p>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="zap">
+                          <label class="custom-control-label" for="zap">OWASP ZAP</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="w3af">
+                          <label class="custom-control-label" for="w3af">W3af</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="nikto">
+                          <label class="custom-control-label" for="nikto">Nikto</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="nmap">
+                          <label class="custom-control-label" for="nmap">NMap</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="masscan">
+                          <label class="custom-control-label" for="masscan">Masscan</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="sslyze">
+                          <label class="custom-control-label" for="sslyze">SSLyze</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-scanners" id="aemhacker">
+                          <label class="custom-control-label" for="aemhacker">AEM Hacker</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Separator -->
+                <hr class="my-4" />
+                <!-- Reporting -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
+                      <!-- Reporters selection -->
+                      <div class="form-group" id="reporters">
+                        <label class="form-control-label">Reporting</label>
+                        <p><small>Specify expected report types.</small></p>
+                        <!-- <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="junit">
+                          <label class="custom-control-label" for="junit">jUnit Report</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="quality">
+                          <label class="custom-control-label" for="quality">Quality Gate</label>
+                        </div> -->
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="email">
+                          <label class="custom-control-label" for="email">Email</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="jira">
+                          <label class="custom-control-label" for="jira">Jira</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="toolreports">
+                          <label class="custom-control-label" for="toolreports">Tool Reports</label>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- Email recipients -->
+                      <div class="form-group" id="email_recipients_group" style="display: none;">
+                        <label class="form-control-label" for="email_recipients">Email recipients</label>
+                        <p><small>Comaseparated list of emails</small></p>
+                        <input type="text" id="email_recipients" class="form-control form-control-alternative" placeholder="user_1@example.com, user_2@example.com">
                       </div>
                     </div>
                   </div>
@@ -76,8 +166,28 @@
         $('#testname').prop("disabled", true);
         $("#testid").css("display", "block");
         $("#testuuid").val(data.test_uid);
-        $("#dast_target_url").val(data.dast_target_url);
+        //
+        $("#dast_target_url").val(data.dast_settings.dast_target_url);
+        data.dast_settings.scanners_checked.forEach(item => {
+            $(`#${item}`).prop("checked", true);
+        });
+        data.dast_settings.reporters_checked.forEach(item => {
+            $(`#${item}`).prop("checked", true);
+        });
+        //
+        $("#email_recipients").val(data.dast_settings.email_recipients);
+        if ($("#email").prop("checked") == true) {
+          $("#email_recipients_group").show();
+        }
       });
+    }
+  });
+
+  $("#email").change(function() {
+    if (this.checked) {
+      $("#email_recipients_group").show();
+    } else {
+      $("#email_recipients_group").hide();
     }
   });
 
@@ -85,10 +195,24 @@
     var project_id = $("#selected-project-id").text();
     event.preventDefault();
     //
+    var scanners_checked = []
+    $("input:checkbox:checked.carrier-config-scanners").each(function() {
+      scanners_checked.push($(this).attr("id"));
+    });
+    //
+    var reporters_checked = []
+    $("input:checkbox:checked.carrier-config-reporters").each(function() {
+      reporters_checked.push($(this).attr("id"));
+    });
+    //
     var data = new FormData();
     data.append('name', $('#testname').val());
-    data.append('dast_target_url', $('#dast_target_url').val());
-    console.log(data);
+    data.append('dast_settings', JSON.stringify({
+      'dast_target_url': $('#dast_target_url').val(),
+      'scanners_checked': scanners_checked,
+      'reporters_checked': reporters_checked,
+      'email_recipients': $('#email_recipients').val()
+    }));
     //
     $.ajax({
       url: `/api/v1/tests/${project_id}/dast`,
@@ -97,7 +221,7 @@
       contentType: false,
       processData: false,
       method: 'POST',
-      success: function(data){
+      success: function(data) {
         window.location.href = "/tests?type=dast";
       }
     });
@@ -105,11 +229,26 @@
 
   function updateTest() {
     var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var scanners_checked = []
+    $("input:checkbox:checked.carrier-config-scanners").each(function() {
+      scanners_checked.push($(this).attr("id"));
+    });
+    //
+    var reporters_checked = []
+    $("input:checkbox:checked.carrier-config-reporters").each(function() {
+      reporters_checked.push($(this).attr("id"));
+    });
     //
     var data = {
-      'dast_target_url': $('#dast_target_url').val()
+      'dast_settings': JSON.stringify({
+        'dast_target_url': $('#dast_target_url').val(),
+        'scanners_checked': scanners_checked,
+        'reporters_checked': reporters_checked,
+        'email_recipients': $('#email_recipients').val()
+      })
     }
-    console.log(data);
     //
     $.ajax({
       url: `/api/v1/tests/${project_id}/dast/${test_id}`,
@@ -117,7 +256,7 @@
       cache: false,
       contentType: 'application/json',
       type: 'PUT',
-      success: function(data){
+      success: function(data) {
         window.location.href = "/tests?type=dast";
       }
     });

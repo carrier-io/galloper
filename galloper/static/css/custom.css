@@ -1,3 +1,4 @@
+
 .preview {
     width:400px; height:400px;
     -webkit-transform-origin:0 0;
@@ -15,4 +16,75 @@
 
 .search-input {
  margin-right: 25px;
+}
+
+.badge-success-empty
+{
+    color: #1aae6f;
+    background-color: #fff;
+}
+.badge-success-empty[href]:hover,
+.badge-success-empty[href]:focus
+{
+    text-decoration: none;
+
+    color: rgba(147, 231, 195, .5);
+    background-color: #fff;
+}
+
+
+/* region donut */
+
+.card-header .donut-holder { text-decoration: none; }
+
+.card-header .donut-holder:hover { text-decoration: none;}
+
+.card-header .green-fill { fill: #23ac58;}
+
+.card-header .green-stroke { stroke: #23ac58;}
+
+.card-header .yellow-fill { fill: #ffc100;}
+
+.card-header .yellow-stroke { stroke: #ffc100;}
+
+.card-header .red-fill { fill: #e50a0a;}
+
+.card-header .red-stroke { stroke: #e50a0a;}
+
+.donut {
+  background: #fff;
+  justify-content: center;
+  height: 42px;
+  width: 42px;
+  align-items: center;
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (max-width: 40px) {
+  .card-header .donut {
+    margin: 0 auto;
+  }
+}
+
+.card-header .donut-title {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #333;
+}
+
+.card-header .donut-textfield a {
+  text-decoration: none;
+  color: #000;
+  font-size: 0.8em;
+  font-weight: 300;
+}
+
+.card-header .donut-canvas {
+  display: inline-block;
+  position: relative;
 }

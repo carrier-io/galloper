@@ -17,6 +17,175 @@
             <div class="card-body">
               <form id="crtask">
                 <h6 class="heading-small text-muted mb-4">Test Details</h6>
+                <!-- General settings -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
+                      <!-- Test name -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="testname">Test Name</label>
+                        <p><small>Enter a name that describes the purpose of your test.</small></p>
+                        <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- Test ID -->
+                      <div class="form-group" id="testid" style="display:none">
+                        <label class="form-control-label" for="file">Test UUID</label>
+                        <p><small>UUID of the tests, may be used to refer it</small></p>
+                        <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Separator -->
+                <hr class="my-4" />
+                <!-- Scan settings -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <!-- SAST target type -->
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="sast_target_type">SAST target type</label>
+                        <p><small>Scan target source</small></p>
+                        <select class="form-control" id="sast_target_type">
+                          <option value="target_git" selected="selected">Git</option>
+                          <option value="target_galloper_artifact">Artifact</option>
+                          <option value="target_code_path">Files</option>
+                        </select>
+                      </div>
+                      <!-- SAST target repo -->
+                      <div id="target_git" class="carrier-sast-target">
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_repo">SAST target</label>
+                          <p><small>Git repo to scan</small></p>
+                          <input type="text" id="sast_target_repo" class="form-control form-control-alternative" placeholder="SAST target repo URL (e.g. https://github.com/carrier-io/dusty.git)">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_repo_user">SAST target user</label>
+                          <p><small>Git repo username</small></p>
+                          <input type="text" id="sast_target_repo_user" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_repo_pass">SAST target pass</label>
+                          <p><small>Git repo password</small></p>
+                          <input type="text" id="sast_target_repo_pass" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_repo_key">SAST target key</label>
+                          <p><small>Git repo SSH private key</small></p>
+                          <input type="text" id="sast_target_repo_key" class="form-control form-control-alternative" placeholder="(optional, for GIT+SSH URLs)">
+                        </div>
+                      </div>
+                      <!-- SAST target artifact -->
+                      <div id="target_galloper_artifact" class="carrier-sast-target">
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_artifact">SAST target</label>
+                          <p><small>Artifact to scan</small></p>
+                          <input type="text" id="sast_target_artifact" class="form-control form-control-alternative" placeholder="Artifact name">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_artifact_bucket">SAST target bucket</label>
+                          <p><small>Artifact bucket</small></p>
+                          <input type="text" id="sast_target_artifact_bucket" class="form-control form-control-alternative" placeholder="Artifact bucket">
+                        </div>
+                      </div>
+                      <!-- SAST target code -->
+                      <div id="target_code_path" class="carrier-sast-target">
+                        <div class="form-group">
+                          <label class="form-control-label" for="sast_target_code">SAST target</label>
+                          <p><small>Code path to scan</small></p>
+                          <input type="text" id="sast_target_code" class="form-control form-control-alternative" placeholder="Code path (e.g. /data)">
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- Language selection -->
+                      <div class="form-group">
+                        <label class="form-control-label" for="language">Language</label>
+                        <p><small>Code language</small></p>
+                        <select class="form-control" id="language">
+                          <option value="python" selected="selected">Python</option>
+                          <option value="ruby">Ruby</option>
+                          <option value="nodejs">NodeJS</option>
+                          <option value="java">Java</option>
+                          <option value="golang">Go</option>
+                        </select>
+                      </div>
+                      <!-- Options -->
+                      <div class="form-group" id="options">
+                        <label class="form-control-label">Options</label>
+                        <p><small>Specify options.</small></p>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-options" id="composition">
+                          <label class="custom-control-label" for="composition">Composition analysis</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-options" id="secretscan">
+                          <label class="custom-control-label" for="secretscan">Secret leakage scanning</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Separator -->
+                <hr class="my-4" />
+                <!-- Reporting -->
+                <div class="pl-lg-4">
+                  <div class="row">
+                    <!-- Left column -->
+                    <div class="col-lg-6">
+                      <!-- Reporters selection -->
+                      <div class="form-group" id="reporters">
+                        <label class="form-control-label">Reporting</label>
+                        <p><small>Specify expected report types.</small></p>
+                        <!-- <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="junit">
+                          <label class="custom-control-label" for="junit">jUnit Report</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="quality">
+                          <label class="custom-control-label" for="quality">Quality Gate</label>
+                        </div> -->
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="email">
+                          <label class="custom-control-label" for="email">Email</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="jira">
+                          <label class="custom-control-label" for="jira">Jira</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                          <input type="checkbox" class="custom-control-input carrier-config-reporters" id="toolreports">
+                          <label class="custom-control-label" for="toolreports">Tool Reports</label>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-lg-6">
+                      <!-- Email recipients -->
+                      <div class="form-group" id="email_recipients_group" style="display: none;">
+                        <label class="form-control-label" for="email_recipients">Email recipients</label>
+                        <p><small>Comaseparated list of emails</small></p>
+                        <input type="text" id="email_recipients" class="form-control form-control-alternative" placeholder="user_1@example.com, user_2@example.com">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Controls -->
+                <div class="pl-lg-4 mt-4">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
+                      <!-- <a href="javascript:void(0)" class="btn btn-warning">Test</a> -->
+                      <a href="/tests?type=sast" class="btn btn-danger">Cancel</a>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
           </div>
@@ -24,7 +193,162 @@
       </div>
 {% include 'common/foot.html' %}
 <script>
-    var test_id = {{test_id}};
+  var test_id = {{test_id}};
+
+  $(document).ready(function() {
+    if (test_id !== null) {
+      var project_id = $("#selected-project-id").text();
+      //
+      $.get(`/api/v1/tests/${project_id}/sast/${test_id}`, { raw: 1 }, function( data ) {
+        $('#submit').attr("onclick", "updateTest()");
+        $('#submit').text("Edit");
+        $('#testname').val(data.name);
+        $('#testname').prop("disabled", true);
+        $("#testid").css("display", "block");
+        $("#testuuid").val(data.test_uid);
+        //
+        $("#sast_target_type").val(data.sast_settings.sast_target_type);
+        //
+        $("#sast_target_repo").val(data.sast_settings.sast_target_repo);
+        $("#sast_target_repo_user").val(data.sast_settings.sast_target_repo_user);
+        $("#sast_target_repo_pass").val(data.sast_settings.sast_target_repo_pass);
+        $("#sast_target_repo_key").val(data.sast_settings.sast_target_repo_key);
+        $("#sast_target_artifact").val(data.sast_settings.sast_target_artifact);
+        $("#sast_target_artifact_bucket").val(data.sast_settings.sast_target_artifact_bucket);
+        $("#sast_target_code").val(data.sast_settings.sast_target_code);
+        //
+        $(".carrier-sast-target").each(function() {
+          $(this).hide();
+        });
+        var sast_target_type = $("#sast_target_type").val();
+        $(`#${sast_target_type}`).show();
+        //
+        $("#language").val(data.sast_settings.language);
+        //
+        data.sast_settings.options_checked.forEach(item => {
+            $(`#${item}`).prop("checked", true);
+        });
+        //
+        data.sast_settings.reporters_checked.forEach(item => {
+            $(`#${item}`).prop("checked", true);
+        });
+        //
+        $("#email_recipients").val(data.sast_settings.email_recipients);
+        if ($("#email").prop("checked") == true) {
+          $("#email_recipients_group").show();
+        }
+      });
+    } else {
+      $(".carrier-sast-target").each(function() {
+        $(this).hide();
+      });
+      var sast_target_type = $("#sast_target_type").val();
+      $(`#${sast_target_type}`).show();
+    }
+  });
+
+  $("#email").change(function() {
+    if (this.checked) {
+      $("#email_recipients_group").show();
+    } else {
+      $("#email_recipients_group").hide();
+    }
+  });
+
+  $("#sast_target_type").change(function() {
+    $(".carrier-sast-target").each(function() {
+      $(this).hide();
+    });
+    var sast_target_type = $("#sast_target_type").val();
+    $(`#${sast_target_type}`).show();
+  });
+
+  function submitForm() {
+    var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var options_checked = []
+    $("input:checkbox:checked.carrier-config-options").each(function() {
+      options_checked.push($(this).attr("id"));
+    });
+    //
+    var reporters_checked = []
+    $("input:checkbox:checked.carrier-config-reporters").each(function() {
+      reporters_checked.push($(this).attr("id"));
+    });
+    //
+    var data = new FormData();
+    data.append('name', $('#testname').val());
+    data.append('sast_settings', JSON.stringify({
+      'sast_target_type': $('#sast_target_type').val(),
+      'sast_target_repo': $('#sast_target_repo').val(),
+      'sast_target_repo_user': $('#sast_target_repo_user').val(),
+      'sast_target_repo_pass': $('#sast_target_repo_pass').val(),
+      'sast_target_repo_key': $('#sast_target_repo_key').val(),
+      'sast_target_artifact': $('#sast_target_artifact').val(),
+      'sast_target_artifact_bucket': $('#sast_target_artifact_bucket').val(),
+      'sast_target_code': $('#sast_target_code').val(),
+      'language': $('#language').val(),
+      'options_checked': options_checked,
+      'reporters_checked': reporters_checked,
+      'email_recipients': $('#email_recipients').val()
+    }));
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/sast`,
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      method: 'POST',
+      success: function(data) {
+        window.location.href = "/tests?type=sast";
+      }
+    });
+  }
+
+  function updateTest() {
+    var project_id = $("#selected-project-id").text();
+    event.preventDefault();
+    //
+    var options_checked = []
+    $("input:checkbox:checked.carrier-config-options").each(function() {
+      options_checked.push($(this).attr("id"));
+    });
+    //
+    var reporters_checked = []
+    $("input:checkbox:checked.carrier-config-reporters").each(function() {
+      reporters_checked.push($(this).attr("id"));
+    });
+    //
+    var data = {
+      'sast_settings': JSON.stringify({
+        'sast_target_type': $('#sast_target_type').val(),
+        'sast_target_repo': $('#sast_target_repo').val(),
+        'sast_target_repo_user': $('#sast_target_repo_user').val(),
+        'sast_target_repo_pass': $('#sast_target_repo_pass').val(),
+        'sast_target_repo_key': $('#sast_target_repo_key').val(),
+        'sast_target_artifact': $('#sast_target_artifact').val(),
+        'sast_target_artifact_bucket': $('#sast_target_artifact_bucket').val(),
+        'sast_target_code': $('#sast_target_code').val(),
+        'language': $('#language').val(),
+        'options_checked': options_checked,
+        'reporters_checked': reporters_checked,
+        'email_recipients': $('#email_recipients').val()
+      })
+    }
+    //
+    $.ajax({
+      url: `/api/v1/tests/${project_id}/sast/${test_id}`,
+      data: JSON.stringify(data),
+      cache: false,
+      contentType: 'application/json',
+      type: 'PUT',
+      success: function(data) {
+        window.location.href = "/tests?type=sast";
+      }
+    });
+  }
 </script>
 </body>
 </html>

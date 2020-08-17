@@ -1,0 +1,222 @@
+{% include 'common/head.html' %}
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+        <div class="card shadow">
+            <div class="card-header bg-transparent border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="text-gray mb-0">Projects Health</h2>
+                    </div>
+                    <div class="col">
+                        <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item mr-2 mr-md-0">
+                                <a href="/project/add">
+                                    <button id="CR" data-toggle="modal" class="btn btn-primary btn-sm">
+                                        <span class="d-none d-md-block">Add Project</span>
+                                    </button>
+                                </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <a href="/tasks">
+                                    <button id="TS" data-toggle="modal" class="btn btn-primary btn-sm">
+                                        <span class="d-none d-md-block">Project Tasks</span>
+                                    </button>
+                                </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RE" onclick="refreshProjectsTable()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+<!--                <div class="table-responsive">-->
+<!--                    <table class="table align-items-center table-flush"-->
+<!--                        id="projects-table"-->
+<!--                        data-toggle="table"-->
+<!--                        data-url="/api/v1/project/"-->
+<!--                        data-page-size=10-->
+<!--                        data-page-list=[10,20,50,100]-->
+<!--                        data-side-pagination="server"-->
+<!--                        data-pagination="true">-->
+<!--                    <thead class="thead-light">-->
+<!--                        <tr>-->
+<!--                            <th scope="col" data-checkbox="true"></th>-->
+<!--                            <th scope="col" data-sortable="false" data-field="name">Project Name</th>-->
+<!--                            <th scope="col" data-field="id">Project ID</th>-->
+<!--                            <th scope="col" data-sortable="false" data-field="project_owner">Owner</th>-->
+<!--                            <th scope="col" data-sortable="false" data-formatter="checkFormatter">Services</th>-->
+<!--                            <th scope="col" data-sortable="false" data-formatter="statsFormatter">Quotas</th>-->
+<!--                            <th scope="col" data-sortable="false" data-field="package">Package</th>-->
+<!--                            <th scope="col" data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">Actions</th>-->
+<!--                        </tr>-->
+<!--                    </thead>-->
+<!--                </table>-->
+<!--            </div>-->
+            <div class="card-body bg-transparent border-0">
+                <div class="row" id="health-panel"></div>
+            </div>
+        </div>
+{% include 'common/foot.html' %}
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="{{ url_for('static', filename='js/donut.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/perfreport.js') }}"></script>
+<script>
+    function randomInt(min, max) {
+        return min + Math.floor((max - min) * Math.random());
+    }
+
+
+    function refreshProjectsTable() {
+        $("#projects-table").bootstrapTable("refresh");
+    }
+
+    $(document).ready(function() {
+        renderHealth();
+    })
+
+    function renderHealth() {
+        $.ajax({
+            async: false,
+            type: "GET",
+            url: `/api/v1/project`,
+            success: function (data) {
+                data.forEach(function(project){
+                    console.log(project);
+                    var card = `
+                    <div class="col-auto mb-3">
+                        <div class="card" style="width: 15rem;">
+                            <div class="card-header border-0 mt-0">
+                                <div class="row">
+                                    ${healthFormatter(project)}
+                                </div>
+                            </div>
+                            <div class="card-body pt-1 mb-0" >
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h4 class="card-title mb-2">${project.name}</h4>
+                                    </div>
+                                    <div class="col-4"><p class="small text-right">ID: ${project.id}</p></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-7">
+                                        <p class="small mb-0"><i class="far fa-user"></i>  ${project.project_owner}</p>
+                                    </div>
+                                    <div class="col-5">
+                                        <p class="small text-right mb-0"><i class="fas fa-briefcase"></i>: ${project.package}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="row" style="margin-left: 0px;">
+                                    ${statsFormatter(project.id)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `
+                    $("#health-panel").append(card);
+
+                    var arr = [
+                        ['performance_enabled', '\uf0e4'],
+                        ['ui_performance_enabled', '\uf108'],
+                        ['sast_enabled', '\uf121'],
+                        ['dast_enabled', '\uf109']
+                    ]
+                    arr.forEach(item => {
+                        drawGauge(randomInt(1, 100), `${item[0]}_${project.id}`, item[1]);
+                    });
+                })
+            }
+        });
+    }
+
+
+    function statsFormatter(project_id) {
+        var stats_string = ''
+        var fas_class = {
+            performance_test_runs: 'fa-tachometer-alt',
+            ui_performance_test_runs: 'fa-desktop',
+            sast_scans: 'fa-code',
+            dast_scans: 'fa-laptop-code',
+            storage_space: 'fa-hdd',
+            tasks_count: 'fa-cube',
+            tasks_executions: 'fa-cubes'
+        }
+        $.ajax({
+            async: false,
+            type: "GET",
+            url: `/api/v1/statistic/${project_id}`,
+            success: function (data) {
+                Object.keys(data).forEach(function(metric) {
+                    var rate = 0
+                    var quota = data[metric]["quota"]
+                    if (quota == -1) { quota = 'unlimited' }
+                    else { rate = data[metric]["current"]/quota * 100 }
+                    var icon = fas_class[metric]
+                    if (metric != "data_retention_limit") {
+                        if (rate < 80) {
+                            stats_string += `<a class="badge badge-success-empty mr-1 mb-1" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="${data[metric]["current"]} / ${quota}"><i class="fas ${icon}"></i></a>`
+                        }
+                        else if (rate < 90) {
+                            stats_string += `<a class="badge badge-success-empty mr-1 mb-1" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="${data[metric]["current"]} / ${quota}"><i class="fas ${icon}"></i></a>`
+                        } else {
+                            stats_string += `<a class="badge badge-success-empty mr-1 mb-1" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="${data[metric]["current"]} / ${quota}"><i class="fas ${icon}"></i></a>`
+                        }
+                    }
+                });
+            }
+        });
+        return stats_string
+    }
+
+    function healthFormatter(project) {
+        var return_string = ''
+        var arr = [['performance_enabled', '/report'], ['ui_performance_enabled', '/visual'], ['sast_enabled','/security'], ['dast_enabled','/security']]
+        arr.forEach(item => {
+            return_string += `<a class="donut-holder" href="javascript:void(0)" onclick="switchAndGo(${project.id}, '${item[1]}')" data-toggle="tooltip" data-placement="top" title="${item[0].split("_")[0]}"><div class="donut" id="${item[0]}_${project.id}"></div></a>`
+        })
+        return return_string
+    }
+
+    function switchAndGo(project_id, link) {
+        selectSessionProject({id: project_id})
+        window.location.href = link
+    }
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="project-select mr-2" href="javascript:void(0)" title="Select"><i class="fa fa-check"></i></a>',
+            '<a class="project-settings mr-2" href="javascript:void(0)" title="Settings"><i class="fa fa-cog"></i></a>',
+            '<a class="project-remove" href="javascript:void(0)" title="Remove"><i class="fa fa-trash"></i></a>'
+        ].join('');
+    }
+
+    operateEvents = {
+        'click .project-select': async function (e, value, row, index) {
+            selectSessionProject(row);
+        },
+        'click .project-settings': function (e, value, row, index) {
+            selectSessionProject(row);
+            window.location.href="/project/configure";
+        },
+        'click .project-remove': async function (e, value, row, index) {
+            try {
+                let response = await fetch(`/api/v1/project/${row.id}`, {method: "DELETE"});
+                let responseJson = await response.json();
+                console.log(responseJson);
+            } catch (err) {
+                console.error(err);
+                // Handle errors here
+            }
+            refreshProjectsTable();
+        }
+    };
+</script>
+        </body>
+</html>
