@@ -9,6 +9,8 @@ master = true
 processes = 2
 threads = 4
 
+buffer-size = 16384
+
 vacuum = true
 die-on-term = true
 """

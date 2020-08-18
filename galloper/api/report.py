@@ -361,6 +361,8 @@ class TestSaturation(Resource):
                 current_users += args["u_aggr"]
             if current_users == 0:
                 current_users = max_users + args["u_aggr"]
+            if current_users < max_users:
+                current_users = max_users + args["u_aggr"]
         except TypeError:
             return {"message": "not enough results", "code": 0}
         except IndexError:
@@ -409,6 +411,8 @@ class TestSaturation(Resource):
                     if round(tp, 2) > response["max_throughput"] and u != current_users:
                         response["max_throughput"] = round(tp, 2)
                         response["max_users"] = u
+                        current_users = u + args["u_aggr"]
+                        response["current_users"] = current_users
                     _, data, _ = get_backend_requests(report.build_id, report.name, report.lg_type,
                                                       start_time, key, "1s", args["sampler"], scope=args["request"],
                                                       status=args["status"])
