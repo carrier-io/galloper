@@ -15,6 +15,7 @@ class UIResultsAPI(Resource):
         dict(name="resolution", type=str, location="json"),
         dict(name="browser_version", type=str, location="json"),
         dict(name="name", type=str, location="json"),
+        dict(name="identifier", type=str, location="json"),
         dict(name="type", type=str, location="json"),
     )
 
@@ -38,6 +39,7 @@ class UIResultsAPI(Resource):
             project_id=project_id,
             report_id=report_id,
             name=args["name"],
+            identifier=args['identifier'],
             type=args["type"],
             bucket_name=args["bucket_name"],
             file_name=args["file_name"],
