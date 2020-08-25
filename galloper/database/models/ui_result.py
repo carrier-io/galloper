@@ -9,7 +9,7 @@ class UIResult(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, unique=False, nullable=False)
-    report_id = Column(Integer, unique=False, nullable=False)
+    report_uid = Column(String(128), unique=False, nullable=False)
     name = Column(String(128), unique=False)
     identifier = Column(String(1024), unique=False)
     type = Column(String(128), unique=False)

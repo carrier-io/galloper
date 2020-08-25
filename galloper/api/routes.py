@@ -73,7 +73,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")
 
     add_resource_to_api(api, UIReportsAPI, "/observer/<int:project_id>")
-    add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<int:report_id>")
+    add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<string:report_id>")
 
     add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
     add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",

@@ -91,7 +91,7 @@ def visual_report(project: Project):
     report_id = request.args.getlist("report_id")[0]
 
     ui_report = UIReport.query.filter_by(id=report_id, project_id=project.id).first_or_404()
-    results = UIResult.query.filter_by(report_id=report_id).all()
+    results = UIResult.query.filter_by(report_uid=ui_report.uid).all()
 
     totals = list(map(lambda x: x.total, results))
 

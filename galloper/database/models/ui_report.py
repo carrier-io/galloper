@@ -7,6 +7,7 @@ class UIReport(AbstractBaseMixin, Base):
     __tablename__ = "ui_report"
 
     id = Column(Integer, primary_key=True)
+    uid = Column(String(128), unique=True, nullable=False)
     name = Column(String(128), unique=False)
     project_id = Column(Integer, unique=False, nullable=False)
     start_time = Column(String(128), unique=False)
