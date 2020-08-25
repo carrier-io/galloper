@@ -15,7 +15,8 @@ class UIReportsAPI(Resource):
         dict(name="env", type=str, location="json"),
         dict(name="base_url", type=str, location="json"),
         dict(name="loops", type=int, location="json"),
-        dict(name="aggregation", type=str, location="json")
+        dict(name="aggregation", type=str, location="json"),
+        dict(name="report_id", type=str, location="json")
     )
 
     put_rules = (
@@ -35,9 +36,16 @@ class UIReportsAPI(Resource):
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args()
+
+        report = UIReport.query.filter_by(uid=args['report_id']).first()
+
+        if report:
+            return report.to_json()
+
         project = Project.query.get_or_404(project_id)
 
         report = UIReport(
+            uid=args['report_id'],
             name=args["test_name"],
             project_id=project.id,
             start_time=args["time"],
@@ -56,7 +64,7 @@ class UIReportsAPI(Resource):
     def put(self, project_id: int):
         args = self._parser_put.parse_args()
 
-        report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+        report = UIReport.query.filter_by(project_id=project_id, uid=args['report_id']).first_or_404()
         report.is_active = False
         report.stop_time = args["time"]
         report.thresholds_total = args["thresholds_total"],

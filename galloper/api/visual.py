@@ -44,7 +44,7 @@ class VisualReportAPI(Resource):
         res = []
 
         for report in reports:
-            results = UIResult.query.filter_by(report_id=report.id).all()
+            results = UIResult.query.filter_by(report_uid=report.uid).all()
 
             totals = list(map(lambda x: x.total, results))
 
@@ -81,12 +81,12 @@ class VisualReportAPI(Resource):
         ).all()
 
         for each in query_result:
-            self.__delete_report_results(project_id, each.id)
+            self.__delete_report_results(project_id, each.uid)
             each.delete()
         return {"message": "deleted"}
 
     def __delete_report_results(self, project_id, report_id):
-        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).order_by(UIResult.id).all()
+        results = UIResult.query.filter_by(project_id=project_id, report_uid=report_id).all()
         for result in results:
             result.delete()
 
@@ -106,7 +106,7 @@ class VisualResultAPI(Resource):
         }
 
         report = UIReport.query.get_or_404(report_id)
-        results = UIResult.query.filter_by(project_id=project_id, report_id=report_id).order_by(UIResult.id).all()
+        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.id).all()
 
         nodes = _action_mapping["chart"]["nodes"]
         edges = _action_mapping["chart"]["edges"]

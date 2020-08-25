@@ -30,14 +30,14 @@ class UIResultsAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
 
-    def post(self, project_id: int, report_id: int):
+    def post(self, project_id: int, report_id: str):
         args = self._parser_post.parse_args()
 
         metrics = args["metrics"]
 
         result = UIResult(
             project_id=project_id,
-            report_id=report_id,
+            report_uid=report_id,
             name=args["name"],
             identifier=args['identifier'],
             type=args["type"],
