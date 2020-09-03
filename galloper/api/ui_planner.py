@@ -117,6 +117,8 @@ class TestApiFrontend(Resource):
         dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="reporter", type=list, required=False, location='json'),
         dict(name="loops", type=int, required=False, location='json'),
+        dict(name="aggregation", type=str, required=False, location='json'),
+        dict(name="browser", type=str, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -172,6 +174,8 @@ class TestApiFrontend(Resource):
 
         task.reporting = args["reporter"]
         task.loops = args['loops']
+        task.aggregation = args['aggregation']
+        task.browser = args['browser']
         task.commit()
         return task.to_json()
 
