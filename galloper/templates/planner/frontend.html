@@ -32,7 +32,7 @@
                       </div>
                       <div class="form-group">
                             <label class="form-control-label" for="aggregation">Chart data aggregation</label>
-                            <p><small>Aggregation rule for chard data</small></p>
+                            <p><small>Aggregation rule for chard data.</small></p>
                             <select class="form-control selectpicker" id="aggregation">
                               <option value="max">Max</option>
                               <option value="min">Min</option>
@@ -75,7 +75,7 @@
                         <div class="form-group" id="testid" style="display:none">
                             <label class="form-control-label" for="file">Test UUID</label>
                           <p><small>
-                              UUID of the tests, may be used to refer it
+                              UUID of the tests, may be used to refer it.
                           </small></p>
                           <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                         </div>
@@ -87,19 +87,7 @@
                       <div id="browsers" class="form-group">
                           <label class="form-control-label">Browser</label>
                           <p><small>Choose the browser for the test.</small></p>
-                          <select id="browsers-list" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count > 5">
-                              <optgroup label="Chrome">
-                                  <option>Chrome 85.0</option>
-                                  <option>Chrome 84.0</option>
-                                  <option>Chrome 83.0</option>
-                                  <option>Chrome 82.0</option>
-                              </optgroup>
-                              <optgroup label="Firefox">
-                                  <option>Firefox 73.0</option>
-                                  <option>Firefox 72.0</option>
-                                  <option>Firefox 71.0</option>
-                              </optgroup>
-                            </select>
+                          <select id="browsers-list" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count > 5"></select>
                       </div>
                     </div>
                   </div>
@@ -191,9 +179,32 @@
         `)
     }
 
+    const capitalize = (s) => {
+      if (typeof s !== 'string') return ''
+      return s.charAt(0).toUpperCase() + s.slice(1)
+    }
+
     $(document).ready(function() {
+       var project_id = $("#selected-project-id").text();
+
+       $.get(`/api/v1/browsers/${project_id}`, (data) => {
+            for (const [key, value] of Object.entries(data)) {
+              optgroup = document.createElement("optgroup");
+              $(optgroup).attr('label', key);
+
+              value.forEach(el => {
+                    option = document.createElement("option");
+                    $(option).val(`${key}_${el}`)
+                    $(option).text(`${capitalize(key)}_${el}`)
+                    $(optgroup).append(option)
+              })
+
+              $('#browsers-list').append(optgroup)
+            }
+        });
+
+
         if (test_id !== null) {
-            var project_id = $("#selected-project-id").text();
             $.get(
                 `/api/v1/tests/${project_id}/frontend/${test_id}`, { raw: 1 }, function( data ) {
                     $('#submit').attr("onclick", "updateTest()");
@@ -205,7 +216,6 @@
                     $("#testid").css("display", "block");
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
-                    $('#entrypoint').prop("disabled", true);
                     $('#loops').val(data.loops);
 
                     data.reporting.forEach(item => {
@@ -235,7 +245,7 @@
                     }
 
                     $('#aggregation').selectpicker('val', data.aggregation);
-                    $('#browsers-list').selectpicker('val', data.browser.split(",").map(s => s.trim()));
+                    $('#browsers-list').selectpicker('val', data.browser.split(",").map(s => s.trim().toLowerCase()));
                 });
         }
     });
@@ -296,7 +306,8 @@
             'reporter': checked,
             'loops': $('#loops').val(),
             'aggregation': $('#aggregation').children("option:selected").val(),
-            'browser': $('#browsers .filter-option-inner-inner').text()
+            'browser': $('#browsers .filter-option-inner-inner').text(),
+            'entrypoint': $('#entrypoint').val()
         }
         $.ajax({
             url: `/api/v1/tests/${project_id}/frontend/${test_id}`,
