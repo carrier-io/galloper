@@ -17,6 +17,7 @@ from flask_restful import Api
 from galloper.utils.api_utils import add_resource_to_api
 from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
 from .artifacts import BucketsApi, ArtifactApi
+from .browsers import BrowsersAPI
 from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
@@ -93,6 +94,8 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, TestsApiSecurityDAST, "/tests/<int:project_id>/dast")
     add_resource_to_api(api, TestApiSecurityDAST, "/tests/<int:project_id>/dast/<int:test_id>",
                         "/tests/<int:project_id>/dast/<string:test_id>")
+
+    add_resource_to_api(api, BrowsersAPI, "/browsers/<int:project_id>")
 
     add_resource_to_api(api, TestsApiSecuritySAST, "/tests/<int:project_id>/sast")
     add_resource_to_api(api, TestApiSecuritySAST, "/tests/<int:project_id>/sast/<int:test_id>",

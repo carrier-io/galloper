@@ -88,3 +88,23 @@
   display: inline-block;
   position: relative;
 }
+
+.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%;
+}
+
+button.dropdown-toggle {
+    background-color: white;
+    color: #6f6b6b;
+    border-color: #cbe5f4;
+    box-shadow: none;
+}
+
+.dropdown-header {
+    color: #787c7d;
+}
+
+.bs-searchbox .form-control {
+    height: calc(2rem + 2px);
+}
+
