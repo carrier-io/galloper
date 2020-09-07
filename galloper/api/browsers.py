@@ -21,6 +21,7 @@ class BrowsersAPI(Resource):
                 "83.0",
             ],
             "firefox": [
+                "78.0",
                 "73.0",
                 "72.0"
             ]
