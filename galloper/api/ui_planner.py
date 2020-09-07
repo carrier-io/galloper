@@ -191,15 +191,18 @@ class TestApiFrontend(Resource):
         task = UIPerformanceTests.query.filter(_filter).first()
         event = list()
         execution = True if args['type'] and args["type"] == "config" else False
-        event.append(task.configure_execution_json(output='cc',
-                                                   test_type=args.get("test_type"),
-                                                   params=loads(args.get("params", None)),
-                                                   env_vars=loads(args.get("env_vars", None)),
-                                                   reporting=args.get("reporter", None),
-                                                   customization=loads(args.get("customization", None)),
-                                                   cc_env_vars=loads(args.get("cc_env_vars", None)),
-                                                   parallel=args.get("parallel", None),
-                                                   execution=execution))
+
+        for browser in list(map(lambda x: x.strip(), task.browser.split(","))):
+            event.append(task.configure_execution_json(output='cc',
+                                                       browser=browser,
+                                                       test_type=args.get("test_type"),
+                                                       params=loads(args.get("params", None)),
+                                                       env_vars=loads(args.get("env_vars", None)),
+                                                       reporting=args.get("reporter", None),
+                                                       customization=loads(args.get("customization", None)),
+                                                       cc_env_vars=loads(args.get("cc_env_vars", None)),
+                                                       parallel=args.get("parallel", None),
+                                                       execution=execution))
         if args['type'] and args["type"] == "config":
             return event[0]
         response = run_task(project.id, event)
