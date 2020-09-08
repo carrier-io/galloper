@@ -30,6 +30,15 @@
                         <p><small>How many times to repeat scenario execution.</small></p>
                         <input type="text" id="loops" class="form-control form-control-alternative" placeholder="# of loops">
                       </div>
+                      <div class="form-group">
+                            <label class="form-control-label" for="aggregation">Chart data aggregation</label>
+                            <p><small>Aggregation rule for chard data.</small></p>
+                            <select class="form-control selectpicker" id="aggregation">
+                              <option value="max">Max</option>
+                              <option value="min">Min</option>
+                              <option value="avg">Avg</option>
+                            </select>
+                      </div>
                       <div class="form-group" id="reporters">
                             <label class="form-control-label">Reporting</label>
                             <p><small>Specify expected report types.</small></p>
@@ -53,7 +62,7 @@
                               <input type="checkbox" class="custom-control-input" id="jira">
                               <label class="custom-control-label" for="jira">Jira</label>
                             </div>
-                        </div>
+                      </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="form-group" id="fileUpload">
@@ -66,7 +75,7 @@
                         <div class="form-group" id="testid" style="display:none">
                             <label class="form-control-label" for="file">Test UUID</label>
                           <p><small>
-                              UUID of the tests, may be used to refer it
+                              UUID of the tests, may be used to refer it.
                           </small></p>
                           <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                         </div>
@@ -75,27 +84,11 @@
                             <p><small>Scenario file name.</small></p>
                             <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. demo.side)">
                       </div>
-                      <div class="form-group" id="testrunners">
-                        <label class="form-control-label">Browser</label>
-                        <p><small>Choose the browser for the test.</small></p>
-                        <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="chrome" name="browser" class="custom-control-input">
-                              <label class="custom-control-label" for="chrome">Chrome</label>
-                        </div>
-                        <div class="custom-control custom-radio custom-control-inline">
-                              <input type="radio" id="firefox" name="browser" class="custom-control-input">
-                              <label class="custom-control-label" for="firefox">Firefox</label>
-                        </div>
+                      <div id="browsers" class="form-group">
+                          <label class="form-control-label">Browser</label>
+                          <p><small>Choose the browser for the test.</small></p>
+                          <select id="browsers-list" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count > 5"></select>
                       </div>
-                        <div class="form-group">
-                            <label class="form-control-label" for="aggregation">Chart data aggregation</label>
-                            <p><small>Aggregation rule for chard data</small></p>
-                            <select class="form-control" id="aggregation">
-                              <option value="max" selected="selected">Max</option>
-                              <option value="min">Min</option>
-                              <option value="avg">Avg</option>
-                            </select>
-                        </div>
                     </div>
                   </div>
                 </div>
@@ -186,9 +179,32 @@
         `)
     }
 
+    const capitalize = (s) => {
+      if (typeof s !== 'string') return ''
+      return s.charAt(0).toUpperCase() + s.slice(1)
+    }
+
     $(document).ready(function() {
+       var project_id = $("#selected-project-id").text();
+
+       $.get(`/api/v1/browsers/${project_id}`, (data) => {
+            for (const [key, value] of Object.entries(data)) {
+              optgroup = document.createElement("optgroup");
+              $(optgroup).attr('label', key);
+
+              value.forEach(el => {
+                    option = document.createElement("option");
+                    $(option).val(`${key}_${el}`)
+                    $(option).text(`${capitalize(key)}_${el}`)
+                    $(optgroup).append(option)
+              })
+
+              $('#browsers-list').append(optgroup)
+            }
+        });
+
+
         if (test_id !== null) {
-            var project_id = $("#selected-project-id").text();
             $.get(
                 `/api/v1/tests/${project_id}/frontend/${test_id}`, { raw: 1 }, function( data ) {
                     $('#submit').attr("onclick", "updateTest()");
@@ -200,11 +216,12 @@
                     $("#testid").css("display", "block");
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
-                    $('#entrypoint').prop("disabled", true);
                     $('#loops').val(data.loops);
 
                     data.reporting.forEach(item => {
-                        $(`#${item}`).prop( "checked", true );
+                        if(item) {
+                           $(`#${item}`).prop( "checked", true );
+                        }
                     });
                     for (let [key, value] of Object.entries(data.params)) {
                         add('script_params');
@@ -226,6 +243,9 @@
                         $("#cc_env_vars").children().last().children()[0].value = key;
                         $("#cc_env_vars").children().last().children()[1].value = value;
                     }
+
+                    $('#aggregation').selectpicker('val', data.aggregation);
+                    $('#browsers-list').selectpicker('val', data.browser.split(",").map(s => s.trim().toLowerCase()));
                 });
         }
     });
@@ -277,14 +297,17 @@
         var checked = []
         $("input:checkbox:checked").each(function() {
             checked.push($(this).attr("id"));
-          });
+        });
         var data = {
             'params': JSON.stringify(params[0]),
             'env_vars': JSON.stringify(params[1]),
             'cc_env_vars': JSON.stringify(params[3]),
             'customization': JSON.stringify(params[2]),
             'reporter': checked,
-            'loops': $('#loops').val()
+            'loops': $('#loops').val(),
+            'aggregation': $('#aggregation').children("option:selected").val(),
+            'browser': $('#browsers .filter-option-inner-inner').text(),
+            'entrypoint': $('#entrypoint').val()
         }
         $.ajax({
             url: `/api/v1/tests/${project_id}/frontend/${test_id}`,
@@ -314,7 +337,7 @@
           data.append('name', $('#testname').val());
           data.append('loops', $('#loops').val());
           data.append('entrypoint', $('#entrypoint').val());
-          data.append('browser', $( "#testrunners input:checked" ).attr("id"));
+          data.append('browser', $('#browsers .filter-option-inner-inner').text());
           data.append('reporter', checked);
           data.append('params', JSON.stringify(params[0]));
           data.append('env_vars', JSON.stringify(params[1]));

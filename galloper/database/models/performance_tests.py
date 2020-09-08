@@ -237,14 +237,14 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     loops = Column(Integer)
     aggregation = Column(String(20))
 
-    def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
+    def configure_execution_json(self, browser, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, cc_env_vars=None, parallel=None, execution=False):
 
         reports = []
         for report in self.reporting:
             reports.append(f"-r {report}")
 
-        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {self.browser} " \
+        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {browser} " \
               f"-a {self.aggregation} {' '.join(reports)}"
 
         execution_json = {
@@ -288,8 +288,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         if output == 'cc':
             return execution_json
 
-        command = {"cmd": cmd, "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
-                   "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999'}
+        command = {"cmd": cmd, "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444'}
 
         return f'docker run -t --rm -e project_id={self.project_id} ' \
                f'-e REDIS_HOST={unsecret("{{secret.redis_host}}", project_id=self.project_id)} ' \
