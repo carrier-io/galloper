@@ -53,7 +53,8 @@ class ReportAPI(Resource):
         dict(name="build_id", type=str, location="json"),
         dict(name="test_name", type=str, location="json"),
         dict(name="lg_type", type=str, location="json"),
-        dict(name="missed", type=int, location="json")
+        dict(name="missed", type=int, location="json"),
+        dict(name="status", type=str, location="json")
     )
     post_rules = put_rules + (
         dict(name="start_time", type=str, location="json"),
@@ -94,6 +95,7 @@ class ReportAPI(Resource):
         if not ProjectQuota.check_quota(project_id=project_id, quota='performance_test_runs'):
             return {"Forbidden": "The number of performance test runs allowed in the project has been exceeded"}
         report = APIReport(name=args["test_name"],
+                           status=args["status"],
                            project_id=project.id,
                            environment=args["environment"],
                            type=args["type"],
@@ -141,6 +143,7 @@ class ReportAPI(Resource):
         report.fourxx = test_data["4xx"]
         report.fivexx = test_data["5xx"]
         report.requests = ";".join(test_data["requests"])
+        report.status = args["status"]
         report.commit()
         return {"message": "updated"}
 
@@ -154,6 +157,31 @@ class ReportAPI(Resource):
             delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
+
+
+class ReportStatusAPI(Resource):
+    put_rules = (
+        dict(name="status", type=str, location="json"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_put = build_req_parser(rules=self.put_rules)
+
+    def get(self, project_id: int, report_id: int):
+        project = Project.get_or_404(project_id)
+        report = APIReport.query.filter_by(project_id=project.id, id=report_id).first().to_json()
+        return {"message": report["status"]}
+
+    def put(self, project_id: int, report_id: int):
+        args = self._parser_put.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        report = APIReport.query.filter_by(project_id=project.id, id=report_id).first()
+        report.status = args["status"]
+        report.commit()
+        return {"message": f"status changed to {args['status']}"}
 
 
 class ReportChartsAPI(Resource):

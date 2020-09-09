@@ -69,6 +69,8 @@
                         <th scope="col" data-field="failure_rate" data-formatter=percentFormatter>Fail Rate</th>
                         <th scope="col" data-sortable="true" data-field="release_id" data-filter-control="input">Release ID</th>
                         <th scope="col" data-field="lg_type" data-formatter=lgFormatter>Runner</th>
+                        <th scope="col" data-field="status">Status</th>
+                        <th scope="col" data-field="status" data-formatter=buttonFormatter></th>
                     </tr>
                     </thead>
                 </table>
@@ -228,6 +230,30 @@
         } else {
             return value
         }
+    }
+
+    function buttonFormatter(value, row, index) {
+        if (value === "In progress") {
+            return '<button type="button" class="btn btn-primary btn-sm" id="cancel_job" onclick="cancelJob(' + row['id'] + ')">Cancel</button>'
+        } else {
+            return '<a href="/report/backend?report_id=' + row['id'] + '">Report</a>'
+        }
+    }
+
+    function cancelJob(report_id) {
+        var project_id = $("#selected-project-id").text();
+        var data = {
+            'status': 'Canceled'
+        }
+        $.ajax({
+            url: `/api/v1/reports/${project_id}/${report_id}/status`,
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            type: 'PUT',
+            success: function (result) {
+                $("#results").bootstrapTable('refresh');
+            }
+        });
     }
 
     $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function () {
