@@ -72,7 +72,7 @@ class BackendThresholdsAPI(Resource):
         args = self._parser_delete.parse_args(strict=False)
         delete_threshold(
             test=args["test"],
-            environment=args("env"),
+            environment=args["env"],
             target=args["target"],
             scope=args["scope"],
             aggregation=args["aggregation"],

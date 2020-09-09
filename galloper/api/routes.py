@@ -22,7 +22,7 @@ from .observer_result import UIResultsAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
 from .project_secrets import ProjectSecretsAPI, ProjectSecretAPI
-from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation
+from .report import ReportAPI, ReportChartsAPI, ReportsCompareAPI, BaselineAPI, TestSaturation, ReportStatusAPI
 from .security_report import SecurityReportAPI, FindingsAPI, FindingsAnalysisAPI
 from .planner import TestsApiPerformance, TestApiBackend, TestApi
 from .ui_planner import UITestsApiPerformance, TestApiFrontend
@@ -48,6 +48,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, EnvironmentsAPI, "/environment/<int:project_id>")
 
     add_resource_to_api(api, ReportAPI, "/reports/<int:project_id>")
+    add_resource_to_api(api, ReportStatusAPI, "/reports/<int:project_id>/<int:report_id>/status")
     add_resource_to_api(api, ReportChartsAPI, "/chart/<string:source>/<string:target>")
     add_resource_to_api(api, ReportsCompareAPI, "/compare/<string:target>")
     add_resource_to_api(api, TestSaturation, "/saturation")
