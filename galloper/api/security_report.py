@@ -15,7 +15,7 @@
 import hashlib
 from datetime import datetime
 
-from flask import request
+from flask import request, current_app
 from flask_restful import Resource
 from sqlalchemy import or_, and_
 
@@ -26,7 +26,6 @@ from galloper.database.models.security_results import SecurityResults
 from galloper.database.models.statistic import Statistic
 from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser
-
 
 class SecurityReportAPI(Resource):
     get_rules = (
@@ -232,12 +231,33 @@ class FindingsAPI(Resource):
         if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
         else:
-            upd = {"false_positive": 0, "info_finding": 0}
+            upd = {"false_positive": 0, "excluded_finding": 0}
         SecurityReport.query.filter(and_(
             SecurityReport.project_id == project_id,
             SecurityReport.issue_hash == issue_hash)
         ).update(upd)
         SecurityReport.commit()
+        reports = SecurityReport.query.filter(and_(
+            SecurityReport.project_id == project_id,
+            SecurityReport.issue_hash == issue_hash)
+        ).with_entities(SecurityReport.report_id).distinct()
+        for report in reports:
+            false_positive = SecurityReport.query.filter(and_(
+                SecurityReport.report_id == report.report_id,
+                SecurityReport.false_positive == 1)
+            ).count()
+            ignored = SecurityReport.query.filter(and_(
+                SecurityReport.report_id == report.report_id,
+                SecurityReport.excluded_finding == 1)
+            ).count()
+            findings = SecurityReport.query.filter(and_(
+                SecurityReport.report_id == report.report_id)
+            ).count()
+            SecurityResults.query.filter(
+                SecurityResults.id == report.report_id
+            ).update({"false_positives": false_positive, "excluded": ignored,
+                      "findings": findings-(false_positive+ignored)})
+            SecurityResults.commit()
         return {"message": "accepted"}
 
 
