@@ -108,3 +108,6 @@ button.dropdown-toggle {
     height: calc(2rem + 2px);
 }
 
+.detail-view table td{
+    min-width: 150px;
+}

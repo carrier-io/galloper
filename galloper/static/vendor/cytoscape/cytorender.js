@@ -8,7 +8,8 @@ Promise.all([
         layout: {name: 'dagre', rankDir: 'LR', spacingFactor: 2 },
         ready: function(){ console.log("done") },
         style: dataArray[0],
-        elements: dataArray[1]
+        elements: dataArray[1],
+        zoomingEnabled: false
     });
 
     cy.cxtmenu({

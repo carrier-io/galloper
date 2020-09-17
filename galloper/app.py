@@ -17,6 +17,9 @@ from datetime import datetime
 
 from flask_restful import Api
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
 from galloper.api.routes import initialize_api_routes
@@ -74,6 +77,9 @@ app = create_app()
 
 def main():
     config = Config()
+    handler = RotatingFileHandler('/tmp/flask.debug.log', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
 
 

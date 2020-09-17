@@ -23,6 +23,9 @@ file=/run/supervisord.sock
 [supervisorctl]
 serverurl=unix:///run/supervisord.sock
 
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
 [program:worker]
 command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/worker.log
 autostart=true
