@@ -20965,8 +20965,7 @@ textarea[resize='horizontal']
 .table th
 {
     font-size: .8125rem;
-
-    white-space: nowrap;
+    word-break: break-word;
 }
 
 .table.align-items-center td,

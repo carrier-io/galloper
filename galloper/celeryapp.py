@@ -66,12 +66,11 @@ def run_lambda(task, event):
                                      command=[f"{task['task_handler']}", dumps(event)],
                                      mounts=[mount], stderr=True, remove=True,
                                      environment=env_vars)
-    # TODO: magic of 2 enters is very flaky, Need to think on how to workaround, probably with specific logging
-
     log = response.decode("utf-8", errors='ignore')
     if container_name == "lambda:python3.7":
         results = re.findall(r'({.+?})', log)[-1]
     else:
+        # TODO: magic of 2 enters is very flaky, Need to think on how to workaround, probably with specific logging
         results = log.split("\n\n")[1]
 
     data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': results, 'stderr': log}
