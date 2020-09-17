@@ -15,7 +15,7 @@
 from flask_restful import Resource
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser, str2bool
-from galloper.utils.integration_utils import jira_integration, smtp_integration
+from galloper.utils.integration_utils import jira_integration, smtp_integration, rp_integration
 
 
 class ReportersAPI(Resource):
@@ -29,7 +29,8 @@ class ReportersAPI(Resource):
         self.__init_req_parsers()
         self.mapper = {
             "jira": jira_integration,
-            "smtp": smtp_integration
+            "smtp": smtp_integration,
+            "rp": rp_integration
         }
 
     def __init_req_parsers(self):

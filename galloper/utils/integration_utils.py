@@ -14,7 +14,8 @@
 
 from json import loads, dumps
 from requests import post, get
-from galloper.dal.vault import get_project_secrets, set_project_secrets
+from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets,\
+    set_project_hidden_secrets
 import smtplib
 from galloper.constants import EMAIL_NOTIFICATION_PATH
 from galloper.api.base import create_task, update_task
@@ -46,9 +47,11 @@ def jira_integration(args, project):
                 "jira_epic_key": ""
             }
             secrets = get_project_secrets(project.id)
-            secrets["jira"] = dumps(args["config"])
+            hidden_secrets = get_project_hidden_secrets(project.id)
+            hidden_secrets["jira"] = dumps(args["config"])
             secrets["jira_perf_api"] = dumps(jira_perf_api_config)
             set_project_secrets(project.id, secrets)
+            set_project_hidden_secrets(project.id, hidden_secrets)
             return "Jira settings saved"
     except Exception as e:
         return f"Failed. Jira settings not saved. {str(e)}"
@@ -66,9 +69,12 @@ def smtp_integration(args, project):
                 return f"SMTP server not connected. {str(e)}"
         else:
             secrets = get_project_secrets(project.id)
-            secrets["smtp"] = dumps(args["config"])
+            hidden_secrets = get_project_hidden_secrets(project.id)
+            hidden_secrets["smtp"] = dumps(args["config"])
             if "email_notification_id" in secrets:
                 update_task(secrets["email_notification_id"], dumps(args["config"]))
+            elif "email_notification_id" in hidden_secrets:
+                update_task(hidden_secrets["email_notification_id"], dumps(args["config"]))
             else:
                 email_notification_args = {
                     "funcname": "email_notification",
@@ -77,8 +83,39 @@ def smtp_integration(args, project):
                     "env_vars": dumps(args["config"])
                 }
                 email_notification = create_task(project, File(EMAIL_NOTIFICATION_PATH), email_notification_args)
-                secrets["email_notification_id"] = email_notification.task_id
-            set_project_secrets(project.id, secrets)
+                hidden_secrets["email_notification_id"] = email_notification.task_id
+            set_project_hidden_secrets(project.id, hidden_secrets)
             return "SMTP setting saved"
     except Exception as e:
         return f"Failed. SMTP server not connected. {str(e)}"
+
+
+def rp_integration(args, project):
+    if args["test"]:
+        url = f'{args["config"]["rp_host"]}/api/v1/project/{args["config"]["rp_project"]}'
+        headers = {
+            'content-type': 'application/json',
+            'Authorization': f'bearer {args["config"]["rp_token"]}'
+        }
+        res = get(url, headers=headers)
+        if res.status_code == 200:
+            message = "Successfully connected to RP"
+        else:
+            message = "Connection failed"
+        return message
+    else:
+        rp_perf_api_config = {
+            "rp_launch_name": "carrier",
+            "check_functional_errors": "True",
+            "check_performance_degradation": "True",
+            "check_missed_thresholds": "True",
+            "performance_degradation_rate": 20,
+            "missed_thresholds_rate": 50
+        }
+        secrets = get_project_secrets(project.id)
+        hidden_secrets = get_project_hidden_secrets(project.id)
+        hidden_secrets["rp"] = dumps(args["config"])
+        secrets["rp_perf_api"] = dumps(rp_perf_api_config)
+        set_project_secrets(project.id, secrets)
+        set_project_hidden_secrets(project.id, hidden_secrets)
+        return "RP settings saved"
