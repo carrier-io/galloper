@@ -15,7 +15,7 @@ import string
 from os import path
 from uuid import uuid4
 from json import dumps
-
+from flask import current_app
 from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 
 from galloper.database.db_manager import Base
@@ -182,6 +182,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["cc_env_vars"][key] = value
         if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
+        if "REDIS_PASSWORD" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["REDIS_PASSWORD"] = "{{secret.redis_password}}"
         if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
         if self.customization:
