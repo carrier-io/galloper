@@ -11,8 +11,6 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-import string
-from os import path
 from uuid import uuid4
 from json import dumps, loads
 
@@ -45,7 +43,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
         minio_client = MinioClient(project=project)
         minio_client.create_bucket(bucket="dast")
 
-    def configure_execution_json(self, output="cc", execution=False):
+    def configure_execution_json(self, output="cc", execution=False, thresholds={}):
         """ Create configuration for execution """
         #
         if output == "dusty":
@@ -127,6 +125,13 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                     reporters_config["html"] = {
                         "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.html",
                     }
+            # Thresholds
+            tholds = {}
+            if thresholds and any(thresholds[key] > -1 for key in thresholds.keys()):
+
+                for key, value in thresholds.items():
+                    if value > -1:
+                        tholds[key.capitalize()] = value
             #
             dusty_config = {
                 "config_version": 2,
@@ -147,6 +152,9 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                         "processing": {
                             "min_severity_filter": {
                                 "severity": "Info"
+                            },
+                            "quality_gate": {
+                                "thresholds": tholds
                             }
                         },
                         "reporters": reporters_config
@@ -215,7 +223,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
         minio_client = MinioClient(project=project)
         minio_client.create_bucket(bucket="sast")
 
-    def configure_execution_json(self, output="cc", execution=False):
+    def configure_execution_json(self, output="cc", execution=False, thresholds={}):
         """ Create configuration for execution """
         #
         if output == "dusty":
@@ -307,6 +315,12 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                     reporters_config["html"] = {
                         "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.html",
                     }
+            # Thresholds
+            tholds = {}
+            if thresholds and any(int(thresholds[key]) > -1 for key in thresholds.keys()):
+                for key, value in thresholds.items():
+                    if int(value) > -1:
+                        tholds[key.capitalize()] = int(value)
             #
             dusty_config = {
                 "config_version": 2,
@@ -329,6 +343,9 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                             "min_severity_filter": {
                                 "severity": "Info"
                             },
+                            "quality_gate": {
+                                "thresholds": tholds
+                            }
                         },
                         "reporters": reporters_config
                     }

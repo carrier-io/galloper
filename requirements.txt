@@ -12,3 +12,4 @@ boto3==1.10.17
 influxdb==5.2.3
 psycopg2-binary==2.8.4
 hvac==0.10.1
+python-logging-loki==0.3.1

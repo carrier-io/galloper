@@ -14,11 +14,10 @@
 
 from flask import Flask
 from datetime import datetime
-
 from flask_restful import Api
-
 import logging
-from logging.handlers import RotatingFileHandler
+
+from galloper.logger import init_logger_handler
 
 from galloper.config import Config
 from galloper.database.db_manager import init_db, db_session
@@ -69,6 +68,12 @@ def create_app(config_class: type = Config) -> Flask:
 
     register_blueprints(flask_app=flask_app)
     register_api(flask_app=flask_app)
+
+    # registering logging handler for loki
+    handler = init_logger_handler()
+    handler.setLevel(logging.INFO)
+    logging.root.handlers = [handler]
+
     return flask_app
 
 
@@ -77,9 +82,6 @@ app = create_app()
 
 def main():
     config = Config()
-    handler = RotatingFileHandler('/tmp/flask.debug.log', maxBytes=10000, backupCount=1)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
     app.run(host=config.APP_HOST, port=config.APP_PORT, debug=True)
 
 

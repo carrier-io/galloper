@@ -1,14 +1,12 @@
-from copy import deepcopy
 from uuid import uuid4
 from flask_restful import Resource
 from json import loads
-from werkzeug.datastructures import FileStorage
 from flask import request, current_app
 from sqlalchemy import and_
-from galloper.api.base import get, upload_file, run_task
+from galloper.api.base import get, run_task
 from galloper.database.models.project import Project
 from galloper.database.models.security_tests import SecurityTestsDAST, SecurityTestsSAST
-from galloper.database.models.performance_tests import PerformanceTests
+from galloper.database.models.security_thresholds import SecurityThresholds
 from galloper.database.models.statistic import Statistic
 from galloper.utils.api_utils import build_req_parser, str2bool
 
@@ -49,7 +47,13 @@ class SecuritySeedDispatcher(Resource):
             )
             test = SecurityTestsSAST.query.filter(_filter).first()
         #
-        return test.configure_execution_json(args.get("type"), execution=True)
+        try:
+            thresholds = SecurityThresholds.query.filter(SecurityThresholds.test_uid == test_id).first().to_json(
+                exclude_fields=("id", "project_id", "test_name", "test_uid"))
+            current_app.logger.info(thresholds)
+        except AttributeError:
+            thresholds = {}
+        return test.configure_execution_json(args.get("type"), execution=True, thresholds=thresholds)
 
 
 #
@@ -110,6 +114,13 @@ class TestsApiSecurityDAST(Resource):
         )
         test.insert()
         current_app.logger.info(test.to_json())
+        threshold = SecurityThresholds(
+            project_id=project.id,
+            test_name=args["name"],
+            test_uid=test.test_uid,
+            critical=-1, high=-1, medium=-1, low=-1, info=-1,
+            critical_life=-1, high_life=-1, medium_life=-1, low_life=-1, info_life=-1)
+        threshold.insert()
         return test.to_json(exclude_fields=("id",))
 
     def delete(self, project_id: int):
@@ -288,6 +299,13 @@ class TestsApiSecuritySAST(Resource):
             },
         )
         test.insert()
+        threshold = SecurityThresholds(
+            project_id=project.id,
+            test_name=args["name"],
+            test_uid=test.test_uid,
+            critical=-1, high=-1, medium=-1, low=-1, info=-1,
+            critical_life=-1, high_life=-1, medium_life=-1, low_life=-1, info_life=-1, )
+        threshold.insert()
         current_app.logger.info(test.to_json())
         return test.to_json(exclude_fields=("id",))
 
