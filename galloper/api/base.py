@@ -9,7 +9,7 @@ from galloper.database.models.task import Task
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
-from galloper.dal.vault import get_project_secrets, unsecret
+from galloper.dal.vault import get_project_secrets, unsecret, get_project_hidden_secrets
 
 from werkzeug.exceptions import Forbidden
 from werkzeug.utils import secure_filename
@@ -109,6 +109,8 @@ def update_task(task_id, env_vars):
 
 def run_task(project_id, event, task_id=None):
     secrets = get_project_secrets(project_id)
+    if "control_tower_id" not in secrets:
+        secrets = get_project_hidden_secrets(project_id)
     task_id = task_id if task_id else secrets["control_tower_id"]
     task = Task.query.filter(and_(Task.task_id == task_id)).first().to_json()
     app = run.connect_to_celery(1)

@@ -25,7 +25,7 @@ from requests.exceptions import ConnectionError
 import galloper.constants as consts
 from galloper.database.models.vault import Vault
 from galloper.database.models.project import Project
-
+from flask import current_app
 
 
 def init_vault():
@@ -117,12 +117,16 @@ def initialize_project_space(project_id):
         path "kv-for-{project_id}/*" {
           capabilities = ["create", "read", "update", "delete", "list"]
         }
+        # Read/write project hidden secrets
+        path "kv-for-hidden-{project_id}/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+        }
     """.replace("{project_id}", str(project_id))
     client.sys.create_or_update_policy(
         name=f"policy-for-{project_id}",
         policy=policy,
     )
-    # Create KV
+    # Create secrets KV
     client.sys.enable_secrets_engine(
         backend_type="kv",
         path=f"kv-for-{project_id}",
@@ -131,6 +135,17 @@ def initialize_project_space(project_id):
     client.secrets.kv.v2.create_or_update_secret(
         path="project-secrets",
         mount_point=f"kv-for-{project_id}",
+        secret=dict(),
+    )
+    # Create hidden secrets KV
+    client.sys.enable_secrets_engine(
+        backend_type="kv",
+        path=f"kv-for-hidden-{project_id}",
+        options={"version": "2"},
+    )
+    client.secrets.kv.v2.create_or_update_secret(
+        path="project-secrets",
+        mount_point=f"kv-for-hidden-{project_id}",
         secret=dict(),
     )
     # Create AppRole
@@ -163,9 +178,13 @@ def remove_project_space(project_id):
         f"{consts.VAULT_URL}/v1/auth/carrier-approle/role/role-for-{project_id}",
         headers={"X-Vault-Token": client.token},
     )
-    # Remove KV
+    # Remove secrets KV
     client.sys.disable_secrets_engine(
         path=f"kv-for-{project_id}",
+    )
+    # Remove hidden secrets KV
+    client.sys.disable_secrets_engine(
+        path=f"kv-for-hidden-{project_id}",
     )
     # Remove policy
     client.sys.delete_policy(
@@ -183,6 +202,16 @@ def set_project_secrets(project_id, secrets):
     )
 
 
+def set_project_hidden_secrets(project_id, secrets):
+    """ Set project hidden secrets """
+    client = get_project_client(project_id)
+    client.secrets.kv.v2.create_or_update_secret(
+        path="project-secrets",
+        mount_point=f"kv-for-hidden-{project_id}",
+        secret=secrets,
+    )
+
+
 def get_project_secrets(project_id):
     """ Get project secrets """
     client = get_project_client(project_id)
@@ -192,9 +221,22 @@ def get_project_secrets(project_id):
     ).get("data", dict()).get("data", dict())
 
 
+def get_project_hidden_secrets(project_id):
+    """ Get project hidden secrets """
+    client = get_project_client(project_id)
+    return client.secrets.kv.v2.read_secret_version(
+        path="project-secrets",
+        mount_point=f"kv-for-hidden-{project_id}",
+    ).get("data", dict()).get("data", dict())
+
+
 def unsecret(value, secrets=None, project_id=None):
     if not secrets:
         secrets = get_project_secrets(project_id)
+        hidden_secrets = get_project_hidden_secrets(project_id)
+        for key, _value in hidden_secrets.items():
+            if key not in list(secrets.keys()):
+                secrets[key] = _value
     if isinstance(value, str):
         template = Template(value)
         return template.render(secret=secrets)

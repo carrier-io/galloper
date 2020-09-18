@@ -86,6 +86,17 @@
                 }
             }
             status_message = "#smtp_status"
+        } else if (integration == "rp") {
+            settings = {
+                "integration": integration,
+                "test": "True",
+                "config": {
+                    rp_host: $("#rp_host").val(),
+                    rp_token: $("#rp_token").val(),
+                    rp_project: $("#rp_project").val()
+                }
+            }
+            status_message = "#rp_status"
         }
         $.ajax({
                 url: `/api/v1/reporters/${project_id}`,
@@ -94,6 +105,8 @@
                 data: JSON.stringify(settings),
                 success: function (data) {
                     $(`${status_message}`).text(data["message"]);
+                    $(`#${integration}_test_button`).html(`<button type="button" class="btn btn-secondary" onclick="testIntegration('${integration}')">Test</button>`);
+                    $(`#${integration}_test_button`).removeClass("disabled");
                 }
             });
     }
@@ -131,7 +144,19 @@
             }
             modal = "#smtpModal"
             status_message = "#smtp_status"
-        }
+        } else if (integration == "rp") {
+            settings = {
+                "integration": integration,
+                "test": "False",
+                "config": {
+                    rp_host: $("#rp_host").val(),
+                    rp_token: $("#rp_token").val(),
+                    rp_project: $("#rp_project").val()
+                }
+            }
+            modal = "#rpModal"
+            status_message = "#rp_status"
+          }
         $.ajax({
                 url: `/api/v1/reporters/${project_id}`,
                 type: 'POST',
@@ -520,13 +545,47 @@
                     }
                 }
             });
+        } else if (modalID == "rpModal") {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/rp`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result["secret"] != null) {
+                        $("#rp_status").text("");
+                        let data = JSON.parse(result["secret"])
+                        $("#rp_host").val(data["rp_host"])
+                        $("#rp_token").val(data["rp_token"])
+                        $("#rp_project").val(data["rp_project"])
+                    }
+                }
+            });
         }
         $(`#${modalID}`).modal('show');
+    }
+
+    function setConfiguredIntegrations() {
+        let project_id = getSelectedProjectId();
+        ["jira", "rp", "ado", "smtp"].forEach( item => {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/${item}`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result["secret"] != null) {
+                        $(`#${item}_modal`).addClass("bg-green");
+                    } else {
+                        $(`#${item}_modal`).addClass("bg-gray");
+                    }
+                }
+            });
+        })
     }
 
     $(document).ready(function() {
         getProjectDetails();
         getProjectQuota();
+        setConfiguredIntegrations()
         $("#proj_name").prop( "disabled", true );
         $("#proj_owner").prop( "disabled", true );
     });

@@ -20,7 +20,7 @@ from flask_restful import Resource  # pylint: disable=E0401
 
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
-from galloper.dal.vault import get_project_secrets, set_project_secrets
+from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets
 
 
 class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
@@ -69,7 +69,8 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
         project = Project.get_or_404(project_id)
         # Get secret
         secrets = get_project_secrets(project.id)
-        return {"secret": secrets.get(secret, None)}, 200
+        _secret = secrets.get(secret) if secrets.get(secret) else get_project_hidden_secrets(project.id).get(secret)
+        return {"secret": _secret}, 200
 
     def post(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
         data = self._parser_post.parse_args()
