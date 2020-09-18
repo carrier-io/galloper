@@ -48,7 +48,7 @@ def sast_thresholds(project: Project):
 @bp.route("/thresholds/security/dast", methods=["GET"])
 @project_required
 def dast_thresholds(project: Project):
-    tests = SecurityTestsDAST.query.filter(SecurityTestsSAST.project_id == project.id).all()
+    tests = SecurityTestsDAST.query.filter(SecurityTestsDAST.project_id == project.id).all()
     return render_template("quality_gates/security.html",
                            test_type="DAST",
                            tests=[{"name": each.name, "test_uid": each.test_uid} for each in tests])
