@@ -40,7 +40,7 @@ LOKI_HOST = environ.get('LOKI', 'http://carrier-loki:3100')
 MAX_DOTS_ON_CHART = 100
 VAULT_URL = environ.get('VAULT_URL', 'http://carrier-vault:8200')
 VAULT_DB_PK = 1
-
+GRID_ROUTER_URL = environ.get("GRID_ROUTER_URL", "")
 
 NAME_CONTAINER_MAPPING = {
     "Python 3.7": 'lambda:python3.7',
