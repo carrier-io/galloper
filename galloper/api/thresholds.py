@@ -243,6 +243,7 @@ class SecurityThresholdsAPI(Resource):
         project = Project.get_or_404(project_id)
         threshold = SecurityThresholds.query.filter(and_(SecurityThresholds.test_uid == args['test_uid'],
                                                          SecurityThresholds.project_id == project.id)).first()
+
         if not threshold:
             test_name = SecurityTestsSAST.query.filter(and_(SecurityTestsSAST.test_uid == args['test_uid'],
                                                             SecurityTestsSAST.project_id == project.id)).first()
@@ -257,12 +258,15 @@ class SecurityThresholdsAPI(Resource):
                                            high=-1, medium=-1, low=-1, info=-1,
                                            critical_life=-1, high_life=-1, medium_life=-1,
                                            low_life=-1, info_life=-1)
+            op = threshold.insert
+        else:
+            op = threshold.commit
         threshold.critical = args['critical']
         threshold.high = args['high']
         threshold.medium = args['medium']
         threshold.low = args['low']
         threshold.info = args['info']
-        threshold.commit()
+        op()
         return threshold.to_json(exclude_fields=("id"))
 
 
