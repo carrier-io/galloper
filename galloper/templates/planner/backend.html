@@ -71,12 +71,48 @@
                                 </div>
                             </div>
                             <div class="col-lg-6">
-                                <div class="form-group" id="fileUpload">
-                                    <label class="form-control-label" for="file">Test package</label>
-                                    <p><small>
-                                        Please upload .zip file with your tests. Packaging guidelines.
-                                    </small></p>
-                                    <input type="file" class="form-control" id="file" multiple="">
+                                <nav>
+                                  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                    <a class="nav-item nav-link active" id="nav-file-tab" data-toggle="tab" href="#nav-file" role="tab" aria-controls="nav-file" aria-selected="true">Artifact</a>
+                                    <a class="nav-item nav-link" id="nav-git-tab" data-toggle="tab" href="#nav-git" role="tab" aria-controls="nav-git" aria-selected="false">Git</a>
+                                  </div>
+                                </nav>
+                                <div class="tab-content" id="nav-tabContent">
+                                  <div class="tab-pane fade show active" id="nav-file" role="tabpanel" aria-labelledby="nav-file-tab">
+                                      <div class="form-group" id="fileUpload">
+                                        <label class="form-control-label" for="file">Test package</label>
+                                        <p><small>
+                                            Please upload .zip file with your tests. Packaging guidelines.
+                                        </small></p>
+                                        <input type="file" class="form-control" id="file" multiple="">
+                                      </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="nav-git" role="tabpanel" aria-labelledby="nav-git-tab">
+                                        <div id="target_git" class="carrier-sast-target">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo">Git Repo with Tests</label>
+                                                    <input type="text" id="repo" class="form-control form-control-alternative" placeholder="Repository URL (e.g. https://github.com/carrier-io/dusty.git)">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                  <label class="form-control-label" for="repo_user">Git Username</label>
+                                                  <input type="text" id="repo_user" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
+                                                </div>
+                                                <div class="col">
+                                                  <label class="form-control-label" for="repo_pass">Git Password</label>
+                                                  <input type="text" id="repo_pass" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_key">Git SSH private key</label>
+                                                    <input type="text" id="repo_key" class="form-control form-control-alternative" placeholder="(optional, for GIT+SSH URLs)">
+                                                </div>
+                                            </div>
+                                          </div>
+                                    </div>
                                 </div>
                                 <div class="form-group" id="testid" style="display:none">
                                     <label class="form-control-label" for="file">Test UUID</label>
