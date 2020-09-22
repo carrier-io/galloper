@@ -120,7 +120,7 @@ class SecurityReportAPI(Resource):
                                  dast_target=args["dast_target"],
                                  sast_code=args["sast_code"],
                                  scan_type=args["scan_type"],
-                                 findings=args["findings"],
+                                 findings=args["findings"]-(args["false_positives"]+args["excluded"]),
                                  false_positives=args["false_positives"],
                                  excluded=args["excluded"],
                                  info_findings=args["info_findings"],

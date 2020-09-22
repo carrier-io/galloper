@@ -28,24 +28,14 @@
                         <p><small>Enter a name that describes the purpose of your test.</small></p>
                         <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
                       </div>
-                    </div>
-                    <!-- Right column -->
-                    <div class="col-lg-6">
                       <!-- Test ID -->
                       <div class="form-group" id="testid" style="display:none">
-                        <label class="form-control-label" for="file">Test UUID</label>
+                        <label class="form-control-label" for="testuuid">Test UUID</label>
                         <p><small>UUID of the tests, may be used to refer it</small></p>
                         <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                       </div>
                     </div>
-                  </div>
-                </div>
-                <!-- Separator -->
-                <hr class="my-4" />
-                <!-- Scan settings -->
-                <div class="pl-lg-4">
-                  <div class="row">
-                    <!-- Left column -->
+                    <!-- Right column -->
                     <div class="col-lg-6">
                       <!-- DAST target URL -->
                       <div class="form-group">
@@ -53,10 +43,6 @@
                         <p><small>URL to scan</small></p>
                         <input type="text" id="dast_target_url" class="form-control form-control-alternative" placeholder="DAST target URL (e.g. https://mysite.example.com/)">
                       </div>
-                    </div>
-                    <!-- Right column -->
-                    <div class="col-lg-6">
-                      <!-- Scanners selection -->
                       <div class="form-group" id="scanners">
                         <label class="form-control-label">Scanners</label>
                         <p><small>Specify scanners to use.</small></p>
@@ -92,13 +78,14 @@
                     </div>
                   </div>
                 </div>
+
                 <!-- Separator -->
                 <hr class="my-4" />
                 <!-- Reporting -->
                 <div class="pl-lg-4">
                   <div class="row">
                     <!-- Left column -->
-                    <div class="col-lg-6">
+                    <div class="col-lg-12">
                       <!-- Reporters selection -->
                       <div class="form-group" id="reporters">
                         <label class="form-control-label">Reporting</label>
@@ -106,11 +93,11 @@
                         <!-- <div class="custom-control custom-checkbox custom-control-inline">
                           <input type="checkbox" class="custom-control-input carrier-config-reporters" id="junit">
                           <label class="custom-control-label" for="junit">jUnit Report</label>
-                        </div>
+                        </div> -->
                         <div class="custom-control custom-checkbox custom-control-inline">
                           <input type="checkbox" class="custom-control-input carrier-config-reporters" id="quality">
                           <label class="custom-control-label" for="quality">Quality Gate</label>
-                        </div> -->
+                        </div>
                         <div class="custom-control custom-checkbox custom-control-inline">
                           <input type="checkbox" class="custom-control-input carrier-config-reporters" id="email">
                           <label class="custom-control-label" for="email">Email</label>
