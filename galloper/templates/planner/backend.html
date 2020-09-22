@@ -26,48 +26,46 @@
                                     <input type="text" id="testname" class="form-control form-control-alternative"
                                            placeholder="Test Name">
                                 </div>
+                                <div class="form-group" id="testrunners">
+                                    <label class="form-control-label">Test runner</label>
+                                    <p><small>Choose the runner for the test.</small></p>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="jmeter5" name="runner" class="custom-control-input">
+                                        <label class="custom-control-label" for="jmeter5">JMeter 5.x</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="jmeter4" name="runner" class="custom-control-input">
+                                        <label class="custom-control-label" for="jmeter4">JMeter 4.x</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="gatling3" name="runner" class="custom-control-input">
+                                        <label class="custom-control-label" for="gatling3">Gatling 3.x</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" id="gatling2" name="runner" class="custom-control-input">
+                                        <label class="custom-control-label" for="gatling2">Gatling 2.x</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="compileTests">
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="compile" disabled>
+                                        <label class="custom-control-label" for="compile">Check checkbox to compile
+                                            tests. Used only for Gatling</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="testid" style="display:none">
+                                    <label class="form-control-label" for="file">Test UUID</label>
+                                    <p><small>
+                                        UUID of the tests, may be used to refer it
+                                    </small></p>
+                                    <input type="text" id="testuuid" class="form-control form-control-alternative"
+                                           disabled placeholder="">
+                                </div>
                                 <div class="form-group">
                                     <label class="form-control-label" for="parallel">Parallel runners</label>
                                     <p><small>How many test agents you need to execute test</small></p>
                                     <input type="text" id="parallel" class="form-control form-control-alternative"
                                            placeholder="# of Runners">
-                                </div>
-                                <div class="form-group" id="reporters">
-                                    <label class="form-control-label">Reporting</label>
-                                    <p><small>Specify expected report types</small></p>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="junit">
-                                        <label class="custom-control-label" for="junit">jUnit Report</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="quality">
-                                        <label class="custom-control-label" for="quality">Quality Gate</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="perfreports">
-                                        <label class="custom-control-label" for="perfreports">Tool Reports</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="jira">
-                                        <label class="custom-control-label" for="jira">Jira</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="rp">
-                                        <label class="custom-control-label" for="rp">RP</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="ado">
-                                        <label class="custom-control-label" for="ado">ADO</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="email">
-                                        <label class="custom-control-label" for="email">Email</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
-                                    <input type="text" id="emails" class="form-control form-control-alternative"
-                                           placeholder="Email recipients">
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -114,46 +112,48 @@
                                           </div>
                                     </div>
                                 </div>
-                                <div class="form-group" id="testid" style="display:none">
-                                    <label class="form-control-label" for="file">Test UUID</label>
-                                    <p><small>
-                                        UUID of the tests, may be used to refer it
-                                    </small></p>
-                                    <input type="text" id="testuuid" class="form-control form-control-alternative"
-                                           disabled placeholder="">
-                                </div>
                                 <div class="form-group">
                                     <label class="form-control-label" for="entrypoint">Entry point</label>
                                     <p><small>File for jMeter and class for gatling</small></p>
                                     <input type="text" id="entrypoint" class="form-control form-control-alternative"
                                            placeholder="Entrypoint (e.g. some.jmx or some.Test)">
                                 </div>
-                                <div class="form-group" id="testrunners">
-                                    <label class="form-control-label">Test runner</label>
-                                    <p><small>Choose the runner for the test.</small></p>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="jmeter5" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="jmeter5">JMeter 5.x</label>
+                                <div class="form-group" id="reporters">
+                                    <label class="form-control-label">Reporting</label>
+                                    <p><small>Specify expected report types</small></p>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="junit">
+                                        <label class="custom-control-label" for="junit">jUnit Report</label>
                                     </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="jmeter4" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="jmeter4">JMeter 4.x</label>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="quality">
+                                        <label class="custom-control-label" for="quality">Quality Gate</label>
                                     </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="gatling3" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="gatling3">Gatling 3.x</label>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="perfreports">
+                                        <label class="custom-control-label" for="perfreports">Tool Reports</label>
                                     </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="gatling2" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="gatling2">Gatling 2.x</label>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="jira">
+                                        <label class="custom-control-label" for="jira">Jira</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="rp">
+                                        <label class="custom-control-label" for="rp">RP</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="ado">
+                                        <label class="custom-control-label" for="ado">ADO</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="email">
+                                        <label class="custom-control-label" for="email">Email</label>
                                     </div>
                                 </div>
-                                <div class="form-group" id="compileTests">
-                                    <div class="custom-control custom-checkbox custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="compile" disabled>
-                                        <label class="custom-control-label" for="compile">Check checkbox to compile
-                                            tests. Used only for Gatling</label>
-                                    </div>
+                                <div class="form-group" id="email_input" style="display: none;">
+                                    <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
+                                    <input type="text" id="emails" class="form-control form-control-alternative"
+                                           placeholder="Email recipients">
                                 </div>
                             </div>
                         </div>
@@ -266,6 +266,9 @@
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
                     });
+                    if ($(`#email`).prop( "checked")) {
+                        $("#email_input").show();
+                    }
                     for (let [key, value] of Object.entries(data.params)) {
                         add('script_params');
                         $("#script_params").children().last().children()[0].value = key;
@@ -297,6 +300,14 @@
             $("#compile").removeAttr("disabled");
         }
     });
+
+    $("#email").change(function() {
+        if (this.checked) {
+          $("#email_input").show();
+        } else {
+          $("#email_input").hide();
+        }
+      });
 
     function addB(container) {
         $(`#${container}`).append(`<div class="input-group">
