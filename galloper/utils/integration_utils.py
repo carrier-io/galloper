@@ -71,16 +71,20 @@ def smtp_integration(args, project):
             secrets = get_project_secrets(project.id)
             hidden_secrets = get_project_hidden_secrets(project.id)
             hidden_secrets["smtp"] = dumps(args["config"])
+            env_vars = args["config"]
+            env_vars["error_rate"] = 10
+            env_vars["performance_degradation_rate"] = 20
+            env_vars["missed_thresholds"] = 50
             if "email_notification_id" in secrets:
-                update_task(secrets["email_notification_id"], dumps(args["config"]))
+                update_task(secrets["email_notification_id"], dumps(env_vars))
             elif "email_notification_id" in hidden_secrets:
-                update_task(hidden_secrets["email_notification_id"], dumps(args["config"]))
+                update_task(hidden_secrets["email_notification_id"], dumps(env_vars))
             else:
                 email_notification_args = {
                     "funcname": "email_notification",
                     "invoke_func": "lambda_function.lambda_handler",
                     "runtime": "Python 3.7",
-                    "env_vars": dumps(args["config"])
+                    "env_vars": dumps(env_vars)
                 }
                 email_notification = create_task(project, File(EMAIL_NOTIFICATION_PATH), email_notification_args)
                 hidden_secrets["email_notification_id"] = email_notification.task_id

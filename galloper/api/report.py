@@ -54,12 +54,12 @@ class ReportAPI(Resource):
         dict(name="test_name", type=str, location="json"),
         dict(name="lg_type", type=str, location="json"),
         dict(name="missed", type=int, location="json"),
-        dict(name="status", type=str, location="json")
+        dict(name="status", type=str, location="json"),
+        dict(name="duration", type=float, location="json"),
+        dict(name="vusers", type=int, location="json")
     )
     post_rules = put_rules + (
         dict(name="start_time", type=str, location="json"),
-        dict(name="duration", type=float, location="json"),
-        dict(name="vusers", type=int, location="json"),
         dict(name="environment", type=str, location="json"),
         dict(name="type", type=str, location="json"),
         dict(name="release_id", type=int, location="json")
@@ -144,6 +144,8 @@ class ReportAPI(Resource):
         report.fivexx = test_data["5xx"]
         report.requests = ";".join(test_data["requests"])
         report.status = args["status"]
+        report.vusers = args["vusers"]
+        report.duration = args["duration"]
         report.commit()
         return {"message": "updated"}
 
