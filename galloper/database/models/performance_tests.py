@@ -253,8 +253,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             "container": self.runner,
             "execution_params": {
                 "cmd": cmd,
-                "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444',
-                "LISTENER_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:9999',
+                "REMOTE_URL": f'{unsecret("{{secret.redis_host}}", project_id=self.project_id)}:4444'
             },
             "cc_env_vars": {},
             "bucket": self.bucket,

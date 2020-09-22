@@ -27,7 +27,8 @@ APP_HOST = environ.get('APP_HOST', 'localhost')
 INFLUX_PORT = 8086
 LOKI_PORT = 3100
 _url = urlparse(APP_HOST)
-EXTERNAL_LOKI_HOST = f"{_url.scheme}://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST
+EXTERNAL_LOKI_HOST = f"http://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST
+INTERNAL_LOKI_HOST = "http://carrier-loki"
 APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
 POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/raw/master/package/post_processing.zip"
 CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/raw/master/package/control-tower.zip"
@@ -40,7 +41,7 @@ LOKI_HOST = environ.get('LOKI', 'http://carrier-loki:3100')
 MAX_DOTS_ON_CHART = 100
 VAULT_URL = environ.get('VAULT_URL', 'http://carrier-vault:8200')
 VAULT_DB_PK = 1
-
+GRID_ROUTER_URL = environ.get("GRID_ROUTER_URL", "")
 
 NAME_CONTAINER_MAPPING = {
     "Python 3.7": 'lambda:python3.7',

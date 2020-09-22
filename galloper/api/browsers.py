@@ -1,5 +1,7 @@
+import requests
 from flask_restful import Resource
 
+from galloper.constants import GRID_ROUTER_URL
 from galloper.utils.api_utils import build_req_parser
 
 
@@ -14,15 +16,15 @@ class BrowsersAPI(Resource):
     _get_rules = ()
 
     def get(self, project_id: int):
-        return {
-            "chrome": [
-                "85.0",
-                "84.0",
-                "83.0",
-            ],
-            "firefox": [
-                "78.0",
-                "73.0",
-                "72.0"
-            ]
-        }
+        res = requests.get(GRID_ROUTER_URL)
+        if res.status_code != 200:
+            return {}
+
+        result = {}
+        for item in res.json():
+            versions = []
+            for version in item['Versions']:
+                versions.append(version['Number'])
+            result[item['Name']] = versions
+
+        return result

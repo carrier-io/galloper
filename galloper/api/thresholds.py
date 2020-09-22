@@ -21,6 +21,8 @@ from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.database.models.ui_thresholds import UIThresholds
 from galloper.database.models.project import Project
+from galloper.database.models.security_thresholds import SecurityThresholds
+from galloper.database.models.security_tests import SecurityTestsSAST, SecurityTestsDAST
 from galloper.utils.api_utils import build_req_parser
 
 
@@ -206,3 +208,65 @@ class EnvironmentsAPI(Resource):
                  model.project_id == project.id)
         ).order_by(model.id.asc()).all()
         return list(set([each.environment for each in query_result]))
+
+
+class SecurityThresholdsAPI(Resource):
+    get_rules = (
+        dict(name="test_uid", type=str, location="args"),
+    )
+
+    post_rules = (
+        dict(name="test_uid", type=str, location=("json")),
+        dict(name="critical", type=int, location=("json")),
+        dict(name="high", type=int, location=("json")),
+        dict(name="medium", type=int, location=("json")),
+        dict(name="low", type=int, location=("json")),
+        dict(name="info", type=int, location=("json"))
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
+    def get(self, project_id: int):
+        args = self._parser_get.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        threshold = SecurityThresholds.query.filter(and_(SecurityThresholds.test_uid == args['test_uid'],
+                                                         SecurityThresholds.project_id == project.id)).first()
+        return threshold.to_json(exclude_fields=("id"))
+
+    def post(self, project_id: int):
+        args = self._parser_post.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        threshold = SecurityThresholds.query.filter(and_(SecurityThresholds.test_uid == args['test_uid'],
+                                                         SecurityThresholds.project_id == project.id)).first()
+
+        if not threshold:
+            test_name = SecurityTestsSAST.query.filter(and_(SecurityTestsSAST.test_uid == args['test_uid'],
+                                                            SecurityTestsSAST.project_id == project.id)).first()
+            if test_name:
+                name = test_name.name
+            else:
+                test_name = SecurityTestsDAST.query.filter(and_(SecurityTestsDAST.test_uid == args['test_uid'],
+                                                                SecurityTestsDAST.project_id == project.id)).first()
+                name = test_name.name
+            threshold = SecurityThresholds(project_id=project.id, test_name=name,
+                                           test_uid=args["test_uid"], critical=-1,
+                                           high=-1, medium=-1, low=-1, info=-1,
+                                           critical_life=-1, high_life=-1, medium_life=-1,
+                                           low_life=-1, info_life=-1)
+            op = threshold.insert
+        else:
+            op = threshold.commit
+        threshold.critical = args['critical']
+        threshold.high = args['high']
+        threshold.medium = args['medium']
+        threshold.low = args['low']
+        threshold.info = args['info']
+        op()
+        return threshold.to_json(exclude_fields=("id"))
+
+

@@ -35,7 +35,7 @@
                 </div>
             </div>
                 <div class="table-responsive">
-                    <table class="table align-items-center table-flush"
+                    <table class="table align-items-center table-flush table-nowrpap"
                         id="projects-table"
                         data-toggle="table"
                         data-url="/api/v1/project/"
@@ -86,7 +86,7 @@
                 Object.keys(data).forEach(function(metric) {
                     var rate = 0
                     var quota = data[metric]["quota"]
-                    if (quota == -1) { quota = 'unlimited' }
+                    if (quota == -1) { quota = '&infin;' }
                     else { rate = data[metric]["current"]/quota * 100 }
                     var icon = fas_class[metric]
                     if (metric != "data_retention_limit") {

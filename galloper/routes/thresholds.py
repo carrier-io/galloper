@@ -12,10 +12,12 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, current_app
 
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.ui_report import UIReport
+from galloper.database.models.security_tests import SecurityTestsDAST
+from galloper.database.models.security_tests import SecurityTestsSAST
 from galloper.database.models.project import Project
 from galloper.utils.auth import project_required
 
@@ -34,3 +36,19 @@ def backend_thresholds(project: Project):
 def ui_thresholds(project: Project):
     tests = UIReport.query.filter(UIReport.project_id == project.id).with_entities(UIReport.name).distinct()
     return render_template("quality_gates/ui_thresholds.html", tests=[each[0] for each in tests])
+
+@bp.route("/thresholds/security/sast", methods=["GET"])
+@project_required
+def sast_thresholds(project: Project):
+    tests = SecurityTestsSAST.query.filter(SecurityTestsSAST.project_id == project.id).all()
+    return render_template("quality_gates/security.html",
+                           test_type="SAST",
+                           tests=[{"name": each.name, "test_uid": each.test_uid} for each in tests])
+
+@bp.route("/thresholds/security/dast", methods=["GET"])
+@project_required
+def dast_thresholds(project: Project):
+    tests = SecurityTestsDAST.query.filter(SecurityTestsDAST.project_id == project.id).all()
+    return render_template("quality_gates/security.html",
+                           test_type="DAST",
+                           tests=[{"name": each.name, "test_uid": each.test_uid} for each in tests])

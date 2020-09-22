@@ -1,0 +1,173 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+<div class="col-xl-12 mb-6 mb-xl-0">
+  <div class="card shadow">
+          <div class="card-header white border-0">
+              <div class="row align-items-center">
+                  <div class="col">
+                      <h2 class="text-gray mb-0">Configure {{test_type}} Security Thresholds</h2>
+                  </div>
+                  <div class="col">
+                      <ul id="chart-control" class="nav nav-pills justify-content-end">
+                          <li class="nav-item mr-2 mr-md-0 mt-2">
+                              <span>Test:</span>
+                          </li>
+                          <li class="nav-item mr-2 mr-md-0">
+                              <select class="selectpicker show-tick form-control form-control-sm mt-1" id="testName" onchange="updateThresholdValues()">
+                                  {% for test in tests %}
+                                    <option value="{{test['test_uid']}}">{{ test["name"] }}</option>
+                                  {% endfor %}
+                              </select>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+          </div>
+          <div class="card-body">
+            <form action="" id="thresholds" method="post">
+                <div class="pl-lg-4">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <h6 class="heading-small text-muted mb-1">Issues by Severity</h6>
+                            <small>
+                                Specify quantity of issues by type allowed  for every severity level. "-1" means infinite
+                            </small>
+                        </div>
+                    </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                          <div class="row ml-1">
+                            <div class="col-2">
+                              <label class="form-control-label" for="critical">Critical</label>
+                            </div>
+                            <div class="col">
+                              <input type="text" id="critical" class="form-control form-control-sm form-control-alternative" value="-1">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                          <div class="row ml-1">
+                            <div class="col-2">
+                              <label class="form-control-label" for="high">High</label>
+                            </div>
+                            <div class="col">
+                              <input type="text" id="high" class="form-control form-control-sm form-control-alternative" value="-1">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                          <div class="row ml-1">
+                            <div class="col-2">
+                              <label class="form-control-label" for="medium">Medium</label>
+                            </div>
+                            <div class="col">
+                              <input type="text" id="medium" class="form-control form-control-sm form-control-alternative" value="-1">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                          <div class="row ml-1">
+                            <div class="col-2">
+                              <label class="form-control-label" for="low">Low</label>
+                            </div>
+                            <div class="col">
+                              <input type="text" id="low" class="form-control form-control-sm form-control-alternative" value="-1">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                          <div class="row ml-1">
+                            <div class="col-2">
+                              <label class="form-control-label" for="info">Info</label>
+                            </div>
+                            <div class="col">
+                              <input type="text" id="info" class="form-control form-control-sm form-control-alternative" value="-1">
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <div class="row">
+                <div class="col-lg-6">
+                    <button type="submit" class="btn btn-primary btn-sm ml-5">Update Thresholds</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer py-4 border-0">
+          </div>
+      </div>
+  </div>
+</div>
+</div>
+{% include 'common/foot.html' %}
+</body>
+</html>
+
+<script>
+
+    $('#thresholds').submit(
+        function (event) {
+          event.preventDefault();
+          let selectedProjectId = getSelectedProjectId();
+          $.ajax({
+            url: `/api/v1/thresholds/${selectedProjectId}/security`,
+            type: "POST",
+            data: JSON.stringify({
+                test_uid: $("#testName").val(),
+                critical: $("#critical").val(),
+                high: $("#high").val(),
+                medium: $("#medium").val(),
+                low: $("#low").val(),
+                info: $("#info").val()
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(){
+                updateThresholdValues();
+            }
+        });
+    });
+
+    function updateThresholdValues() {
+        let selectedProjectId = getSelectedProjectId();
+          $.ajax({
+            url: `/api/v1/thresholds/${selectedProjectId}/security`,
+            type: "GET",
+            data: { test_uid: $("#testName").val() },
+            success: function(response) {
+                $("#critical").val(response.critical);
+                $("#high").val(response.high);
+                $("#medium").val(response.medium);
+                $("#low").val(response.low);
+                $("#info").val(response.info);
+            }
+          });
+    }
+
+
+
+    $(document).ready(function() {
+        updateThresholdValues();
+    });
+</script>
