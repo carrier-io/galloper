@@ -180,6 +180,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
         }
         cc_env_vars = {
             "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id),
+            "REDIS_PASSWORD": unsecret("{{secret.redis_password}}", project_id=self.project_id),
         }
         concurrency = 1
         #
@@ -377,6 +378,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
             parameters["code_path"] = self.sast_settings.get("sast_target_code")
         cc_env_vars = {
             "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id),
+            "REDIS_PASSWORD": unsecret("{{secret.redis_password}}", project_id=self.project_id),
         }
         concurrency = 1
         #
