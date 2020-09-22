@@ -20,6 +20,7 @@ from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret, get_project_secrets
 from galloper.processors.minio import MinioClient
+from galloper.constants import APP_HOST
 
 from .project import Project
 
@@ -155,6 +156,11 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                             },
                             "quality_gate": {
                                 "thresholds": tholds
+                            },
+                            "false_positive": {
+                                "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                                "project_id": f"{self.project_id}",
+                                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)
                             }
                         },
                         "reporters": reporters_config
@@ -345,6 +351,11 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                             },
                             "quality_gate": {
                                 "thresholds": tholds
+                            },
+                            "false_positive": {
+                                "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                                "project_id": f"{self.project_id}",
+                                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)
                             }
                         },
                         "reporters": reporters_config
