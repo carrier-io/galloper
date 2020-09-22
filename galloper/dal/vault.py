@@ -120,20 +120,12 @@ def add_hidden_kv(project_id, client=None):
         )
     except hvac.exceptions.InvalidRequest:
         pass
-    client.sys.create_or_update_policy(
-        name=f"policy-for-{project_id}-hidden",
-        policy="""# Read/write project hidden secrets
-        path "kv-for-hidden-{project_id}/*" {
-          capabilities = ["create", "read", "update", "delete", "list"]
-        }""".replace("{project_id}", str(project_id))
-    )
     return client
 
 
-def initialize_project_space(project_id):
-    """ Create project approle, policy and KV """
-    client = get_root_client()
-    # Create policy for project
+def set_hidden_kv_permissions(project_id, client=None):
+    if not client:
+        client = get_root_client()
     policy = """
         # Login with AppRole
         path "auth/approle/login" {
@@ -143,11 +135,22 @@ def initialize_project_space(project_id):
         path "kv-for-{project_id}/*" {
           capabilities = ["create", "read", "update", "delete", "list"]
         }
+        # Read/write project hidden secrets
+        path "kv-for-hidden-{project_id}/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+        }
     """.replace("{project_id}", str(project_id))
     client.sys.create_or_update_policy(
         name=f"policy-for-{project_id}",
-        policy=policy,
+        policy=policy
     )
+
+
+def initialize_project_space(project_id):
+    """ Create project approle, policy and KV """
+    client = get_root_client()
+    # Create policy for project
+    set_hidden_kv_permissions(project_id, client)
     # Create secrets KV
     client.sys.enable_secrets_engine(
         backend_type="kv",
@@ -217,12 +220,17 @@ def set_project_secrets(project_id, secrets):
 
 def set_project_hidden_secrets(project_id, secrets):
     """ Set project hidden secrets """
-    client = get_project_client(project_id)
-    client.secrets.kv.v2.create_or_update_secret(
-        path="project-secrets",
-        mount_point=f"kv-for-hidden-{project_id}",
-        secret=secrets,
-    )
+    try:
+        client = get_project_client(project_id)
+        client.secrets.kv.v2.create_or_update_secret(
+            path="project-secrets",
+            mount_point=f"kv-for-hidden-{project_id}",
+            secret=secrets,
+        )
+    except hvac.exceptions.Forbidden:
+        current_app.logger.error("Exception Forbidden in set_project_hidden_secret")
+        set_hidden_kv_permissions(project_id)
+        return set_project_secrets(project_id, secrets)
 
 
 def get_project_secrets(project_id):
@@ -243,7 +251,8 @@ def get_project_hidden_secrets(project_id):
             mount_point=f"kv-for-hidden-{project_id}",
         ).get("data", dict()).get("data", dict())
     except hvac.exceptions.Forbidden:
-        add_hidden_kv(project_id)
+        current_app.logger.error("Exception Forbidden in get_project_hidden_secret")
+        set_hidden_kv_permissions(project_id)
         return {}
 
 
