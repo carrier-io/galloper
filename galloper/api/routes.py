@@ -30,7 +30,7 @@ from .security_planner import SecuritySeedDispatcher
 from .security_planner import TestsApiSecurityDAST, TestApiSecurityDAST
 from .security_planner import TestsApiSecuritySAST, TestApiSecuritySAST
 from .visual import VisualReportAPI, VisualResultAPI
-from .task import TaskActionApi, TasksApi, TaskApi
+from .task import TaskActionApi, TasksApi, TaskApi, TaskUpgradeApi
 from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, EnvironmentsAPI, SecurityThresholdsAPI
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
@@ -71,6 +71,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
     add_resource_to_api(api, TaskApi, "/task/<int:project_id>/<string:task_id>")
     add_resource_to_api(api, TasksApi, "/task/<int:project_id>")
+    add_resource_to_api(api, TaskUpgradeApi, "/task/<int:project_id>/upgrade")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")
