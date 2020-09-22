@@ -81,7 +81,7 @@ class ReportAPI(Resource):
         for each in res:
             each_json = each.to_json()
             each_json["start_time"] = each_json["start_time"].replace("T", " ").split(".")[0]
-            each_json["duration"] = int(each_json["duration"])
+            each_json["duration"] = int(each_json["duration"] if each_json["duration"] else 0)
             try:
                 each_json["failure_rate"] = round((each_json["failures"] / each_json["total"]) * 100, 2)
             except ZeroDivisionError:

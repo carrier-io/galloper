@@ -201,7 +201,7 @@
             return "<img src=\"{{ url_for('static', filename='img/icons/nodejs.png') }}\" width=\"25\">"
         } else if (row.sast_settings.language === "java") {
             return "<img src=\"{{ url_for('static', filename='img/icons/java.png') }}\" width=\"25\">"
-        } else if (row.sast_settings.language === "go") {
+        } else if (row.sast_settings.language === "golang") {
             return "<img src=\"{{ url_for('static', filename='img/icons/go.png') }}\" width=\"25\">"
         } else {
             return value
@@ -209,11 +209,11 @@
     }
 
     function sourceFormatter(value, row, index) {
-        if (row.sast_target_type === "target_git") {
+        if (row.sast_settings.sast_target_type === "target_git") {
             return "<img src=\"{{ url_for('static', filename='img/icons/git.png')}}\" width=\"25\">"
-        } else if (row.sast_target_type === "sast_target_artifact_bucket") {
+        } else if (row.sast_settings.sast_target_type === "sast_target_artifact_bucket") {
             return "<img src=\"{{ url_for('static', filename='img/icons/archive.png')}}\" width=\"25\">"
-        } else if (row.sast_target_type === "target_code_path") {
+        } else if (row.sast_settings.sast_target_type === "target_code_path") {
             return "<img src=\"{{ url_for('static', filename='img/icons/code.png')}}\" width=\"25\">"
         } else {
             return value

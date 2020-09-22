@@ -11,6 +11,8 @@
                 </div>
                 <div class="col-4 text-right">
                   <a href="/task" class="btn btn-sm btn-primary">Add Task</a>
+                  <a href="javascript:void(0)" id="update_control_tower" onclick="update('control_tower')" class="btn btn-sm btn-primary">Update CC</a>
+                  <a href="javascript:void(0)" id="update_post_processor" onclick="update('post_processor')" class="btn btn-sm btn-primary">Update PP</a>
                 </div>
               </div>
             </div>
@@ -142,6 +144,25 @@
       }
     )
   }
+
+  function update(lambda_name) {
+    let selectedProjectId = getSelectedProjectId();
+    $(`#update_${lambda_name}`).html(`<span class="spinner-border spinner-border-sm"></span>`);
+    $(`#update_${lambda_name}`).addClass("disabled");
+    $.ajax(
+      {
+        url: `/api/v1/task/${selectedProjectId}/update?name=${lambda_name}`,
+        cache: false,
+        contentType: "application/json",
+        processData: false,
+        method: 'GET',
+        success: function(data){
+          window.location.reload();
+        }
+      }
+    )
+  }
+
 </script>
 </body>
 </html>

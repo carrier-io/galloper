@@ -18,7 +18,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
-from galloper.dal.vault import unsecret, get_project_secrets
+from galloper.dal.vault import unsecret, get_project_hidden_secrets
 from galloper.processors.minio import MinioClient
 from galloper.constants import APP_HOST
 
@@ -99,7 +99,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                 }
             #
             if "jira" in self.dast_settings.get("reporters_checked", list()):
-                project_secrets = get_project_secrets(self.project_id)
+                project_secrets = get_project_hidden_secrets(self.project_id)
                 if "jira" in project_secrets:
                     jira_settings = loads(project_secrets["jira"])
                     reporters_config["jira"] = {
@@ -113,7 +113,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                     }
             #
             if "email" in self.dast_settings.get("reporters_checked", list()):
-                project_secrets = get_project_secrets(self.project_id)
+                project_secrets = get_project_hidden_secrets(self.project_id)
                 if "smtp" in project_secrets:
                     email_settings = loads(project_secrets["smtp"])
                     reporters_config["email"] = {
@@ -295,7 +295,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                 }
             #
             if "jira" in self.sast_settings.get("reporters_checked", list()):
-                project_secrets = get_project_secrets(self.project_id)
+                project_secrets = get_project_hidden_secrets(self.project_id)
                 if "jira" in project_secrets:
                     jira_settings = loads(project_secrets["jira"])
                     reporters_config["jira"] = {
@@ -309,7 +309,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                     }
             #
             if "email" in self.sast_settings.get("reporters_checked", list()):
-                project_secrets = get_project_secrets(self.project_id)
+                project_secrets = get_project_hidden_secrets(self.project_id)
                 if "smtp" in project_secrets:
                     email_settings = loads(project_secrets["smtp"])
                     reporters_config["email"] = {
