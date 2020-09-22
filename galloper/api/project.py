@@ -166,7 +166,7 @@ class ProjectAPI(Resource):
         project_hidden_secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
         project_hidden_secrets["post_processor_id"] = pp.task_id
         project_hidden_secrets["redis_host"] = APP_IP
-        project_hidden_secrets["loki_host"] = EXTERNAL_LOKI_HOST
+        project_hidden_secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
         project_hidden_secrets["influx_ip"] = APP_IP
         project_hidden_secrets["influx_port"] = INFLUX_PORT
         project_hidden_secrets["loki_port"] = LOKI_PORT
