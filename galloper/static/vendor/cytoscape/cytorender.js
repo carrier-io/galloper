@@ -9,7 +9,11 @@ Promise.all([
         ready: function(){ console.log("done") },
         style: dataArray[0],
         elements: dataArray[1],
-        zoomingEnabled: false
+        zoomingEnabled: true,
+        userPanningEnabled: false,
+        userZoomingEnabled: false,
+        minZoom: 2,
+        maxZoom: 2
     });
 
     cy.cxtmenu({
