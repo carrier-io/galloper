@@ -151,7 +151,7 @@
     $(`#update_${lambda_name}`).addClass("disabled");
     $.ajax(
       {
-        url: `/api/v1/task/${selectedProjectId}/update?name=${lambda_name}`,
+        url: `/api/v1/upgrade/${selectedProjectId}/task?name=${lambda_name}`,
         cache: false,
         contentType: "application/json",
         processData: false,

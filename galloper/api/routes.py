@@ -71,7 +71,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, TaskActionApi, "/task/<string:task_id>/<string:action>")
     add_resource_to_api(api, TaskApi, "/task/<int:project_id>/<string:task_id>")
     add_resource_to_api(api, TasksApi, "/task/<int:project_id>")
-    add_resource_to_api(api, TaskUpgradeApi, "/task/<int:project_id>/upgrade")
+    add_resource_to_api(api, TaskUpgradeApi, "/upgrade/<int:project_id>/task")
 
     add_resource_to_api(api, BaselineAPI, "/baseline/<int:project_id>")
     add_resource_to_api(api, StatisticAPI, "/statistic/<int:project_id>")

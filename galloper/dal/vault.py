@@ -103,6 +103,33 @@ def get_project_client(project_id):
     return client
 
 
+def add_hidden_kv(project_id, client=None):
+    # Create hidden secrets KV
+    if not client:
+        client = get_root_client()
+    try:
+        client.sys.enable_secrets_engine(
+            backend_type="kv",
+            path=f"kv-for-hidden-{project_id}",
+            options={"version": "2"},
+        )
+        client.secrets.kv.v2.create_or_update_secret(
+            path="project-secrets",
+            mount_point=f"kv-for-hidden-{project_id}",
+            secret=dict(),
+        )
+    except hvac.exceptions.InvalidRequest:
+        pass
+    client.sys.create_or_update_policy(
+        name=f"policy-for-{project_id}-hidden",
+        policy="""# Read/write project hidden secrets
+        path "kv-for-hidden-{project_id}/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+        }""".replace("{project_id}", str(project_id))
+    )
+    return client
+
+
 def initialize_project_space(project_id):
     """ Create project approle, policy and KV """
     client = get_root_client()
@@ -112,13 +139,8 @@ def initialize_project_space(project_id):
         path "auth/approle/login" {
           capabilities = [ "create", "read" ]
         }
-
         # Read/write project secrets
         path "kv-for-{project_id}/*" {
-          capabilities = ["create", "read", "update", "delete", "list"]
-        }
-        # Read/write project hidden secrets
-        path "kv-for-hidden-{project_id}/*" {
           capabilities = ["create", "read", "update", "delete", "list"]
         }
     """.replace("{project_id}", str(project_id))
@@ -138,16 +160,7 @@ def initialize_project_space(project_id):
         secret=dict(),
     )
     # Create hidden secrets KV
-    client.sys.enable_secrets_engine(
-        backend_type="kv",
-        path=f"kv-for-hidden-{project_id}",
-        options={"version": "2"},
-    )
-    client.secrets.kv.v2.create_or_update_secret(
-        path="project-secrets",
-        mount_point=f"kv-for-hidden-{project_id}",
-        secret=dict(),
-    )
+    add_hidden_kv(project_id, client)
     # Create AppRole
     approle_name = f"role-for-{project_id}"
     requests.post(
@@ -224,10 +237,14 @@ def get_project_secrets(project_id):
 def get_project_hidden_secrets(project_id):
     """ Get project hidden secrets """
     client = get_project_client(project_id)
-    return client.secrets.kv.v2.read_secret_version(
-        path="project-secrets",
-        mount_point=f"kv-for-hidden-{project_id}",
-    ).get("data", dict()).get("data", dict())
+    try:
+        return client.secrets.kv.v2.read_secret_version(
+            path="project-secrets",
+            mount_point=f"kv-for-hidden-{project_id}",
+        ).get("data", dict()).get("data", dict())
+    except hvac.exceptions.Forbidden:
+        add_hidden_kv(project_id)
+        return {}
 
 
 def unsecret(value, secrets=None, project_id=None):

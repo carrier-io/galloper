@@ -165,7 +165,6 @@ class TaskUpgradeApi(Resource):
         self.__init_req_parsers()
 
     def __init_req_parsers(self):
-        self._result_parser = build_req_parser(rules=self.result_rules)
         self.get_parser = build_req_parser(rules=self._get_rules)
 
     def get(self, project_id):
