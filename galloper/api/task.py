@@ -7,7 +7,8 @@ from werkzeug.exceptions import Forbidden
 from werkzeug.datastructures import FileStorage
 
 from galloper.api.base import get, create_task, run_task
-from galloper.constants import allowed_file, POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_HOST
+from galloper.constants import allowed_file, POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_HOST, \
+    APP_IP, EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD
 from galloper.data_utils.file_utils import File
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
@@ -15,7 +16,7 @@ from galloper.database.models.project import Project
 from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser, str2bool
 from galloper.dal.vault import unsecret
-from galloper.dal.vault import get_project_hidden_secrets, set_project_hidden_secrets
+from galloper.dal.vault import get_project_hidden_secrets, set_project_hidden_secrets, set_project_secrets
 
 
 class TasksApi(Resource):
@@ -167,42 +168,65 @@ class TaskUpgradeApi(Resource):
     def __init_req_parsers(self):
         self.get_parser = build_req_parser(rules=self._get_rules)
 
+    def _create_cc(self, project, secrets):
+        task = Task.query.filter(and_(Task.project_id == project.id, Task.task_name == 'control_tower')).first()
+        task.delete()
+        cc_args = {
+            "funcname": "control_tower",
+            "invoke_func": "lambda.handler",
+            "runtime": "Python 3.7",
+            "env_vars": dumps({
+                "REDIS_HOST": "{{secret.redis_host}}",
+                "REDIS_DB": 1,
+                "token": "{{secret.auth_token}}",
+                "galloper_url": "{{secret.galloper_url}}",
+                "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
+                "project_id": '{{secret.project_id}}',
+                "loki_host": '{{secret.loki_host}}'
+            })
+        }
+        cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
+        secrets["control_tower_id"] = cc.task_id
+        return secrets
+
+    def _create_pp(self, project, secrets):
+        task = Task.query.filter(and_(Task.project_id == project.id, Task.task_name == 'post_processor')).first()
+        task.delete()
+        pp_args = {
+            "funcname": "post_processor",
+            "invoke_func": "lambda_function.lambda_handler",
+            "runtime": "Python 3.7",
+            "env_vars": dumps({})
+        }
+        pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
+        secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
+        secrets["post_processor_id"] = pp.task_id
+        return secrets
+
     def get(self, project_id):
         project = Project.get_or_404(project_id)
         args = self.get_parser.parse_args(strict=False)
-        if args['name'] not in ['post_processor', 'control_tower']:
+        if args['name'] not in ['post_processor', 'control_tower', 'all']:
             return {"message": "go away", "code": 400}, 400
-        task = Task.query.filter(and_(Task.project_id == project_id, Task.task_name == args['name'])).first()
-        task.delete()
+        secrets = get_project_hidden_secrets(project.id)
+        project_secrets = {}
         if args['name'] == 'post_processor':
-            pp_args = {
-                "funcname": "post_processor",
-                "invoke_func": "lambda_function.lambda_handler",
-                "runtime": "Python 3.7",
-                "env_vars": dumps({})
-            }
-            pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
-            secrets = get_project_hidden_secrets(project.id)
-            secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
-            secrets["post_processor_id"] = pp.task_id
-            set_project_hidden_secrets(project.id, secrets)
+            secrets = self._create_pp(project, secrets)
         elif args['name'] == 'control_tower':
-            cc_args = {
-                "funcname": "control_tower",
-                "invoke_func": "lambda.handler",
-                "runtime": "Python 3.7",
-                "env_vars": dumps({
-                    "REDIS_HOST": "{{secret.redis_host}}",
-                    "REDIS_DB": 1,
-                    "token": "{{secret.auth_token}}",
-                    "galloper_url": "{{secret.galloper_url}}",
-                    "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
-                    "project_id": '{{secret.project_id}}',
-                    "loki_host": '{{secret.loki_host}}'
-                })
-            }
-            cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
-            secrets = get_project_hidden_secrets(project.id)
-            secrets["control_tower_id"] = cc.task_id
-            set_project_hidden_secrets(project.id, secrets)
+            secrets = self._create_cc(project, secrets)
+        elif args['name'] == 'all':
+            secrets = self._create_pp(project, secrets)
+            secrets = self._create_cc(project, secrets)
+            project_secrets["galloper_url"] = APP_HOST
+            project_secrets["project_id"] = project.id
+            secrets["redis_host"] = APP_IP
+            secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
+            secrets["influx_ip"] = APP_IP
+            secrets["influx_port"] = INFLUX_PORT
+            secrets["loki_port"] = LOKI_PORT
+            secrets["redis_password"] = REDIS_PASSWORD
+            set_project_secrets(project.id, project_secrets)
+        else:
+            return {"message": "go away", "code": 400}, 400
+        set_project_hidden_secrets(project.id, secrets)
         return {"message": "Done", "code": 200}
