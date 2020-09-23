@@ -4,7 +4,8 @@
     let selectedProjectTitle = document.getElementById("selected-project");
     let selectedProjectId = document.getElementById("selected-project-id");
 
-    let navSecurityReport = document.getElementById("nav-security-report");
+    let navSASTReport = document.getElementById("nav-sast-report");
+    let navDASTReport = document.getElementById("nav-dast-report");
     let navSASTThreshold = document.getElementById("nav-sast-threshold");
     let navDASTThreshold = document.getElementById("nav-dast-threshold");
     let navUIReport = document.getElementById("nav-ui-report");
@@ -12,11 +13,13 @@
 
     function processNavbarItems(dastEnabled, sastEnabled, performanceEnabled) {
         if (dastEnabled === true && sastEnabled === true) {
-            navSecurityReport.style.display = "block";
+            navSASTReport.style.display = "block";
+            navDASTReport.style.display = "block";
             navSASTThreshold.style.display = "block";
             navDASTThreshold.style.display = "block";
         } else {
-            navSecurityReport.style.display = "none";
+            navSASTReport.style.display = "none";
+            navDASTReport.style.display = "none";
             navSASTThreshold.style.display = "none";
             navDASTThreshold.style.display = "none";
         }

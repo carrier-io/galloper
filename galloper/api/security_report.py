@@ -34,6 +34,7 @@ class SecurityReportAPI(Resource):
         dict(name="search", type=str, default="", location="args"),
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
+        dict(name="type", type=str, default="sast", location="args"),
     )
     delete_rules = (
         dict(name="id[]", type=int, action="append", location="args"),
@@ -66,16 +67,20 @@ class SecurityReportAPI(Resource):
         search_ = args.get("search")
         limit_ = args.get("limit")
         offset_ = args.get("offset")
+        scan_type = args.get("type").upper()
         if args.get("sort"):
             sort_rule = getattr(getattr(SecurityResults, args["sort"]), args["order"])()
         else:
             sort_rule = SecurityResults.id.desc()
         if not args.get("search") and not args.get("sort"):
-            total = SecurityResults.query.filter_by(project_id=project_id).order_by(sort_rule).count()
-            res = SecurityResults.query.filter_by(project_id=project_id).\
+            total = SecurityResults.query.filter(and_(SecurityResults.project_id == project_id,
+                                                      SecurityResults.scan_type == scan_type)
+                                                 ).order_by(sort_rule).count()
+            res = SecurityResults.query.filter(and_(SecurityResults.project_id == project_id,
+                                                    SecurityResults.scan_type == scan_type)).\
                 order_by(sort_rule).limit(limit_).offset(offset_).all()
         else:
-            filter_ = and_(SecurityResults.project_id==project_id,
+            filter_ = and_(SecurityResults.project_id == project_id, SecurityResults.scan_type == scan_type,
                       or_(SecurityResults.project_name.like(f"%{search_}%"),
                           SecurityResults.app_name.like(f"%{search_}%"),
                           SecurityResults.scan_type.like(f"%{search_}%"),
