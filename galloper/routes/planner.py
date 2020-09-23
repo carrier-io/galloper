@@ -27,7 +27,7 @@ def tasks(project: Project):
     tasks_ = Task.query.filter(Task.project_id == project.id).order_by(Task.id).all()
     if request.args.get("type") and request.args.get("type") == "sast":
         return render_template("planner/tests_sast.html", tasks=tasks_, project_id=project.id)
-    if request.args.get("type") and request.args.get("dast") == "sast":
+    if request.args.get("type") and request.args.get("type") == "dast":
         return render_template("planner/tests_dast.html", tasks=tasks_, project_id=project.id)
     return render_template("planner/tests.html", tasks=tasks_, project_id=project.id)
 

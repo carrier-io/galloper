@@ -128,11 +128,11 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                     }
             # Thresholds
             tholds = {}
-            if thresholds and any(thresholds[key] > -1 for key in thresholds.keys()):
+            if thresholds and any(int(thresholds[key]) > -1 for key in thresholds.keys()):
 
                 for key, value in thresholds.items():
-                    if value > -1:
-                        tholds[key.capitalize()] = value
+                    if int(value) > -1:
+                        tholds[key.capitalize()] = int(value)
             #
             dusty_config = {
                 "config_version": 2,

@@ -194,8 +194,9 @@
 
     function toolFormatter(value, row, index) {
         var value = ''
-        row.sast_setting.scanners_checked.forEach(function(item){
-            value += "<img src=\"{{ url_for('static', filename='img/icons/"+item+".png')}}\" width=\"25\">"
+        row.dast_settings.scanners_checked.forEach(function(item){
+            console.log(item)
+            value += "<img class=\"mr-1\" src=\"/static/img/icons/"+item+".png\" width=\"25\">"
         })
         return value
     }
