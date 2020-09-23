@@ -153,9 +153,9 @@
                 if (type === "frontend"){
                     window.location.href = `/visual`;
                 } else if (type === "dast") {
-                    window.location.href = `/security`;
+                    window.location.href = `/security?type=dast`;
                 } else if (type === "sast") {
-                    window.location.href = `/security`;
+                    window.location.href = `/security?type=sast`;
                 } else {
                     window.location.href = `/report`;
                 }
