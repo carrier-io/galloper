@@ -27,6 +27,7 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser
 
+
 class SecurityReportAPI(Resource):
     get_rules = (
         dict(name="offset", type=int, default=0, location="args"),

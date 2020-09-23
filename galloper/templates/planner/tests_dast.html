@@ -1,0 +1,233 @@
+{% include 'common/head.html' %}
+{% include 'common/nav.html' %}
+{% include 'common/page_nav.html' %}
+<div class="row">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+        <div class="card shadow">
+            <div class="card-header bg-transparent border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="text-gray mb-0" id="title"></h2>
+                    </div>
+                    <div class="col">
+                        <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item mr-2 mr-md-0">
+                                <a id="CR" href="/tests/backend" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-plus"></i></span>
+                                </a>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="DR" onclick="deleteTasks()" class="btn btn-primary btn-sm" disabled>
+                                    <span class="d-none d-md-block"><i class="fa fa-trash-alt"></i></span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="FT" onclick="filters()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-filter"></i></span>
+                                </button>
+                            </li>
+                            <li class="nav-item mr-2 mr-md-0">
+                                <button id="RE" onclick="refreshTable()" class="btn btn-primary btn-sm">
+                                    <span class="btn-inner--icon"><i class="fa fa-sync"></i></span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush"
+                        id="results"
+                        data-toggle="table"
+                        data-page-size=10
+                        data-page-list=[10,20,50,100,200,All]
+                        data-side-pagination="server"
+                        data-pagination="true"
+                        data-filter-control="true">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col" data-checkbox="true"></th>
+                        <th data-visible="false" data-field="id">index</th>
+                        <th scope="col" data-sortable="true" data-field="name" data-formatter=createLinkToTest data-filter-control="input">Name</th>
+                        <th scope="col" data-sortable="true" data-field="test_uid" data-filter-control="input">UUID</th>
+                        <th scope="col" data-sortable="true" data-field="dast_settings.dast_target_url" data-filter-control="input">Target</th>
+                        <th scope="col" data-sortable="true" data-formatter=toolFormatter>Tools</th>
+                        <th scope="col" data-field="lg_type" data-formatter=actionFormatter>Actions</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="card-footer py-4  border-0">
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'common/foot.html' %}
+<!-- Modal -->
+<div class="modal fade" id="showConfigModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal_title">Execution Config</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="execution_config">This is auto-generated execution config based on tests default settings</label>
+                        <textarea class="form-control" id="execution_config" rows="10" disabled></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close">Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+<script>
+    var page_params = new URLSearchParams(window.location.search);
+
+    function createLinkToTest(value, row, index) {
+        let selectedProjectId = getSelectedProjectId();
+        return `<a href="/tests/${page_params.get("type")}?test=${row['id']}">${row.name}</a>`
+    }
+
+    function percentFormatter(value, row, index) {
+        return value + '&nbsp;%'
+    }
+
+    function filters() {
+        $("#results").bootstrapTable('clearFilterControl');
+        if ($(".filter-control input").css("visibility")==="visible") {
+             $(".filter-control input").css("visibility", "hidden")
+             $(".filter-control select").css("visibility", "hidden")
+             $(".fht-cell").css("display", "none")
+        } else {
+            $(".filter-control input").css("visibility", "visible")
+             $(".filter-control select").css("visibility", "visible")
+             $(".fht-cell").css("display", "block")
+        }
+    }
+
+    function refreshTable() {
+        let selectedProjectId = getSelectedProjectId();
+        $("#results").bootstrapTable('refresh', {url: `/api/v1/tests/${selectedProjectId}/${page_params.get("type")}`});
+    }
+
+    $(document).ready(function() {
+        $("#CR").attr("href",`tests/${page_params.get("type")}`)
+        $("#title").text(`${page_params.get("type")} Tests`);
+        refreshTable();
+        filters();
+    });
+
+    function actionFormatter(value, row, index) {
+        return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="runTask(this, '${row.id}')"><i class="fas fa-play"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="editItem('${row.id}')"><i class="fas fa-cog"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-ship"></i></a></span>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showDockerSnippet('${row.id}')"><i class="fab fa-docker"></i></a>
+        <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="deleteTasks('${row.id}')"><i class="fa fa-trash-alt"></i></a>`
+    }
+
+    function editItem(rowId){
+        window.location.href = `/tests/${page_params.get("type")}?test=${rowId}`
+    }
+
+    function runTask(elem, test_id) {
+        var project_id = getSelectedProjectId();
+        elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
+        elem.classList.add("disabled");
+
+        var type = page_params.get("type")
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
+            type: 'POST',
+            success: function (result) {
+                if (type === "frontend"){
+                    window.location.href = `/visual`;
+                } else if (type === "dast") {
+                    window.location.href = `/security`;
+                } else if (type === "sast") {
+                    window.location.href = `/security`;
+                } else {
+                    window.location.href = `/report`;
+                }
+            }
+        });
+    }
+
+    function showDockerSnippet(test_id) {
+        var project_id = getSelectedProjectId();
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=docker&exec=True`,
+            type: 'GET',
+            success: function (result) {
+                $("#execution_config").val(result.config);
+                $("#showConfigModal").modal("show");
+            }
+        });
+    }
+
+    function showExecutionConfig(test_id) {
+        var project_id = getSelectedProjectId();
+        $.ajax({
+            url: `/api/v1/tests/${project_id}/${page_params.get("type")}/${test_id}?type=cc`,
+            type: 'GET',
+            success: function (result) {
+                $("#execution_config").val(JSON.stringify(result.config, null, 4));
+                $("#showConfigModal").modal("show");
+            }
+        });
+    }
+
+
+    $("#showConfigModal").on("hide.bs.modal", function () {
+        $("#execution_config").val("");
+    })
+
+    function toolFormatter(value, row, index) {
+        var value = ''
+        row.sast_setting.scanners_checked.forEach(function(item){
+            value += "<img src=\"{{ url_for('static', filename='img/icons/"+item+".png')}}\" width=\"25\">"
+        })
+        return value
+    }
+
+    $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function () {
+        console.log("here");
+        if ($("#results").bootstrapTable('getSelections').length == 0) {
+            $("#DR").prop("disabled", true);
+        } else {
+            $("#DR").removeAttr("disabled");
+        }
+    });
+
+    function deleteTasks(id) {
+        var project_id = $("#selected-project-id").text();
+        var reports = `/api/v1/tests/${project_id}/${page_params.get("type")}?`;
+        if (id == undefined){
+            $("#results").bootstrapTable('getSelections').forEach(item => {
+                reports += "id[]=" + item["id"] + "&"
+            });
+        } else {
+            reports += `id[]=${id}&`
+        }
+        $.ajax({
+            url: reports.substring(0, reports.length - 1),
+            type: 'DELETE',
+            success: function (result) {
+                $("#results").bootstrapTable('refresh');
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
