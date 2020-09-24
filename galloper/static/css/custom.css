@@ -126,4 +126,6 @@ button.dropdown-toggle {
     word-break: none;
 }
 
-
+.h2 {
+    text-transform: none!important;
+}

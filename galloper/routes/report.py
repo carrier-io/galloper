@@ -36,7 +36,8 @@ def report(project: Project):
 @bp.route("/security", methods=["GET"])
 @project_required
 def security(project: Project):
-    return render_template("security/report.html")
+    report_type = request.args.get("type", None)
+    return render_template("security/report.html", report_type=report_type)
 
 
 @bp.route("/visual", methods=["GET"])

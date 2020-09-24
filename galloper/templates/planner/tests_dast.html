@@ -50,8 +50,8 @@
                         <th data-visible="false" data-field="id">index</th>
                         <th scope="col" data-sortable="true" data-field="name" data-formatter=createLinkToTest data-filter-control="input">Name</th>
                         <th scope="col" data-sortable="true" data-field="test_uid" data-filter-control="input">UUID</th>
-                        <th scope="col" data-sortable="true" data-formatter=sourceFormatter>Source</th>
-                        <th scope="col" data-sortable="true" data-formatter=langFormatter>Language</th>
+                        <th scope="col" data-sortable="true" data-field="dast_settings.dast_target_url" data-filter-control="input">Target</th>
+                        <th scope="col" data-sortable="true" data-formatter=toolFormatter>Tools</th>
                         <th scope="col" data-field="lg_type" data-formatter=actionFormatter>Actions</th>
                     </tr>
                     </thead>
@@ -192,32 +192,13 @@
         $("#execution_config").val("");
     })
 
-    function langFormatter(value, row, index) {
-        if (row.sast_settings.language === "python") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/python.png')}}\" width=\"25\">"
-        } else if (row.sast_settings.language === "ruby") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/ruby.png') }}\" width=\"25\">"
-        } else if (row.sast_settings.language === "nodejs") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/nodejs.png') }}\" width=\"25\">"
-        } else if (row.sast_settings.language === "java") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/java.png') }}\" width=\"25\">"
-        } else if (row.sast_settings.language === "golang") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/go.png') }}\" width=\"25\">"
-        } else {
-            return value
-        }
-    }
-
-    function sourceFormatter(value, row, index) {
-        if (row.sast_settings.sast_target_type === "target_git") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/git.png')}}\" width=\"25\">"
-        } else if (row.sast_settings.sast_target_type === "sast_target_artifact_bucket") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/archive.png')}}\" width=\"25\">"
-        } else if (row.sast_settings.sast_target_type === "target_code_path") {
-            return "<img src=\"{{ url_for('static', filename='img/icons/code.png')}}\" width=\"25\">"
-        } else {
-            return value
-        }
+    function toolFormatter(value, row, index) {
+        var value = ''
+        row.dast_settings.scanners_checked.forEach(function(item){
+            console.log(item)
+            value += "<img class=\"mr-1\" src=\"/static/img/icons/"+item+".png\" width=\"25\">"
+        })
+        return value
     }
 
     $("#results").on("check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table", function () {
