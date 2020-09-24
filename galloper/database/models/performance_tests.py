@@ -239,12 +239,13 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     loops = Column(Integer)
     aggregation = Column(String(20))
 
-    def configure_execution_json(self, browser, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
+    def configure_execution_json(self, output='cc', browser=None, test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, cc_env_vars=None, parallel=None, execution=False):
 
         reports = []
         for report in self.reporting:
-            reports.append(f"-r {report}")
+            if report:
+                reports.append(f"-r {report}")
 
         cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {browser} " \
               f"-a {self.aggregation} {' '.join(reports)}"
