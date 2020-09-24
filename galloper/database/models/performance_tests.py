@@ -40,6 +40,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
     env_vars = Column(JSON)
     customization = Column(JSON)
     cc_env_vars = Column(JSON)
+    git = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
 
@@ -191,6 +192,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 if "additional_files" not in execution_json["execution_params"]:
                     execution_json["execution_params"]["additional_files"] = dict()
                 execution_json["execution_params"]["additional_files"][key] = value
+        if self.git:
+            execution_json["git"] = self.git
         if self.job_type == "perfgun":
             execution_json["execution_params"]['test'] = self.entrypoint
             execution_json["execution_params"]["GATLING_TEST_PARAMS"] = ""

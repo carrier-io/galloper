@@ -25,6 +25,7 @@ class TestsApiPerformance(Resource):
 
     _post_rules = (
         dict(name="file", type=FileStorage, location='files'),
+        dict(name="git", type=str, location='form'),
         dict(name="name", type=str, location='form'),
         dict(name="entrypoint", type=str, location='form'),
         dict(name="parallel", type=int, location='form'),
@@ -62,9 +63,16 @@ class TestsApiPerformance(Resource):
         current_app.logger.info(request.form)
         args = self.post_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
-        file_name = args["file"].filename
-        bucket = "tests"
-        upload_file(bucket, args["file"], project, create_if_not_exists=True)
+        if args.get("git"):
+            file_name = ""
+            bucket = ""
+            git_settings = loads(args["git"])
+        else:
+            git_settings = {}
+            file_name = args["file"].filename
+            bucket = "tests"
+            upload_file(bucket, args["file"], project, create_if_not_exists=True)
+
         if args["compile"] and "gatling" in args["runner"]:
             compile_tests(project.id, file_name, args["runner"])
 
@@ -75,6 +83,7 @@ class TestsApiPerformance(Resource):
                                 parallel=args["parallel"],
                                 bucket=bucket,
                                 file=file_name,
+                                git=git_settings,
                                 entrypoint=args["entrypoint"],
                                 runner=args["runner"],
                                 reporting=reporting,
@@ -145,7 +154,8 @@ class TestApiBackend(Resource):
         dict(name="customization", type=str, default="{}", required=False, location='json'),
         dict(name="cc_env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="reporter", type=list, required=False, location='json'),
-        dict(name="emails", type=str, required=False, location='json')
+        dict(name="emails", type=str, required=False, location='json'),
+        dict(name="git", type=str, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -209,6 +219,8 @@ class TestApiBackend(Resource):
 
         if args.get("parallel"):
             task.parallel = args.get("parallel")
+        if args.get("git"):
+            task.git = loads(args.get("git"))
         task.commit()
         return task.to_json(["influx.port", "influx.host", "galloper_url",
                              "influx.db", "comparison_db",
