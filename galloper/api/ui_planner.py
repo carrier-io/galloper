@@ -204,7 +204,7 @@ class TestApiFrontend(Resource):
                                                        parallel=args.get("parallel", None),
                                                        execution=execution))
 
-        current_app.logger.info(f"Observer event sent {event}")
+        current_app.logger.error(f"Observer event sent {event}")
         if args['type'] and args["type"] == "config":
             return event[0]
         response = run_task(project.id, event)

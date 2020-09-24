@@ -197,9 +197,9 @@
             return "<img src=\"{{ url_for('static', filename='img/icons/jmeter.png')}}\" width=\"25\">"
         } else if (row.job_type === "perfgun") {
             return "<img src=\"{{ url_for('static', filename='img/icons/gatling.png') }}\" width=\"25\">"
-        } else if (row.job_type === "observer" && row.browser === "chrome") {
+        } else if (row.job_type === "observer" && row.browser.indexOf("Chrome")>-1) {
             return "<img src=\"{{ url_for('static', filename='img/icons/chrome.png') }}\" width=\"25\">"
-        } else if (row.job_type === "observer" && row.browser === "firefox") {
+        } else if (row.job_type === "observer" && row.browser.indexOf("Firefox")>-1) {
             return "<img src=\"{{ url_for('static', filename='img/icons/firefox.png') }}\" width=\"25\">"
         } else {
             return value
