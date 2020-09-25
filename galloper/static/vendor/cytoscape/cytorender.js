@@ -11,10 +11,19 @@ Promise.all([
         elements: dataArray[1],
         zoomingEnabled: true,
         userPanningEnabled: false,
-        userZoomingEnabled: false,
-        minZoom: 2,
-        maxZoom: 2
+//        userZoomingEnabled: false,
+//        minZoom: 1e-10,
+        maxZoom: 3
     });
+
+    var maxZoom = cy.maxZoom();
+
+    cy.fit();
+
+    if( cy.zoom() > fitMaxZoom ){
+      cy.zoom( fitMaxZoom );
+      cy.center();
+    }
 
     cy.cxtmenu({
         selector: 'node', // we can add ctx for edge and for everything else, which is cool
