@@ -227,7 +227,7 @@ def set_project_hidden_secrets(project_id, secrets):
             mount_point=f"kv-for-hidden-{project_id}",
             secret=secrets,
         )
-    except hvac.exceptions.Forbidden:
+    except (hvac.exceptions.Forbidden, hvac.exceptions.InvalidPath):
         current_app.logger.error("Exception Forbidden in set_project_hidden_secret")
         set_hidden_kv_permissions(project_id)
         return set_project_secrets(project_id, secrets)
@@ -250,7 +250,7 @@ def get_project_hidden_secrets(project_id):
             path="project-secrets",
             mount_point=f"kv-for-hidden-{project_id}",
         ).get("data", dict()).get("data", dict())
-    except hvac.exceptions.Forbidden:
+    except (hvac.exceptions.Forbidden, hvac.exceptions.InvalidPath):
         current_app.logger.error("Exception Forbidden in get_project_hidden_secret")
         set_hidden_kv_permissions(project_id)
         return {}
