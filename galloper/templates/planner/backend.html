@@ -263,10 +263,12 @@
                     $('#entrypoint').prop("disabled", true);
                     $('#parallel').val(data.parallel);
                     $('#emails').val(data.emails);
-                    $('#repo').val(data.git.repo);
-                    $('#repo_user').val(data.git.repo_user);
-                    $('#repo_pass').val(data.git.repo_pass);
-                    $('#repo_key').val(data.git.repo_key);
+                    if (data.git != null) {
+                        $('#repo').val(data.git.repo);
+                        $('#repo_user').val(data.git.repo_user);
+                        $('#repo_pass').val(data.git.repo_pass);
+                        $('#repo_key').val(data.git.repo_key);
+                    }
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
                     });
