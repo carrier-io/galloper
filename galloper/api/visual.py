@@ -60,9 +60,9 @@ class VisualReportAPI(Resource):
 
             data = dict(id=report.id, project_id=project_id, name=report.name, environment=report.environment,
                         browser=report.browser,
-                        browser_version="12.2.3", resolution="1380x749", url=report.base_url,
+                        browser_version=report.browser_version, resolution="1380x749", url=report.base_url,
                         end_time=report.stop_time, start_time=report.start_time, duration=report.duration,
-                        failures=1, total=10,
+                        failures=thresholds_missed, total=10,
                         thresholds_missed=thresholds_missed,
                         avg_page_load=round(avg_page_load / 1000, 2),
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
