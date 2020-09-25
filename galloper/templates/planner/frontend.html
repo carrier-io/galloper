@@ -187,7 +187,11 @@
     $(document).ready(function() {
        var project_id = $("#selected-project-id").text();
 
-       $.get(`/api/v1/browsers/${project_id}`, (data) => {
+       $.ajax({
+        url : `/api/v1/browsers/${project_id}`,
+        type : "get",
+        async: false,
+        success : function(data) {
             for (const [key, value] of Object.entries(data)) {
               optgroup = document.createElement("optgroup");
               $(optgroup).attr('label', key);
@@ -202,7 +206,12 @@
               $('#browsers-list').append(optgroup)
             }
             $("#browsers-list").selectpicker('refresh').trigger('change');
+        },
+        error: function() {
+            console.log("Error in getting browsers");
+        }
         });
+
 
 
         if (test_id !== null) {
