@@ -201,7 +201,7 @@
 
               $('#browsers-list').append(optgroup)
             }
-            $("#browsers-list").selectpicker('refresh');
+            $("#browsers-list").selectpicker('refresh').trigger('change');
         });
 
 
@@ -246,7 +246,9 @@
                     }
 
                     $('#aggregation').selectpicker('val', data.aggregation);
+                    $('#aggregation').selectpicker('refresh').trigger('change');
                     $('#browsers-list').selectpicker('val', data.browser.split(",").map(s => s.trim().toLowerCase()));
+                    $("#browsers-list").selectpicker('refresh').trigger('change');
                 });
         }
     });
