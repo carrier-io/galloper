@@ -15,6 +15,7 @@ class UIReport(AbstractBaseMixin, Base):
     duration = Column(Integer, unique=False, nullable=True)
     is_active = Column(Boolean, unique=False)
     browser = Column(String(128), unique=False)
+    browser_version = Column(String(128), unique=False)
     environment = Column(String(128), unique=False, nullable=True)
     base_url = Column(String(128), unique=False)
     thresholds_total = Column(Integer, unique=False, nullable=True, default=0)
