@@ -35,9 +35,9 @@
         $("#perf").val(data.performance_enabled ? "enabled" : "disabled");
         $("#sast").val(data.sast_enabled ? "enabled" : "disabled" );
         $("#dast").val(data.dast_enabled ? "enabled" : "disabled" );
-        $("#perf").selectpicker("refresh")
-        $("#sast").selectpicker("refresh")
-        $("#dast").selectpicker("refresh")
+        $("#perf").selectpicker("refresh").trigger("change")
+        $("#sast").selectpicker("refresh").trigger("change")
+        $("#dast").selectpicker("refresh").trigger("change")
         if (data.package == "custom") {
             disablePackageSelector();
         } else if (data.package == "basic") {

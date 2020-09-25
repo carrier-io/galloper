@@ -196,7 +196,7 @@
             $("#scope option").each(function() {$(this).remove();});
             $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
 			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);});
-			$("#scope").selectpicker('refresh');
+			$("#scope").selectpicker('refresh').trigger("change");
 			$("#scope").val('all');
 			if (title != "Add Threshold") {
 			    $("#scope").val(scope);
