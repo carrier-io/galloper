@@ -204,7 +204,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                    f"getcarrier/control_tower:latest " \
                    f"-tid {self.test_uid}"
         if output == "cc":
-            return {
+            execution_json = {
                 "job_name": self.name,
                 "job_type": job_type,
                 "concurrency": concurrency,
@@ -212,6 +212,9 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
             }
+            if "quality" in self.dast_settings.get("reporters_checked", list()):
+                execution_json["quality_gate"] = "True"
+            return execution_json
         #
         return ""
 
@@ -417,7 +420,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                    f"getcarrier/control_tower:latest " \
                    f"-tid {self.test_uid}"
         if output == "cc":
-            return {
+            execution_json = {
                 "job_name": self.name,
                 "job_type": job_type,
                 "concurrency": concurrency,
@@ -425,6 +428,9 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
             }
+            if "quality" in self.sast_settings.get("reporters_checked", list()):
+                execution_json["quality_gate"] = "True"
+            return execution_json
         #
         return ""
 
