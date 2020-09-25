@@ -9,19 +9,16 @@ Promise.all([
         ready: function(){ console.log("done") },
         style: dataArray[0],
         elements: dataArray[1],
-        zoomingEnabled: true,
         userPanningEnabled: false,
-//        userZoomingEnabled: false,
-//        minZoom: 1e-10,
-        maxZoom: 3
+        userZoomingEnabled: false
     });
 
     var maxZoom = cy.maxZoom();
 
     cy.fit();
 
-    if( cy.zoom() > fitMaxZoom ){
-      cy.zoom( fitMaxZoom );
+    if( cy.zoom() > maxZoom ){
+      cy.zoom( maxZoom );
       cy.center();
     }
 
