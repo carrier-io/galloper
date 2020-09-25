@@ -171,7 +171,8 @@
             data.forEach(item => {
                 $("#envName").append(`<option value="${item}">${item}</option>`);
             });
-            $("#envName").selectpicker('refresh');
+            $("#scope").selectpicker('val', data[0]);
+            $("#envName").selectpicker('refresh').trigger('change');
             renderTable();
           });
     }
@@ -195,8 +196,10 @@
             $("#scope option").each(function() {$(this).remove();});
             $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
 			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);});
+			$("#scope").selectpicker('refresh').trigger("change");
+			$("#scope").val('all');
 			if (title != "Add Threshold") {
-			    $("#scope").selectpicker('val', scope);
+			    $("#scope").val(scope);
 			    $("#modal_title").html(title);
 			    $("#scope").selectpicker('val', 'all');
                 $("#target").selectpicker('val', 'throughput');
@@ -206,7 +209,7 @@
                 $("#red").val('');
                 $("#submit").attr('onclick', 'insertThreshold()');
 			}
-			$("#scope").selectpicker('refresh');
+			$("#scope").selectpicker('refresh').trigger('change');
 		  })
     });
 

@@ -170,7 +170,7 @@
                     data.forEach(item => {
                         $("#releases").append(`<option value="${item['id']}">${item['id']} : ${item['release_name']}</option>`);
                     });
-                    $("#releases").selectpicker('refresh');
+                    $("#releases").selectpicker('refresh').trigger("change");
                 })
     });
 

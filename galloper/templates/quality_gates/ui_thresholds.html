@@ -170,7 +170,7 @@
             data.forEach(item => {
                 $("#envName").append(`<option value="${item}">${item}</option>`);
             });
-            $("#envName").selectpicker('refresh');
+            $("#envName").selectpicker('refresh').trigger('change');
             renderTable();
           });
     }
@@ -194,6 +194,7 @@
             $("#scope option").each(function() {$(this).remove();});
             $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
 			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);});
+			$("#scope").val('all');
 			if (title != "Add Threshold") {
 			    $("#scope").selectpicker('val', scope);
 			    $("#modal_title").html(title);
@@ -204,7 +205,7 @@
                 $("#metric").val('');
                 $("#submit").attr('onclick', 'insertThreshold()');
 			}
-			$("#scope").selectpicker('refresh');
+			$("#scope").selectpicker('refresh').trigger('change');
 		  })
     });
 
