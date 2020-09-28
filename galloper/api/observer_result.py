@@ -21,6 +21,7 @@ class UIResultsAPI(Resource):
 
     put_rules = (
         dict(name="locators", default=[], type=list, location="json"),
+        dict(name="identifier", default=None, type=str, location="json"),
     )
 
     def __init__(self):
