@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from flask_restful import Resource
 from sqlalchemy import and_
 from statistics import mean, harmonic_mean
-
+from uuid import uuid4
 from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
     get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test, get_backend_users, \
     get_backend_requests
@@ -27,13 +27,15 @@ from galloper.data_utils.charts_utils import (
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
 )
 from galloper.database.models.api_reports import APIReport
+from galloper.database.models.performance_tests import PerformanceTests
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.database.models.project_quota import ProjectQuota
-from galloper.api.base import get
+from galloper.api.base import get, run_task
 from galloper.utils.api_utils import build_req_parser
 from galloper.constants import str_to_timestamp
 from galloper.data_utils import arrays
+from galloper.dal.vault import get_project_secrets, get_project_hidden_secrets
 
 
 class ReportAPI(Resource):
@@ -44,7 +46,8 @@ class ReportAPI(Resource):
         dict(name="sort", type=str, default="", location="args"),
         dict(name="order", type=str, default="", location="args"),
         dict(name="name", type=str, location="args"),
-        dict(name="filter", type=str, location="args")
+        dict(name="filter", type=str, location="args"),
+        dict(name="report_id", type=int, default=None, location="args")
     )
     delete_rules = (
         dict(name="id[]", type=int, action="append", location="args"),
@@ -62,7 +65,8 @@ class ReportAPI(Resource):
         dict(name="start_time", type=str, location="json"),
         dict(name="environment", type=str, location="json"),
         dict(name="type", type=str, location="json"),
-        dict(name="release_id", type=int, location="json")
+        dict(name="release_id", type=int, location="json"),
+        dict(name="test_id", type=str, default=None, location="json")
     )
 
     def __init__(self):
@@ -76,6 +80,9 @@ class ReportAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
+        if args.get("report_id"):
+            report = APIReport.query.filter_by(project_id=project_id, id=args.get("report_id")).first().to_json()
+            return report
         reports = []
         total, res = get(project_id, args, APIReport)
         for each in res:
@@ -116,7 +123,8 @@ class ReportAPI(Resource):
                            fourxx=0,
                            fivexx=0,
                            requests="",
-                           release_id=args.get("release_id"))
+                           release_id=args.get("release_id"),
+                           test_uid=args.get("test_id"))
         report.insert()
         statistic = Statistic.query.filter_by(project_id=project_id).first()
         setattr(statistic, 'performance_test_runs', Statistic.performance_test_runs + 1)
@@ -159,6 +167,59 @@ class ReportAPI(Resource):
             delete_test_data(each.build_id, each.name, each.lg_type)
             each.delete()
         return {"message": "deleted"}
+
+
+class ReportPostProcessingAPI(Resource):
+    get_rules = (
+        dict(name="build_id", type=str, location="args"),
+    )
+    post_rules = (
+        dict(name="report_id", type=int, location="json"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+        self._parser_post = build_req_parser(rules=self.post_rules)
+
+    def get(self, project_id: int):
+        args = self._parser_get.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        report = APIReport.query.filter_by(project_id=project.id, build_id=args["build_id"]).first()
+
+        return {"status": report.status}
+
+    def post(self, project_id: int):
+        args = self._parser_post.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
+        report = APIReport.query.filter_by(project_id=project_id, id=args.get("report_id")).first().to_json()
+        event = {
+            "galloper_url": "{{secret.galloper_url}}",
+            "project_id": project.id,
+            "token": "{{secret.auth_token}}",
+            "report_id": args["report_id"],
+            "influx_host": "{{secret.influx_ip}}",
+            "config_file": "{}",
+            "bucket": str(report["name"]).lower().replace(" ", "").replace("_", "").replace("-", ""),
+            "prefix": f'test_results_{uuid4()}_',
+        }
+        task = PerformanceTests.query.filter(and_(PerformanceTests.project_id == project.id,
+                                                  PerformanceTests.test_uid == report["test_uid"])).first()
+        event["email_recipients"] = task.emails
+        integration = []
+        for each in ["jira", "report_portal", "email", "azure_devops"]:
+            if each in task.reporting:
+                integration.append(each)
+        junit = True if "junit" in task.reporting else False
+        event["integration"] = integration
+        event["junit"] = junit
+        secrets = get_project_secrets(project_id)
+        if "post_processor_id" not in secrets:
+            secrets = get_project_hidden_secrets(project_id)
+
+        return run_task(project.id, event, secrets["post_processor_id"])
 
 
 class ReportStatusAPI(Resource):

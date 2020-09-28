@@ -11,3 +11,4 @@ ALTER TABLE ui_report ADD COLUMN browser_version VARCHAR(128);
 
 #
 
+ALTER TABLE api_report ADD COLUMN test_uid VARCHAR(128);

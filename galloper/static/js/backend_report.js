@@ -43,6 +43,9 @@ function loadRequestData(url, y_label) {
             analyticsLine.destroy();
         }
     }
+    if ($("#end_time").html() != "") {
+        $("#PP").hide();
+    }
     $.get(
       url,
       {
@@ -346,6 +349,23 @@ function getBaseline() {
         }
       }
      );
+}
+
+function postProcessing() {
+    let selectedProjectId = getSelectedProjectId();
+    let report_id = page_params.get("report_id");
+    var data = {
+        report_id: report_id
+    };
+    $.ajax({
+            url: `/api/v1/reports/${selectedProjectId}/processing`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(data){
+                $("#PP").hide();
+            }
+        });
 }
 
 
