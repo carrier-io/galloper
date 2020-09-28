@@ -97,6 +97,18 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                     "object": f"{self.test_uid}_tool_reports.zip",
                     "source": "/tmp/intermediates",
                 }
+            if "quality" in self.dast_settings.get("reporters_checked", list()):
+                reporters_config["galloper_junit_report"] = {
+                    "bucket": "dast",
+                    "object": f"{self.test_uid}_junit_report.xml",
+                }
+                reporters_config["galloper_quality_gate_report"] = {
+                    "bucket": "dast",
+                    "object": f"{self.test_uid}_quality_gate_report.json",
+                }
+                reporters_config["junit"] = {
+                    "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.xml",
+                }
             #
             if "jira" in self.dast_settings.get("reporters_checked", list()):
                 project_secrets = get_project_hidden_secrets(self.project_id)
@@ -192,7 +204,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                    f"getcarrier/control_tower:latest " \
                    f"-tid {self.test_uid}"
         if output == "cc":
-            return {
+            execution_json = {
                 "job_name": self.name,
                 "job_type": job_type,
                 "concurrency": concurrency,
@@ -200,6 +212,9 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
             }
+            if "quality" in self.dast_settings.get("reporters_checked", list()):
+                execution_json["quality_gate"] = "True"
+            return execution_json
         #
         return ""
 
@@ -292,6 +307,18 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                     "bucket": "sast",
                     "object": f"{self.test_uid}_tool_reports.zip",
                     "source": "/tmp/intermediates",
+                }
+            if "quality" in self.sast_settings.get("reporters_checked", list()):
+                reporters_config["galloper_junit_report"] = {
+                    "bucket": "sast",
+                    "object": f"{self.test_uid}_junit_report.xml",
+                }
+                reporters_config["galloper_quality_gate_report"] = {
+                    "bucket": "sast",
+                    "object": f"{self.test_uid}_quality_gate_report.json",
+                }
+                reporters_config["junit"] = {
+                    "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.xml",
                 }
             #
             if "jira" in self.sast_settings.get("reporters_checked", list()):
@@ -393,7 +420,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                    f"getcarrier/control_tower:latest " \
                    f"-tid {self.test_uid}"
         if output == "cc":
-            return {
+            execution_json = {
                 "job_name": self.name,
                 "job_type": job_type,
                 "concurrency": concurrency,
@@ -401,6 +428,9 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
             }
+            if "quality" in self.sast_settings.get("reporters_checked", list()):
+                execution_json["quality_gate"] = "True"
+            return execution_json
         #
         return ""
 

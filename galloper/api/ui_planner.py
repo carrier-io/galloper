@@ -70,6 +70,10 @@ class UITestsApiPerformance(Resource):
         runner = "getcarrier/observer:latest"
         job_type = "observer"
 
+        env_vars = loads(args["env_vars"])
+        if "ENV" not in env_vars.keys():
+            env_vars['ENV'] = 'Default'
+
         test = UIPerformanceTests(project_id=project.id,
                                   test_uid=str(uuid4()),
                                   name=args["name"],
@@ -81,7 +85,7 @@ class UITestsApiPerformance(Resource):
                                   parallel=1,
                                   reporting=args["reporter"].split(","),
                                   params=loads(args["params"]),
-                                  env_vars=loads(args["env_vars"]),
+                                  env_vars=env_vars,
                                   customization=loads(args["customization"]),
                                   cc_env_vars=loads(args["cc_env_vars"]),
                                   job_type=job_type,
