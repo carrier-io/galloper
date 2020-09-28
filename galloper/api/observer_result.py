@@ -21,7 +21,6 @@ class UIResultsAPI(Resource):
 
     put_rules = (
         dict(name="locators", default=[], type=list, location="json"),
-        dict(name="identifier", default=None, type=str, location="json"),
     )
 
     def __init__(self):
@@ -66,13 +65,28 @@ class UIResultsAPI(Resource):
         args = self._parser_put.parse_args()
         results = UIResult.query.filter_by(project_id=project_id, id=report_id).first_or_404()
         locators = args["locators"]
-        identifier = args['identifier']
-        if locators:
-            results.locators = locators
-
-        if identifier:
-            results.identifier = identifier
+        results.locators = locators
 
         results.commit()
 
         return results.to_json()
+
+
+class UIResultsStepAPI(Resource):
+    put_rules = (
+        dict(name="name", type=str, location="json"),
+        dict(name="identifier", type=str, location="json")
+    )
+
+    def __init__(self):
+        self._parser_put = build_req_parser(rules=self.put_rules)
+
+    def put(self, project_id: int):
+        args = self._parser_put.parse_args()
+        identifier = args['identifier']
+        results = UIResult.query.filter_by(project_id=project_id, identifier=identifier).all()
+        for result in results:
+            result.name = args['name']
+            result.commit()
+
+        return {"updated": True}

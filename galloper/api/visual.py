@@ -134,7 +134,8 @@ class VisualResultAPI(Resource):
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": name,
+                    "name": result.name,
+                    "indentifier": result.identifier,
                     "type": result.type,
                     "status": status,
                     "result_id": result.id,
