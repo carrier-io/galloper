@@ -206,6 +206,8 @@
                 $("#submit").attr('onclick', 'insertThreshold()');
 			}
 			$("#scope").selectpicker('refresh').trigger('change');
+			$("[data-id='scope']").width('150px');
+			$("[data-id='scope']").css('margin-right','0');
 		  })
     });
 
