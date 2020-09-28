@@ -170,10 +170,10 @@ class RequestsAPI(Resource):
     def _get_ui_pages(project_id, name):
         page_names = set()
         reports = UIReport.query.filter(and_(UIReport.project_id == project_id, UIReport.name == name)).all()
-        report_ids = [report.id for report in reports]
-        results = UIResult.query.filter(UIResult.report_id.in_(report_ids)).all()
+        report_ids = [report.uid for report in reports]
+        results = UIResult.query.filter(UIResult.report_uid.in_(report_ids)).all()
         for each in results:
-            page_names.add(each.name)
+            page_names.add(each.identifier)
         return list(page_names)
 
     def get(self, project_id: int):
