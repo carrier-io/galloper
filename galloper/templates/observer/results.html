@@ -186,14 +186,13 @@
 </div>
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.5.0/bluebird.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
 <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-<script src="https://unpkg.com/layout-base/layout-base.js"></script>
-<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
-<script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
-<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-dagre.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-avsdf.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-ctxmenu.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape/cytoscape-euler.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape/cytorender.js') }}"></script>
+
 <script>
     function refreshTable() {
         let selectedProjectId = getSelectedProjectId();
@@ -220,9 +219,10 @@
     return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
   }
 
-    $(document).ready(function() {
-        refreshTable();
-    });
+  $(document).ready(function() {
+    refreshTable();
+    renderCy();
+  });
 
 </script>
 </body>

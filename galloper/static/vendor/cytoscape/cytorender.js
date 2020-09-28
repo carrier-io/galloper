@@ -1,14 +1,20 @@
 var page_params = new URLSearchParams(window.location.search);
-Promise.all([
-  fetch('/static/vendor/cytoscape/cytostyle.json').then(function(res) { return res.json() }),
-  fetch(`/api/v1/visual/${getSelectedProjectId()}/${page_params.get("report_id")}/chart`).then(function(res) { return res.json() })
-]).then(function(dataArray) {
+
+function renderCy() {
     var cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
-        layout: {name: 'dagre', rankDir: 'LR', spacingFactor: 2 },
+        layout: {
+            name: 'euler',
+            springLength: edge => 150,
+            springCoeff: edge => 0.0005,
+            gravity: -12.5,
+            randomize: true,
+            fit: true,
+            animate: true
+        },
         ready: function(){ console.log("done") },
-        style: dataArray[0],
-        elements: dataArray[1],
+        style: fetch('/static/vendor/cytoscape/cytostyle.json').then(function(res) { return res.json() }),
+        elements: fetch(`/api/v1/visual/${getSelectedProjectId()}/${page_params.get("report_id")}/chart`).then(function(res) { return res.json() }),
         userPanningEnabled: false,
         userZoomingEnabled: false
     });
@@ -42,4 +48,5 @@ Promise.all([
             }
         }
     ]});
-});
+
+}
