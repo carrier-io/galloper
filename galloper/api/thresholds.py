@@ -99,6 +99,7 @@ class UIThresholdsAPI(Resource):
 
     post_rules = delete_rules + (
         dict(name="metric", type=str, location=("args", "json")),
+        dict(name="name", type=str, location=("args", "json")),
     )
 
     def __init__(self):
@@ -122,6 +123,7 @@ class UIThresholdsAPI(Resource):
         project = Project.get_or_404(project_id)
         args = self._parser_post.parse_args(strict=False)
         UIThresholds(project_id=project.id,
+                     name=args['name'],
                      test=args["test"],
                      scope=args["scope"],
                      environment=args["env"],
@@ -168,13 +170,13 @@ class RequestsAPI(Resource):
 
     @staticmethod
     def _get_ui_pages(project_id, name):
-        page_names = set()
+        page_names = {}
         reports = UIReport.query.filter(and_(UIReport.project_id == project_id, UIReport.name == name)).all()
         report_ids = [report.uid for report in reports]
         results = UIResult.query.filter(UIResult.report_uid.in_(report_ids)).all()
         for each in results:
-            page_names.add(each.name)
-        return list(page_names)
+            page_names[each.name] = each.identifier
+        return page_names
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
