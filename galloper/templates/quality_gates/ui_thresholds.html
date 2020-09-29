@@ -50,7 +50,7 @@
                     <tr>
                       <th scope="col" data-checkbox="true"></th>
                       <th data-visible="false" data-field="id">id</th>
-                      <th scope="col" data-sortable="true" data-field="scope">Scope</th>
+                      <th scope="col" data-sortable="true" data-field="name">Scope</th>
                       <th scope="col" data-sortable="true" data-field="target">Target</th>
                       <th scope="col" data-sortable="true" data-field="aggregation">Aggregation</th>
                       <th scope="col" data-sortable="true" data-field="comparison">Aggregation Rule</th>
@@ -193,7 +193,9 @@
             $("#modal_title").html("Add Threshold");
             $("#scope option").each(function() {$(this).remove();});
             $("#scope").append(`<option value="all">all</option><option value="every">every</option>`);
-			data.forEach(item => { $("#scope").append(`<option value="${item}">${item}</option>`);});
+			Object.entries(data).forEach(([k,v]) => {
+			    $("#scope").append(`<option value="${v}">${k}</option>`);
+			});
 			$("#scope").val('all');
 			if (title != "Add Threshold") {
 			    $("#scope").selectpicker('val', scope);
@@ -239,6 +241,7 @@
             url: `/api/v1/thresholds/${selectedProjectId}/ui`,
             type: "POST",
             data: JSON.stringify({
+                name: $("#scope option:selected").text(),
                 test: $("#testName").val(),
                 env: $("#envName").val(),
                 scope: $("#scope").val(),

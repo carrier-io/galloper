@@ -1,88 +1,90 @@
 {% include 'common/head.html' %}
-<meta property="build_id" content="{{ test_data['build_id'] }}" />
-<meta property="browser" content="{{ test_data['browser'] }}" />
-<meta property="test_name" content="{{ test_data['name'] }}" />
+<meta property="build_id" content="{{ test_data['build_id'] }}"/>
+<meta property="browser" content="{{ test_data['browser'] }}"/>
+<meta property="test_name" content="{{ test_data['name'] }}"/>
 <link href="{{ url_for('static', filename='vendor/cytoscape/cyrostyle.css') }}" rel="stylesheet">
 {% include 'common/nav.html' %}
 {% include 'common/page_nav.html' %}
-  <!-- Card stats -->
-  <div class="row header-body">
-    <div class="col-xl-3 col-lg-6">
-      <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <h5 class="card-title text-uppercase text-muted mb-0">Total Pages</h5>
-              <span class="h2 font-weight-bold mb-0">{{ test_data['total'] }}</span>
-            </div>
-            <div class="col-auto">
-              <div class="icon icon-shape bg-green text-white rounded-circle shadow">
-                <i class="fas fa-users"></i>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-lg-6">
-      <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <h5 class="card-title text-uppercase text-muted mb-0">Avg. Page Load</h5>
-              <span class="h2 font-weight-bold mb-0 text-lowercase">{{ test_data['avg_page_load'] }} sec</span>
-            </div>
-            <div class="col-auto">
-              <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                <i class="fas fa-chart-line"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-lg-6">
-      <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <h5 class="card-title text-uppercase text-muted mb-0">Avg. Step Load</h5>
-              <span class="h2 font-weight-bold mb-0 text-lowercase">{{ test_data['avg_step_duration'] }} sec</span>
-            </div>
-            <div class="col-auto">
-              <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                <i class="fas fa-chart-line"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-lg-6">
-      <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <h5 class="card-title text-uppercase text-muted mb-0">Error Rate</h5>
-              <span class="h2 font-weight-bold mb-0">{{ test_data['thresholds_missed'] }} %</span>
-            </div>
-            <div class="col-auto">
-              <div class="icon icon-shape bg-red text-white rounded-circle shadow">
-                <i class="fas fa-exclamation"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Card stats -->
 <div class="row header-body">
-     <div class="col-xl-12 col-lg-12">
-         <div class="card card-stats mb-4 mb-xl-0">
-             <div class="card-body">
-                 <div class="row">
-                   <div class="col">
+    <div class="col-xl-3 col-lg-6">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Total Pages</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ test_data['total'] }}</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-green text-white rounded-circle shadow">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Avg. Page Load</h5>
+                        <span
+                            class="h2 font-weight-bold mb-0 text-lowercase">{{ test_data['avg_page_load'] }} sec</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Avg. Step Load</h5>
+                        <span
+                            class="h2 font-weight-bold mb-0 text-lowercase">{{ test_data['avg_step_duration'] }} sec</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title text-uppercase text-muted mb-0">Error Rate</h5>
+                        <span class="h2 font-weight-bold mb-0">{{ test_data['thresholds_missed'] }} %</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon icon-shape bg-red text-white rounded-circle shadow">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row header-body">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Test Name:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['name'] }}</span>
                     </div>
@@ -90,100 +92,128 @@
                         <h5 class="card-title text-uppercase text-muted mb-0">Duration:</h5>
                         <span class="h4 font-weight-bold mb-0 text-lowercase">{{ test_data['duration'] }} s</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Started:</h5>
                         <span id="start_time" class="h4 font-weight-bold mb-0">{{ test_data['start_time'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Ended</h5>
                         <span id="end_time" class="h4 font-weight-bold mb-0">{{ test_data['end_time'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">TH Missed Rate:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['thresholds_missed'] }} %</span>
                     </div>
-                 </div>
-                 <div class="row mt-3">
+                </div>
+                <div class="row mt-3">
                     <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Browser:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['browser'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Version:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['browser_version'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">View port:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['resolution'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Environment:</h5>
                         <span class="h4 font-weight-bold mb-0">{{ test_data['environment'] }}</span>
                     </div>
-                     <div class="col">
+                    <div class="col">
                         <h5 class="card-title text-uppercase text-muted mb-0">Base UR:</h5>
                         <span class="h4 font-weight-bold mb-0 text-lowercase">{{ test_data['url'] }}</span>
                     </div>
-                 </div>
-             </div>
-         </div>
-     </div>
-</div>
-<div class="row header-body">
-<div class="col-xl-12 mb-6 mb-xl-0">
-  <div class="card bg-gradient-white shadow">
-    <div class="card-header bg-transparent">
-      <div class="row align-items-center">
-        <div class="col-xl-4">
-          <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
-          <h2 class="text-gray mb-0" style="text-transform: none;">Results summary aggregated by {{ test_data['aggregation']}} values</h2>
-        </div>
-      </div>
-    </div>
-    <div class="card-body">
-        <div id="cy"></div>
-    </div>
-  </div>
-</div>
-</div>
-<div class="row header-body">
-<div class="col-xl-12 col-lg-12">
-    <div class="card card-stats mb-4 mb-xl-0">
-        <div class="card-header bg-transparent">
-          <div class="row align-items-center">
-            <div class="col">
-              <h2 class="text-gray mb-0">Pages Speed Results</h2>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="card-body">
-            <table
-              id="summary_table"
-              data-toggle="table"
-              data-url=""
-              data-pagination="true"
-              data-detail-view="true"
-              data-detail-view-icon="false"
-              data-detail-view-by-click="true"
-              data-detail-formatter="detailFormatter">
-              <thead class="thead-light">
-                <tr>
-                    <th scope="col" data-sortable="true" data-formatter=trim>Page Name</th>
-                    <th scope="col" data-sortable="true" data-field="speed_index">Speed Index</th>
-                    <th scope="col" data-sortable="true" data-field="total_time">Total, sec</th>
-                    <th scope="col" data-sortable="true" data-field="first_bite">FB, ms</th>
-                    <th scope="col" data-sortable="true" data-field="first_paint">FP, ms</th>
-                    <th scope="col" data-sortable="true" data-field="content_load">Content, ms</th>
-                    <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
-                    <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
-                    <th scope="col" data-formatter=reportLink>Report</th>
-                </tr>
-              </thead>
-            </table>
         </div>
     </div>
 </div>
+<div class="row header-body">
+    <div class="col-xl-12 mb-6 mb-xl-0">
+        <div class="card bg-gradient-white shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-xl-4">
+                        <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
+                        <h2 class="text-gray mb-0" style="text-transform: none;">Results summary aggregated by {{
+                            test_data['aggregation']}} values</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="cy"></div>
+            </div>
+        </div>
+    </div>
 </div>
+<div class="row header-body">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card card-stats mb-4 mb-xl-0">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="text-gray mb-0">Pages Speed Results</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <table
+                    id="summary_table"
+                    data-toggle="table"
+                    data-url=""
+                    data-pagination="true"
+                    data-detail-view="true"
+                    data-detail-view-icon="false"
+                    data-detail-view-by-click="true"
+                    data-detail-formatter="detailFormatter">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col" data-sortable="true" data-formatter=trim>Page Name</th>
+                        <th scope="col" data-sortable="true" data-field="speed_index">Speed Index</th>
+                        <th scope="col" data-sortable="true" data-field="total_time">Total, sec</th>
+                        <th scope="col" data-sortable="true" data-field="first_bite">FB, ms</th>
+                        <th scope="col" data-sortable="true" data-field="first_paint">FP, ms</th>
+                        <th scope="col" data-sortable="true" data-field="content_load">Content, ms</th>
+                        <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
+                        <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
+                        <th scope="col" data-formatter=reportLink>Report</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Rename page:</h4>
+            </div>
+
+            <div class="modal-body rename-page-body">
+                <form>
+                    <div class="form-group">
+                        <label for="nodeNameInput">New name:</label>
+                        <input type="text" class="form-control" id="nodeNameInput" aria-describedby="nodeName"
+                               placeholder="Enter page name">
+                        <input type="hidden" id="resultId">
+                        <input type="hidden" id="resultIdentifier">
+                    </div>
+                    <button id="submitRenamePage" type="button" class="btn btn-primary float-right">Submit</button>
+                    <button type="button" class="btn btn-secondary float-right mr-2" data-dismiss="modal">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% include 'common/foot.html' %}
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.5.0/bluebird.js"></script>
@@ -219,10 +249,29 @@
     return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
   }
 
-  $(document).ready(function() {
-    refreshTable();
-    renderCy();
-  });
+    $(document).ready(function() {
+        refreshTable();
+        renderCy();
+        $("#submitRenamePage").click(function(){
+            var data = { name: $('#nodeNameInput').val(), identifier: $("#resultIdentifier").val()  }
+            let selectedProjectId = getSelectedProjectId();
+            var resultId = $("#resultId").val();
+
+            console.log(JSON.stringify(data))
+            $.ajax({
+                headers: { "Content-Type": "application/json"},
+                type: "PUT",
+                url: `/api/v1/observer/${selectedProjectId}/step`,
+                data: JSON.stringify(data),
+                success: () => {
+                    location.reload();
+                }
+            });
+            $('#exampleModal').modal('hide');
+
+        });
+    });
+
 
 </script>
 </body>

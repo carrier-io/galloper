@@ -7,6 +7,7 @@ from galloper.database.db_manager import Base
 class UIThresholds(AbstractBaseMixin, Base):
     __tablename__ = "ui_thresholds"
     id = Column(Integer, primary_key=True)
+    name = Column(String, unique=False, nullable=False)
     project_id = Column(Integer, unique=False, nullable=False)
     test = Column(String, unique=False, nullable=False)
     environment = Column(String, unique=False, nullable=False)
