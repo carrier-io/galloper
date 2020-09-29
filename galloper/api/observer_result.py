@@ -35,10 +35,16 @@ class UIResultsAPI(Resource):
 
         metrics = args["metrics"]
 
+        result = UIResult.query.filter_by(project_id=project_id, identifier=args['identifier']).first()
+
+        name = args["name"]
+        if result:
+            name = result.name
+
         result = UIResult(
             project_id=project_id,
             report_uid=report_id,
-            name=args["name"],
+            name=name,
             identifier=args['identifier'],
             type=args["type"],
             bucket_name=args["bucket_name"],
