@@ -21,6 +21,7 @@ class UIResultsAPI(Resource):
 
     put_rules = (
         dict(name="locators", default=[], type=list, location="json"),
+        dict(name="identifier", default=None, type=str, location="json"),
     )
 
     def __init__(self):
@@ -64,7 +65,13 @@ class UIResultsAPI(Resource):
     def put(self, project_id: int, report_id: int):
         args = self._parser_put.parse_args()
         results = UIResult.query.filter_by(project_id=project_id, id=report_id).first_or_404()
-        results.locators = args["locators"]
+        locators = args["locators"]
+        identifier = args['identifier']
+        if locators:
+            results.locators = locators
+
+        if identifier:
+            results.identifier = identifier
 
         results.commit()
 

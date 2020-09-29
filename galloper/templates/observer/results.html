@@ -203,8 +203,9 @@
                         <label for="nodeNameInput">New name:</label>
                         <input type="text" class="form-control" id="nodeNameInput" aria-describedby="nodeName"
                                placeholder="Enter page name">
+                        <input type="hidden" id="resultId">
                     </div>
-                    <button type="submit" class="btn btn-primary float-right">Submit</button>
+                    <button id="submitRenamePage" type="button" class="btn btn-primary float-right">Submit</button>
                     <button type="button" class="btn btn-secondary float-right mr-2" data-dismiss="modal">Close</button>
                 </form>
             </div>
@@ -247,13 +248,27 @@
     return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
   }
 
-  $(document).ready(function() {
-    refreshTable();
-    renderCy();
-  });
+    $(document).ready(function() {
+        refreshTable();
+        renderCy();
+        $("#submitRenamePage").click(function(){
+            var data = { identifier: $('#nodeNameInput').val() }
+            let selectedProjectId = getSelectedProjectId();
+            var resultId = $("#resultId").val();
+            console.log(JSON.stringify(data))
+            $.ajax({
+                headers: { "Content-Type": "application/json"},
+                type: "PUT",
+                url: `/api/v1/observer/${selectedProjectId}/${resultId}`,
+                data: JSON.stringify(data),
+                success: () => {
+                    location.reload();
+                }
+            });
+            $('#exampleModal').modal('hide');
 
-
-
+        });
+    });
 
 </script>
 </body>
