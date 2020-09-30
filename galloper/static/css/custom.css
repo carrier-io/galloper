@@ -133,3 +133,8 @@ button.dropdown-toggle {
 .rename-page-body{
     padding-top: 0px;
 }
+
+.submenu.show {
+    position: relative;
+    left: -100%;
+}

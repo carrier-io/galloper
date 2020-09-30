@@ -78,6 +78,24 @@
                       </div>
                       <div class="col-xl-8">
                         <ul id="chart-control" class="nav nav-pills justify-content-end">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Bulk Actions</a>
+                                <div class="dropdown-menu">
+                                  <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('false_positive')">Mark False Positive</a>
+                                  <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('excluded_finding')">Ignore Findings</a>
+                                  <a class="dropdown-item dropdown-submenu" href="javascript:void(0)" data-toggle="dropdown">Change Priority</a>
+                                      <div class="dropdown-menu submenu">
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('Critical')">Critical</a>
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('High')">High</a>
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('Medium')">Medium</a>
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('Low')">Low</a>
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="bulkModify('Info')">Info</a>
+                                      </div>
+                                </div>
+                              </li>
+                            <li class="nav-item dropdown mt-2">
+                                <span>Filters:</span>
+                            </li>
                             <li class="nav-item mr-2 mr-md-0">
                               <a id="all" onclick="renderTable('all')" class="nav-link py-2 px-3" data-toggle="tab">
                                 <span class="d-none d-md-block">All</span>
@@ -127,6 +145,7 @@
                       <th data-sortable="true" data-field="severity">Severity</th>
                       <th data-sortable="true" data-formatter=statusFormatter>Status</th>
                       <th data-formatter=actionsFormatter>Actions</th>
+                      <th data-checkbox="true"></th>
                     </tr>
                   </thead>
                 </table>
@@ -169,6 +188,34 @@
                     <button type="button" class="btn btn-default" onclick="ignoreIssue(${report_id}, ${row['id']})">Ignore</button>
                  </div>`
 
+    }
+
+    function bulkModify(action) {
+        var issues_ids = []
+        $("#errors").bootstrapTable('getSelections').forEach(item => {
+            issues_ids.push(item["id"])
+        })
+        bulk_modify(issues_ids, action);
+    }
+
+    function bulk_modify(issues_id, action) {
+        var report_id = page_params.get("id");
+        var project_id = $("#selected-project-id").text();
+        var url = `/api/v1/security/${project_id}/finding`;
+        data = {
+            id: report_id,
+            action: action,
+            issues_id: issues_id
+        }
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(result) {
+                window.location.reload();
+            }
+        });
     }
 
     function modify_issue(report_id, issue_id, action) {

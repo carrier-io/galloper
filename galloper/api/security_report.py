@@ -151,7 +151,8 @@ class FindingsAPI(Resource):
     put_rules = (
         dict(name="id", type=int, location="json"),
         dict(name="action", type=str, location="json"),
-        dict(name="issue_id", type=int, location="json")
+        dict(name="issue_id", type=int, default=None, location="json"),
+        dict(name="issues_id", type=list, default=[], location="json")
     )
 
     def __init__(self):
@@ -230,40 +231,54 @@ class FindingsAPI(Resource):
             finding_db.commit()
 
     def put(self, project_id: int):
+        # TODO: this thing need to be reworked, as it will be slow as hell
         args = self._parser_put.parse_args(strict=False)
-        issue_hash = SecurityReport.query.filter(and_(SecurityReport.project_id == project_id,
-                                                      SecurityReport.id == args["issue_id"])
-                                                 ).first().issue_hash
+        issues_id = []
+        if args["issue_id"]:
+            issues_id.append(args["issue_id"])
+        else:
+            issues_id = args["issues_id"]
+        current_app.logger.error(issues_id)
         if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
-        else:
+        elif args["action"] == 'valid':
             upd = {"false_positive": 0, "excluded_finding": 0}
-        SecurityReport.query.filter(and_(
-            SecurityReport.project_id == project_id,
-            SecurityReport.issue_hash == issue_hash)
-        ).update(upd)
-        SecurityReport.commit()
-        reports = SecurityReport.query.filter(and_(
-            SecurityReport.project_id == project_id,
-            SecurityReport.issue_hash == issue_hash)
-        ).with_entities(SecurityReport.report_id).distinct()
-        for report in reports:
-            false_positive = SecurityReport.query.filter(and_(
-                SecurityReport.report_id == report.report_id,
-                SecurityReport.false_positive == 1)
-            ).count()
-            ignored = SecurityReport.query.filter(and_(
-                SecurityReport.report_id == report.report_id,
-                SecurityReport.excluded_finding == 1)
-            ).count()
-            findings = SecurityReport.query.filter(and_(
-                SecurityReport.report_id == report.report_id)
-            ).count()
-            SecurityResults.query.filter(
-                SecurityResults.id == report.report_id
-            ).update({"false_positives": false_positive, "excluded": ignored,
-                      "findings": findings-(false_positive+ignored)})
-            SecurityResults.commit()
+        elif args["action"] in ("Critical", "High", "Medium", "Low", "Info"):
+            upd = {'severity': args["action"]}
+        else:
+            return {"message": "Action is invalid"}, 400
+
+        for issue_id in issues_id:
+            issue_hash = SecurityReport.query.filter(and_(SecurityReport.project_id == project_id,
+                                                          SecurityReport.id == issue_id)
+                                                     ).first().issue_hash
+            SecurityReport.query.filter(and_(
+                SecurityReport.project_id == project_id,
+                SecurityReport.issue_hash == issue_hash)
+            ).update(upd)
+            SecurityReport.commit()
+            if args["action"] in ("false_positive", "excluded_finding", "valid"):
+                reports = SecurityReport.query.filter(and_(
+                    SecurityReport.project_id == project_id,
+                    SecurityReport.issue_hash == issue_hash)
+                ).with_entities(SecurityReport.report_id).distinct()
+                for report in reports:
+                    false_positive = SecurityReport.query.filter(and_(
+                        SecurityReport.report_id == report.report_id,
+                        SecurityReport.false_positive == 1)
+                    ).count()
+                    ignored = SecurityReport.query.filter(and_(
+                        SecurityReport.report_id == report.report_id,
+                        SecurityReport.excluded_finding == 1)
+                    ).count()
+                    findings = SecurityReport.query.filter(and_(
+                        SecurityReport.report_id == report.report_id)
+                    ).count()
+                    SecurityResults.query.filter(
+                        SecurityResults.id == report.report_id
+                    ).update({"false_positives": false_positive, "excluded": ignored,
+                              "findings": findings-(false_positive+ignored)})
+                    SecurityResults.commit()
         return {"message": "accepted"}
 
 
