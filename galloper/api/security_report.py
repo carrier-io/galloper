@@ -214,10 +214,16 @@ class FindingsAPI(Resource):
                     else:
                         entrypoints += f"<br />{each}"
             finding["endpoints"] = entrypoints
+            issue = SecurityReport.query.filter(and_(
+                SecurityReport.project_id == project_id,
+                SecurityReport.issue_hash == finding['issue_hash'])).first()
+            if issue:
+                finding['severity'] = issue.severity
             if not (finding["false_positive"] == 1 or finding["excluded_finding"] == 1):
                 # TODO: add validation that finding is a part of project, application. etc.
                 issues = SecurityReport.query.filter(
-                    and_(SecurityReport.issue_hash == finding["issue_hash"],
+                    and_(SecurityReport.project_id == project_id,
+                         SecurityReport.issue_hash == finding["issue_hash"],
                          or_(SecurityReport.false_positive == 1,
                              SecurityReport.excluded_finding == 1)
                          )).all()
@@ -238,7 +244,6 @@ class FindingsAPI(Resource):
             issues_id.append(args["issue_id"])
         else:
             issues_id = args["issues_id"]
-        current_app.logger.error(issues_id)
         if args["action"] in ("false_positive", "excluded_finding"):
             upd = {args["action"]: 1}
         elif args["action"] == 'valid':
@@ -304,7 +309,7 @@ class FindingsAnalysisAPI(Resource):
                                SecurityResults.scan_type == args["scan_type"])
         ids = SecurityResults.query.filter(projects_filter).all()
         ids = [each.id for each in ids]
-        hashs = SecurityReport.query.filter(
+        hashes = SecurityReport.query.filter(
             and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
             ).with_entities(SecurityReport.issue_hash).distinct()
-        return [_.issue_hash for _ in hashs]
+        return [_.issue_hash for _ in hashes]
