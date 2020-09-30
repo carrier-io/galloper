@@ -180,6 +180,7 @@
                         <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
                         <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
                         <th scope="col" data-formatter=reportLink>Report</th>
+                        <th scope="col" data-formatter=renameButton>Rename page</th>
                     </tr>
                     </thead>
                 </table>
@@ -243,15 +244,28 @@
             html.push(`<b>${action.locator}</b><br />`)
         })
         return html.join('')
-  }
+    }
 
-  function reportLink(value, row, index) {
-    return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
-  }
+    function reportLink(value, row, index) {
+        return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
+    }
+
+    function renameButton(value, row, index) {
+        return `<button id="${row.id}" data-name="${row.name}" onclick="renameBtnClick(event)" data-identifier="${row.identifier}" class="rename-page-btn btn btn-primary btn-sm">
+            <i class="fas fa-pencil-alt">
+        </button>`
+    }
+
+    function renameButton(value, row, index) {
+        return `<button id="${row.id}" data-name="${row.name}" onclick="renameBtnClick(event)" data-identifier="${row.identifier}" class="rename-page-btn btn btn-primary btn-sm">
+            <i class="fas fa-pencil-alt">
+        </button>`
+    }
 
     $(document).ready(function() {
         refreshTable();
         renderCy();
+
         $("#submitRenamePage").click(function(){
             var data = { name: $('#nodeNameInput').val(), identifier: $("#resultIdentifier").val()  }
             let selectedProjectId = getSelectedProjectId();
@@ -268,9 +282,28 @@
                 }
             });
             $('#exampleModal').modal('hide');
-
         });
     });
+
+    function renameBtnClick(e) {
+            e.stopPropagation();
+
+            var target = $(e.target)
+
+            if (target.is( "i" )) {
+                target = target.parent("button")
+            }
+
+            var name = target.data('name')
+            var identifier = target.data('identifier')
+            var id = target.attr('id')
+
+            $('.modal-title').html(`Rename page: <br><br> ${name}`)
+            $("#resultId").val(id)
+            $("#resultIdentifier").val(identifier)
+
+            $('#exampleModal').modal('show');
+    };
 
 
 </script>
