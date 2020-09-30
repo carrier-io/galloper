@@ -166,6 +166,7 @@ class VisualResultAPI(Resource):
             data = {
                 "id": result.id,
                 "name": result.name,
+                "identifier": result.identifier,
                 "speed_index": result.speed_index,
                 "total_time": round(result.total / 1000, 2),
                 "first_bite": result.time_to_first_byte,
