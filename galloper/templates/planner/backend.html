@@ -108,6 +108,10 @@
                                                     <label class="form-control-label" for="repo_key">Git SSH private key</label>
                                                     <input type="text" id="repo_key" class="form-control form-control-alternative" placeholder="(optional, for GIT+SSH URLs)">
                                                 </div>
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_branch">Git Branch</label>
+                                                    <input type="text" id="repo_branch" class="form-control form-control-alternative" placeholder="(optional, default - master)">
+                                                </div>
                                             </div>
                                           </div>
                                     </div>
@@ -268,6 +272,7 @@
                         $('#repo_user').val(data.git.repo_user);
                         $('#repo_pass').val(data.git.repo_pass);
                         $('#repo_key').val(data.git.repo_key);
+                        $('#repo_branch').val(data.git.repo_branch);
                     }
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
@@ -369,6 +374,7 @@
           git_settings["repo_user"] = $('#repo_user').val()
           git_settings["repo_pass"] = $('#repo_pass').val()
           git_settings["repo_key"] = $('#repo_key').val()
+          git_settings["repo_branch"] = $('#repo_branch').val()
         }
         var data = {
             'params': JSON.stringify(params[0]),
@@ -415,6 +421,7 @@
             git_settings["repo_user"] = $('#repo_user').val()
             git_settings["repo_pass"] = $('#repo_pass').val()
             git_settings["repo_key"] = $('#repo_key').val()
+            git_settings["repo_branch"] = $('#repo_branch').val()
             data.append('git', JSON.stringify(git_settings));
           } else if ($('#file')[0].files[0] != undefined) {
             data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
