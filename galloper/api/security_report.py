@@ -14,6 +14,8 @@
 
 import hashlib
 from datetime import datetime
+from json import loads
+import operator
 
 from flask import request, current_app
 from flask_restful import Resource
@@ -146,7 +148,8 @@ class SecurityReportAPI(Resource):
 class FindingsAPI(Resource):
     get_rules = (
         dict(name="id", type=int, location="args"),
-        dict(name="type", type=str, location="args")
+        dict(name="type", type=str, location="args"),
+        dict(name="filter", type=str, default="", location="args")
     )
     put_rules = (
         dict(name="id", type=int, location="json"),
@@ -164,28 +167,24 @@ class FindingsAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
+        filter_ = []
+        filter_.append(SecurityReport.project_id == project_id)
+        filter_.append(SecurityReport.report_id == args["id"])
         if args["type"] == "false_positives":
-            filt = and_(SecurityReport.project_id == project_id,
-                        SecurityReport.report_id == args["id"],
-                        SecurityReport.false_positive == 1)
+            filter_.append(SecurityReport.false_positive == 1)
         elif args["type"] == "findings":
-            filt = and_(SecurityReport.project_id == project_id,
-                        SecurityReport.report_id == args["id"],
-                        SecurityReport.info_finding == 0,
-                        SecurityReport.false_positive == 0,
-                        SecurityReport.excluded_finding == 0)
+            filter_.append(SecurityReport.info_finding == 0)
+            filter_.append(SecurityReport.false_positive == 0)
+            filter_.append(SecurityReport.excluded_finding == 0)
         elif args["type"] == "info_findings":
-            filt = and_(SecurityReport.project_id == project_id,
-                        SecurityReport.report_id == args["id"],
-                        SecurityReport.info_finding == 1)
+            filter_.append(SecurityReport.info_finding == 1)
         elif args["type"] == "excluded_finding":
-            filt = and_(SecurityReport.project_id == project_id,
-                        SecurityReport.report_id == args["id"],
-                        SecurityReport.excluded_finding == 1)
-        else:
-            filt = and_(SecurityReport.project_id == project_id,
-                        SecurityReport.report_id == args["id"])
-        issues = SecurityReport.query.filter(filt).all()
+            filter_.append(SecurityReport.excluded_finding == 1)
+        if args.get("filter"):
+            for key, value in loads(args.get("filter")).items():
+                filter_.append(getattr(SecurityReport, key).like(f"%{value}%"))
+        filter_ = and_(*tuple(filter_))
+        issues = SecurityReport.query.filter(filter_).all()
         results = []
         for issue in issues:
             _res = issue.to_json()
