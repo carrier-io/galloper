@@ -159,6 +159,7 @@
 
     $(document).ready(function() {
         $('#all').trigger( "click" );
+        filters();
     })
 
     function filters() {
@@ -178,7 +179,6 @@
         var report_id = page_params.get("id");
         var project_id = $("#selected-project-id").text();
         $("#errors").bootstrapTable('refresh', {url: `/api/v1/security/${project_id}/finding?id=${report_id}&type=${scope}`})
-        filters();
     }
 
     function statusFormatter(value, row, index) {
