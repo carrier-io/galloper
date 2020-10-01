@@ -134,9 +134,11 @@ class VisualResultAPI(Resource):
             nodes.append({
                 "data": {
                     "id": target_node_id,
-                    "name": name,
-                    "type": values[0].type,
+                    "name": result.name,
+                    "indentifier": result.identifier,
+                    "type": result.type,
                     "status": status,
+                    "result_id": result.id,
                     "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
                 }
             })
@@ -164,6 +166,7 @@ class VisualResultAPI(Resource):
             data = {
                 "id": result.id,
                 "name": result.name,
+                "identifier": result.identifier,
                 "speed_index": result.speed_index,
                 "total_time": round(result.total / 1000, 2),
                 "first_bite": result.time_to_first_byte,

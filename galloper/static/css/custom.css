@@ -129,3 +129,12 @@ button.dropdown-toggle {
 .h2 {
     text-transform: none!important;
 }
+
+.rename-page-body{
+    padding-top: 0px;
+}
+
+.submenu.show {
+    position: relative;
+    left: -100%;
+}

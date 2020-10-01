@@ -18,7 +18,7 @@ from galloper.utils.api_utils import add_resource_to_api
 from .api_release import ReleaseAPI, ApiReportsAPI, ReleaseApiSaturation
 from .artifacts import BucketsApi, ArtifactApi
 from .browsers import BrowsersAPI
-from .observer_result import UIResultsAPI
+from .observer_result import UIResultsAPI, UIResultsStepAPI
 from .project import ProjectAPI, ProjectSessionAPI
 from .project_quota import ProjectQuotaAPI
 from .project_secrets import ProjectSecretsAPI, ProjectSecretAPI
@@ -80,6 +80,8 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, UIReportsAPI, "/observer/<int:project_id>")
     add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<string:report_id>")
+
+    add_resource_to_api(api, UIResultsStepAPI, "/observer/<int:project_id>/step")
 
     add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
     add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",

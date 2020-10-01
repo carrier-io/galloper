@@ -35,10 +35,16 @@ class UIResultsAPI(Resource):
 
         metrics = args["metrics"]
 
+        result = UIResult.query.filter_by(project_id=project_id, identifier=args['identifier']).first()
+
+        name = args["name"]
+        if result:
+            name = result.name
+
         result = UIResult(
             project_id=project_id,
             report_uid=report_id,
-            name=args["name"],
+            name=name,
             identifier=args['identifier'],
             type=args["type"],
             bucket_name=args["bucket_name"],
@@ -64,8 +70,29 @@ class UIResultsAPI(Resource):
     def put(self, project_id: int, report_id: int):
         args = self._parser_put.parse_args()
         results = UIResult.query.filter_by(project_id=project_id, id=report_id).first_or_404()
-        results.locators = args["locators"]
+        locators = args["locators"]
+        results.locators = locators
 
         results.commit()
 
         return results.to_json()
+
+
+class UIResultsStepAPI(Resource):
+    put_rules = (
+        dict(name="name", type=str, location="json"),
+        dict(name="identifier", type=str, location="json")
+    )
+
+    def __init__(self):
+        self._parser_put = build_req_parser(rules=self.put_rules)
+
+    def put(self, project_id: int):
+        args = self._parser_put.parse_args()
+        identifier = args['identifier']
+        results = UIResult.query.filter_by(project_id=project_id, identifier=identifier).all()
+        for result in results:
+            result.name = args['name']
+            result.commit()
+
+        return {"updated": True}
