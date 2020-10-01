@@ -15,12 +15,12 @@
 #     limitations under the License.
 
 from typing import Tuple
-
 from flask_restful import Resource  # pylint: disable=E0401
 
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser
-from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets
+from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets,\
+    set_project_hidden_secrets
 
 
 class ProjectSecretsAPI(Resource):  # pylint: disable=C0111
@@ -81,6 +81,18 @@ class ProjectSecretAPI(Resource):  # pylint: disable=C0111
         secrets[secret] = data["secret"]
         set_project_secrets(project.id, secrets)
         return {"message": f"Project secret was saved"}, 200
+
+    def put(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
+        # Check project_id for validity
+        project = Project.get_or_404(project_id)
+        # Set secret
+        secrets = get_project_secrets(project.id)
+        hidden_secrets = get_project_hidden_secrets(project.id)
+        hidden_secrets[secret] = secrets[secret]
+        secrets.pop(secret, None)
+        set_project_secrets(project.id, secrets)
+        set_project_hidden_secrets(project.id, hidden_secrets)
+        return {"message": f"Project secret was moved to hidden secrets"}, 200
 
     def delete(self, project_id: int, secret: str) -> Tuple[dict, int]:  # pylint: disable=C0111
         project = Project.get_or_404(project_id)
