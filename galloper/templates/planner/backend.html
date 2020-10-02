@@ -273,6 +273,7 @@
                         $('#repo_pass').val(data.git.repo_pass);
                         $('#repo_key').val(data.git.repo_key);
                         $('#repo_branch').val(data.git.repo_branch);
+                        $('a[href="#nav-git"]').click();
                     }
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
