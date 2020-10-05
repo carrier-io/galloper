@@ -112,27 +112,16 @@ class VisualResultAPI(Resource):
         nodes = _action_mapping["chart"]["nodes"]
         edges = _action_mapping["chart"]["edges"]
 
-        graph_aggregation = {}
-        for result in results:
-            if result.name in graph_aggregation.keys():
-                graph_aggregation[result.identifier].append(result)
-            else:
-                graph_aggregation[result.identifier] = [result]
+        threshold_results = self.assert_threshold(results, report.aggregation)
 
-        for name, values in graph_aggregation.items():
-            aggregated_total = get_aggregated_data(report.aggregation, values)
-            result = closest(values, aggregated_total)
+        for result in results:
+            threshold_result = threshold_results[result.identifier]
+            status = threshold_result['status']
+            result = threshold_result['data']
+            node = self.find_node(nodes, result.identifier)
 
             source_node_id = nodes[-1]["data"]["id"]
             target_node_id = str(uuid4())
-
-            thresholds_failed = sum([d.thresholds_failed for d in values])
-
-            status = "passed"
-            if thresholds_failed > 0:
-                status = "failed"
-
-            node = self.find_node(nodes, name)
 
             nodes.append({
                 "data": {
@@ -150,19 +139,19 @@ class VisualResultAPI(Resource):
                 "data": {
                     "source": source_node_id,
                     "target": target_node_id,
-                    "time": f"{round(aggregated_total / 1000, 2)} sec"
+                    "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
                 },
                 "classes": status
             })
 
-        if report.loops > 1:
-            source_node_id = nodes[-1]["data"]["id"]
-            target_node_id = nodes[0]["data"]["id"]
+            if report.loops > 1:
+                source_node_id = nodes[-1]["data"]["id"]
+                target_node_id = nodes[0]["data"]["id"]
 
-            edges.append({
-                "data": {"source": source_node_id, "target": target_node_id,
-                         "time": "0 sec"}
-            })
+                edges.append({
+                    "data": {"source": source_node_id, "target": target_node_id,
+                             "time": "0 sec"}
+                })
 
         table = []
         for result in results:
@@ -198,6 +187,25 @@ class VisualResultAPI(Resource):
 
         _action_mapping["table"] = table
         return _action_mapping[action]
+
+    def assert_threshold(self, results, aggregation):
+        graph_aggregation = {}
+        for result in results:
+            if result.name in graph_aggregation.keys():
+                graph_aggregation[result.identifier].append(result)
+            else:
+                graph_aggregation[result.identifier] = [result]
+
+        threshold_results = {}
+        for name, values in graph_aggregation.items():
+            aggregated_total = get_aggregated_data(aggregation, values)
+            result = closest(values, aggregated_total)
+            thresholds_failed = sum([d.thresholds_failed for d in values])
+            status = "passed"
+            if thresholds_failed > 0:
+                status = "failed"
+            threshold_results[name] = {"status": status, "data": result, "time": aggregated_total}
+        return threshold_results
 
     def find_node(self, l, identifier):
         node = list(filter(lambda x: x['data']['identifier'] == identifier, l))
