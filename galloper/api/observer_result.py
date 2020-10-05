@@ -17,6 +17,7 @@ class UIResultsAPI(Resource):
         dict(name="name", type=str, location="json"),
         dict(name="identifier", type=str, location="json"),
         dict(name="type", type=str, location="json"),
+        dict(name="session_id", type=str, location="json"),
     )
 
     put_rules = (
@@ -46,6 +47,7 @@ class UIResultsAPI(Resource):
             report_uid=report_id,
             name=name,
             identifier=args['identifier'],
+            session_id=args['session_id'],
             type=args["type"],
             bucket_name=args["bucket_name"],
             file_name=args["file_name"],
