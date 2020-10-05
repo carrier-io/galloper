@@ -127,6 +127,7 @@ class VisualResultAPI(Resource):
                 "data": {
                     "id": target_node_id,
                     "name": result.name,
+                    "session_id": result.session_id,
                     "identifier": result.identifier,
                     "type": result.type,
                     "status": status,
