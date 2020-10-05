@@ -20,7 +20,7 @@ from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret, get_project_hidden_secrets
 from galloper.processors.minio import MinioClient
-from galloper.constants import APP_HOST
+from galloper.constants import CURRENT_RELEASE
 
 from .project import Project
 
@@ -183,7 +183,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
             return dusty_config
         #
         job_type = "dast"
-        container = f"getcarrier/{job_type}:latest"
+        container = f"getcarrier/{job_type}:{CURRENT_RELEASE}"
         parameters = {
             "cmd": f"run -b galloper:{job_type}_{self.test_uid} -s {job_type}",
             "GALLOPER_URL": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
@@ -394,7 +394,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
             return dusty_config
         #
         job_type = "sast"
-        container = f"getcarrier/{job_type}:latest"
+        container = f"getcarrier/{job_type}:{CURRENT_RELEASE}"
         parameters = {
             "cmd": f"run -b galloper:{job_type}_{self.test_uid} -s {job_type}",
             "GALLOPER_URL": unsecret("{{secret.galloper_url}}", project_id=self.project_id),

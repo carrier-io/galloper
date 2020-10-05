@@ -19,6 +19,7 @@ from flask_restful import Resource
 from galloper.database.models.project import Project
 from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser
+from galloper.utils.auth import superadmin_required
 
 
 class ProjectQuotaAPI(Resource):
@@ -55,6 +56,7 @@ class ProjectQuotaAPI(Resource):
         project_quotas = ProjectQuota.query.limit(limit_).offset(offset_).all()
         return [project.to_json() for project in project_quotas], 200
 
+    @superadmin_required
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
         data = self._parser_post.parse_args()
         project = Project.get_or_404(project_id)

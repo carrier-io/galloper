@@ -129,9 +129,7 @@ def is_superadmin():
     current_app.logger.info(str(user_data))
     current_app.logger.info("Is admin")
     if Config().SUPERADMIN_GROUP in user_data["groups"]:
-        current_app.logger.info("True")
         return True
-    current_app.logger.info("False")
     return False
 
 

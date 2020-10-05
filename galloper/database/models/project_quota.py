@@ -12,11 +12,12 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from sqlalchemy import Column, Integer, String
-
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime, timedelta
 from galloper.database.models.statistic import Statistic
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base
+from galloper.database.utils import utcnow
 
 
 class ProjectQuota(AbstractBaseMixin, Base):
@@ -34,6 +35,7 @@ class ProjectQuota(AbstractBaseMixin, Base):
     data_retention_limit = Column(Integer, unique=False)
     tasks_count = Column(Integer, unique=False)
     tasks_executions = Column(Integer, unique=False)
+    last_update_time = Column(DateTime, server_default=utcnow())
 
     def update(self, name, performance_test_runs, ui_performance_test_runs, sast_scans, dast_scans, public_pool_workers,
                storage_space, data_retention_limit, tasks_count, tasks_executions):
@@ -50,8 +52,28 @@ class ProjectQuota(AbstractBaseMixin, Base):
         self.commit()
 
     @classmethod
+    def update_time(cls, project_quota) -> bool:
+        if not project_quota.last_update_time:
+            project_quota.last_update_time = datetime.utcnow()
+            project_quota.commit()
+            return True
+        if (datetime.utcnow() - project_quota.last_update_time).total_seconds() > 2592000:
+            project_quota.last_update_time = project_quota.last_update_time + timedelta(seconds=2592000)
+            statistic = Statistic.query.filter_by(project_id=project_quota.project_id).first()
+            statistic.tasks_executions = 0
+            statistic.dast_scans = 0
+            statistic.sast_scans = 0
+            statistic.performance_test_runs = 0
+            statistic.ui_performance_test_runs = 0
+            statistic.commit()
+            return True
+        return False
+
+    @classmethod
     def check_quota(cls, project_id: int, quota: str) -> bool:
-        project_quota = ProjectQuota.query.filter_by(project_id=project_id).first().to_json()
+        project_quota = ProjectQuota.query.filter_by(project_id=project_id).first()
+        ProjectQuota.update_time(project_quota)
+        project_quota = project_quota.to_json()
         if project_quota:
             if project_quota[quota] == -1:
                 return True

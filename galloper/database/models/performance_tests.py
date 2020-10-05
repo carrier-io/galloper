@@ -21,6 +21,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret
+from galloper.constants import JOB_CONTAINER_MAPPING
 
 
 class PerformanceTests(AbstractBaseMixin, Base):
@@ -44,28 +45,6 @@ class PerformanceTests(AbstractBaseMixin, Base):
     last_run = Column(Integer)
     job_type = Column(String(20))
 
-    container_mapping = {
-        "jmeter5": {
-            "container": "getcarrier/perfmeter:latest",
-            "job_type": "perfmeter",
-            "influx_db": "jmeter"
-        },
-        "jmeter4": {
-            "container": "getcarrier/perfmeter:latest",
-            "job_type": "perfmeter",
-            "influx_db": "jmeter"
-        },
-        "gatling2": {
-            "container": "getcarrier/perfgun:2.3",
-            "job_type": "perfgun",
-            "influx_db": "gatling"
-        },
-        "gatling3": {
-            "container": "getcarrier/perfgun:latest",
-            "job_type": "perfgun",
-            "influx_db": "gatling"
-        }
-    }
 
     def set_last_run(self, ts):
         self.last_run = ts
@@ -77,7 +56,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         return ''.join(c for c in val if c in valid_chars)
 
     def insert(self):
-        if self.runner not in self.container_mapping.keys():
+        if self.runner not in JOB_CONTAINER_MAPPING.keys():
             return False
         self.name = self.sanitize(self.name)
         if not self.test_uid:
@@ -89,7 +68,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "galloper_url" not in self.env_vars.keys():
             self.params["galloper_url"] = "{{secret.galloper_url}}"
         if "influx.db" not in self.params.keys():
-            self.params["influx.db"] = self.container_mapping[self.runner]['influx_db']
+            self.params["influx.db"] = JOB_CONTAINER_MAPPING[self.runner]['influx_db']
         if "test_name" not in self.params.keys():
             self.params["test_name"] = self.name  # TODO: add sanitization
         if "comparison_db" not in self.params.keys():
@@ -98,11 +77,11 @@ class PerformanceTests(AbstractBaseMixin, Base):
             self.params["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in self.env_vars.keys():
             self.params["loki_port"] = "{{secret.loki_port}}"
-        self.job_type = self.container_mapping[self.runner]['job_type']
+        self.job_type = JOB_CONTAINER_MAPPING[self.runner]['job_type']
         test_type = "test.type" if self.job_type == "perfmeter" else "test_type"
         if test_type not in self.params.keys():
             self.params[test_type] = 'default'
-        self.runner = self.container_mapping[self.runner]['container']  # here because influx_db
+        self.runner = JOB_CONTAINER_MAPPING[self.runner]['container']  # here because influx_db
 
         super().insert()
 

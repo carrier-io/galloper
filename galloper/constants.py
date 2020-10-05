@@ -17,7 +17,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 ALLOWED_EXTENSIONS = ['zip', 'py']
-
+CURRENT_RELEASE = '2.0'
 REDIS_USER = environ.get('REDIS_USER', '')
 REDIS_PASSWORD = environ.get('REDIS_PASSWORD', 'password')
 REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
@@ -33,7 +33,7 @@ APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
 POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/raw/master/package/post_processing.zip"
 CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/raw/master/package/control-tower.zip"
 EMAIL_NOTIFICATION_PATH = "https://github.com/carrier-io/performance_email_notification/raw/master/package/email_notifications.zip"
-MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://localhost:9000')
+MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://carrier-minio:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
 MINIO_REGION = environ.get('MINIO_REGION', 'us-east-1')
@@ -60,6 +60,28 @@ NAME_CONTAINER_MAPPING = {
     "Ruby 2.5": 'lambda:ruby2.5'
 }
 
+JOB_CONTAINER_MAPPING = {
+    "jmeter5": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "jmeter4": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "gatling2": {
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.2.3",
+        "job_type": "perfgun",
+        "influx_db": "gatling"
+    },
+    "gatling3": {
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.3.1",
+        "job_type": "perfgun",
+        "influx_db": "gatling"
+    }
+}
 
 def allowed_file(filename):
     return '.' in filename and \

@@ -17,7 +17,9 @@
             </div>
             {% include 'projects/create_edit_project_piece.html' %}
             {% include 'projects/integrations/integrations.html' %}
-            {% include 'projects/quotas/quotas.html' %}
+            {% if is_superadmin %}
+                {% include 'projects/quotas/quotas.html' %}
+            {% endif %}
         </div>
     </div>
 </div>

@@ -28,14 +28,14 @@ from flask import Blueprint, request, render_template, redirect, url_for
 
 
 from galloper.database.models.project import Project
-from galloper.utils.auth import project_required, superadmin_required, filter_projects
+from galloper.utils.auth import project_required, superadmin_required, filter_projects, is_superadmin
 
 bp = Blueprint("projects", __name__)
 
 
 @bp.route("/projects", methods=["GET"])
 def list():
-    return render_template("projects/projects.html")
+    return render_template("projects/projects.html", is_superadmin=is_superadmin())
 
 
 @bp.route("/projects/health", methods=["GET"])
@@ -53,7 +53,7 @@ def add():
 @bp.route("/project/configure", methods=["GET", "POST"])
 @project_required
 def configure(project: Project):
-    return render_template("projects/configure.html", project=project)
+    return render_template("projects/configure.html", project=project, is_superadmin=is_superadmin())
 
 
 @bp.route("/token", methods=["GET"])
