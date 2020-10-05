@@ -98,7 +98,8 @@ class VisualResultAPI(Resource):
             "table": [],
             "chart": {
                 "nodes": [
-                    {"data": {"id": 'start', "name": 'Start', "bucket": "reports", "file": ""}}
+                    {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "bucket": "reports",
+                              "file": ""}}
                 ],
                 "edges": [
                 ]
@@ -131,11 +132,13 @@ class VisualResultAPI(Resource):
             if thresholds_failed > 0:
                 status = "failed"
 
+            node = self.find_node(nodes, name)
+
             nodes.append({
                 "data": {
                     "id": target_node_id,
                     "name": result.name,
-                    "indentifier": result.identifier,
+                    "identifier": result.identifier,
                     "type": result.type,
                     "status": status,
                     "result_id": result.id,
@@ -195,3 +198,9 @@ class VisualResultAPI(Resource):
 
         _action_mapping["table"] = table
         return _action_mapping[action]
+
+    def find_node(self, l, identifier):
+        node = list(filter(lambda x: x['data']['identifier'] == identifier, l))
+        if len(node) == 1:
+            return node[0]
+        return None
