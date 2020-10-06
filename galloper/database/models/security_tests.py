@@ -138,6 +138,12 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                     reporters_config["html"] = {
                         "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.html",
                     }
+            #
+            if "ado" in self.sast_settings.get("reporters_checked", list()):
+                project_secrets = get_project_hidden_secrets(self.project_id)
+                if "ado" in project_secrets:
+                    reporters_config["ado"] = loads(project_secrets["ado"])
+
             # Thresholds
             tholds = {}
             if thresholds and any(int(thresholds[key]) > -1 for key in thresholds.keys()):
@@ -349,6 +355,12 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                     reporters_config["html"] = {
                         "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.html",
                     }
+            #
+            if "ado" in self.sast_settings.get("reporters_checked", list()):
+                project_secrets = get_project_hidden_secrets(self.project_id)
+                if "ado" in project_secrets:
+                    reporters_config["ado"] = loads(project_secrets["ado"])
+
             # Thresholds
             tholds = {}
             if thresholds and any(int(thresholds[key]) > -1 for key in thresholds.keys()):
