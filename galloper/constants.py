@@ -61,23 +61,48 @@ NAME_CONTAINER_MAPPING = {
 }
 
 JOB_CONTAINER_MAPPING = {
-    "jmeter5": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}",
+    "v5.3": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.3",
         "job_type": "perfmeter",
         "influx_db": "jmeter"
     },
-    "jmeter4": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}",
+    "v5.2.1": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.2.1",
         "job_type": "perfmeter",
         "influx_db": "jmeter"
     },
-    "gatling2": {
-        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.2.3",
+    "v5.2": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.2",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "v5.1.1": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.1.1",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "v5.1": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.1",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "v5.0": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.0",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "v4.0": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.4.0",
+        "job_type": "perfmeter",
+        "influx_db": "jmeter"
+    },
+    "v3.1": {
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.3.1",
         "job_type": "perfgun",
         "influx_db": "gatling"
     },
-    "gatling3": {
-        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.3.1",
+    "v2.3": {
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.2.3",
         "job_type": "perfgun",
         "influx_db": "gatling"
     }

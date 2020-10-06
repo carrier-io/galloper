@@ -29,22 +29,21 @@
                                 <div class="form-group" id="testrunners">
                                     <label class="form-control-label">Test runner</label>
                                     <p><small>Choose the runner for the test.</small></p>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="jmeter5" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="jmeter5">JMeter 5.x</label>
-                                    </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="jmeter4" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="jmeter4">JMeter 4.x</label>
-                                    </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="gatling3" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="gatling3">Gatling 3.x</label>
-                                    </div>
-                                    <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="gatling2" name="runner" class="custom-control-input">
-                                        <label class="custom-control-label" for="gatling2">Gatling 2.x</label>
-                                    </div>
+                                    <select class="selectpicker show-tick form-control form-control-sm mt-1" id="runner">
+                                        <optgroup label="jMeter">
+                                            <option>v5.3</option>
+                                            <option>v5.2.1</option>
+                                            <option>v5.2</option>
+                                            <option>v5.1.1</option>
+                                            <option>v5.1</option>
+                                            <option>v5.0</option>
+                                            <option>v4.0</option>
+                                        </optgroup>
+                                        <optgroup label="Gatling">
+                                            <option>v3.1</option>
+                                            <option>v2.3</option>
+                                        </optgroup>
+                                    </select>
                                 </div>
                                 <div class="form-group" id="compileTests">
                                     <div class="custom-control custom-checkbox custom-control-inline">
@@ -267,13 +266,16 @@
                     $('#entrypoint').prop("disabled", true);
                     $('#parallel').val(data.parallel);
                     $('#emails').val(data.emails);
-                    if (data.git != null) {
+                    if (data.git != null && data.git.hasOwnProperty("repo")) {
                         $('#repo').val(data.git.repo);
                         $('#repo_user').val(data.git.repo_user);
                         $('#repo_pass').val(data.git.repo_pass);
                         $('#repo_key').val(data.git.repo_key);
                         $('#repo_branch').val(data.git.repo_branch);
+                        $("#nav-file-tab").prop("disabled", true)
                         $('a[href="#nav-git"]').click();
+                    } else {
+                        $("#nav-git-tab").prop("disabled", true)
                     }
                     data.reporting.forEach(item => {
                         $(`#${item}`).prop( "checked", true );
@@ -305,11 +307,11 @@
         }
     });
 
-    $('#testrunners input:radio').click(function() {
-        if ($(this).attr('id') == 'jmeter4' || $(this).attr('id') == 'jmeter5') {
+    $('#runner').on("changed.bs.select", function() {
+        if (["v5.3", "v5.2.1","v5.2", "v5.1.1", "v5.1", "v5.0", "v4.0"].includes($("#runner").val())) {
             $("#compile").attr("disabled", true);
-        } else if ($(this).attr('id') == 'gatling2' || $(this).attr('id') == 'gatling3') {
-            $("#compile").removeAttr("disabled");
+        } else {
+            $("#compile").attr("disabled", false);
         }
     });
 
@@ -431,7 +433,7 @@
           data.append('name', $('#testname').val());
           data.append('parallel', $('#parallel').val());
           data.append('entrypoint', $('#entrypoint').val());
-          data.append('runner', $( "#testrunners input:checked" ).attr("id"));
+          data.append('runner', $('#runner').val());
           data.append('reporter', checked);
           data.append('compile', compile);
           data.append('emails', $('#emails').val());
