@@ -28,6 +28,7 @@
 
 {% include 'projects/integrations/jiramodal.html' %}
 {% include 'projects/integrations/rpmodal.html' %}
+{% include 'projects/integrations/adomodal.html' %}
 {% include 'projects/integrations/smtpmodal.html' %}
 {% include 'common/foot.html' %}
 <script>
@@ -99,6 +100,18 @@
                 }
             }
             status_message = "#rp_status"
+        } else if (integration == "ado") {
+            settings = {
+                "integration": integration,
+                "test": "True",
+                "config": {
+                    org: $("#ado_org").val(),
+                    project: $("#ado_project").val(),
+                    pat: $("#ado_pat").val(),
+                    team: $("#ado_team").val()
+                }
+            }
+            status_message = "#ado_status"
         }
         $.ajax({
                 url: `/api/v1/reporters/${project_id}`,
@@ -107,7 +120,7 @@
                 data: JSON.stringify(settings),
                 success: function (data) {
                     $(`${status_message}`).text(data["message"]);
-                    $(`#${integration}_test_button`).html(`<button type="button" class="btn btn-secondary" onclick="testIntegration('${integration}')">Test</button>`);
+                    $(`#${integration}_test_button`).html(`<button type="button" id="${integration}_test_button" class="btn btn-secondary" onclick="testIntegration('${integration}')">Test</button>`);
                     $(`#${integration}_test_button`).removeClass("disabled");
                 }
             });
@@ -158,6 +171,19 @@
             }
             modal = "#rpModal"
             status_message = "#rp_status"
+        } else if (integration == "ado") {
+            settings = {
+                "integration": integration,
+                "test": "False",
+                "config": {
+                    org: $("#ado_org").val(),
+                    project: $("#ado_project").val(),
+                    pat: $("#ado_pat").val(),
+                    team: $("#ado_team").val()
+                }
+            }
+            modal = "#adoModal"
+            status_message = "#ado_status"
           }
         $.ajax({
                 url: `/api/v1/reporters/${project_id}`,
@@ -170,6 +196,8 @@
                     } else {
                         $(`${modal}`).modal('toggle');
                     }
+                    $(`#${integration}_save_button`).html(`<button type="button" id="${integration}_save_button" class="btn btn-primary" onclick="saveIntegration('${integration}')">Save</button>`);
+                    $(`#${integration}_save_button`).removeClass("disabled");
                 }
             });
     }
@@ -559,6 +587,22 @@
                         $("#rp_host").val(data["rp_host"])
                         $("#rp_token").val(data["rp_token"])
                         $("#rp_project").val(data["rp_project"])
+                    }
+                }
+            });
+        } else if (modalID == "adoModal") {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/ado`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result["secret"] != null) {
+                        $("#ado_status").text("");
+                        let data = JSON.parse(result["secret"])
+                        $("#ado_org").val(data["org"])
+                        $("#ado_project").val(data["project"])
+                        $("#ado_pat").val(data["pat"])
+                        $("#ado_team").val(data["team"])
                     }
                 }
             });

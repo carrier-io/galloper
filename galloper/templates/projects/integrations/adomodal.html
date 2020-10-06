@@ -1,0 +1,41 @@
+<!-- Modal -->
+<div class="modal fade" id="adoModal" tabindex="-1" role="dialog" aria-labelledby="adoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="adoModalLabel">ADO integrations</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+              <div class="form-group">
+                  <label for="ado_org" class="form-control-label">Organization</label>
+                  <input class="form-control" type="text" placeholder="Azure Dev-Ops organization" value="" id="ado_org">
+              </div>
+              <div class="form-group">
+                  <label for="ado_project" class="form-control-label">Project</label>
+                  <input class="form-control" type="text" placeholder="Azure Dev-Ops project" value="" id="ado_project">
+              </div>
+              <div class="form-group">
+                  <label for="ado_pat" class="form-control-label">Personal Access Token</label>
+                  <input class="form-control" type="text" placeholder="Azure Dev-Ops Personal Access Token" value="" id="ado_pat">
+              </div>
+              <div class="form-group">
+                  <label for="ado_team" class="form-control-label">Team</label>
+                  <input class="form-control" type="text" placeholder="Azure Dev-Ops team" value="" id="ado_team">
+              </div>
+              <div class="form-group">
+                  <span id="ado_status">Not Configured</span>
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="ado_test_button" class="btn btn-secondary" onclick="testIntegration('ado')">Test</button>
+          <button type="button" id="ado_save_button" class="btn btn-primary" onclick="saveIntegration('ado')">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
