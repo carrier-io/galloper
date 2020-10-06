@@ -54,7 +54,7 @@ function renderCy() {
                   var modal = $(this)
                   modal.find('.modal-title').html(`Rename page: <br><br> ${elem.data('name')}`)
                   $("#resultId").val(elem.data('result_id'))
-                  $("#resultIdentifier").val(elem.data('indentifier'))
+                  $("#resultIdentifier").val(elem.data('identifier'))
                 })
 
                 $('#exampleModal').modal('show')
