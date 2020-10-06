@@ -12,19 +12,31 @@
           <form>
               <div class="form-group">
                   <label for="ado_org" class="form-control-label">Organization</label>
-                  <input class="form-control" type="text" placeholder="Azure Dev-Ops organization" value="" id="ado_org">
+                  <input class="form-control" type="text" placeholder="Azure DevOps organization name" value="" id="ado_org">
               </div>
               <div class="form-group">
                   <label for="ado_project" class="form-control-label">Project</label>
-                  <input class="form-control" type="text" placeholder="Azure Dev-Ops project" value="" id="ado_project">
+                  <input class="form-control" type="text" placeholder="Azure DevOps Project name" value="" id="ado_project">
               </div>
               <div class="form-group">
                   <label for="ado_pat" class="form-control-label">Personal Access Token</label>
-                  <input class="form-control" type="text" placeholder="Azure Dev-Ops Personal Access Token" value="" id="ado_pat">
+                  <input class="form-control" type="text" placeholder="Azure DevOps personal Access Token" value="" id="ado_pat">
               </div>
               <div class="form-group">
                   <label for="ado_team" class="form-control-label">Team</label>
-                  <input class="form-control" type="text" placeholder="Azure Dev-Ops team" value="" id="ado_team">
+                  <input class="form-control" type="text" placeholder="Optional. Azure DevOps Team (default: none)" value="" id="ado_team">
+              </div>
+              <div class="form-group">
+                  <label for="ado_issue_type" class="form-control-label">Issue type</label>
+                  <input class="form-control" type="text" placeholder="Optional. Azure DevOps Issue Type (default: task)" value="" id="ado_issue_type">
+              </div>
+              <div class="form-group">
+                  <label for="ado_assignee" class="form-control-label">Assignee</label>
+                  <input class="form-control" type="text" placeholder="Optional. Azure DevOps Assignee for issue (default: none)" value="" id="ado_assignee">
+              </div>
+              <div class="form-group">
+                  <label for="ado_custom_fields" class="form-control-label">Custom fields</label>
+                  <input class="form-control" type="text" placeholder="Optional. Key-Value list of assignee for workitem (default: {})" value="" id="ado_custom_fields">
               </div>
               <div class="form-group">
                   <span id="ado_status">Not Configured</span>
