@@ -98,8 +98,7 @@ class VisualResultAPI(Resource):
             "table": [],
             "chart": {
                 "nodes": [
-                    {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "bucket": "reports",
-                              "file": ""}}
+
                 ],
                 "edges": [
                 ]
@@ -109,50 +108,58 @@ class VisualResultAPI(Resource):
         report = UIReport.query.get_or_404(report_id)
         results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.id).all()
 
-        nodes = _action_mapping["chart"]["nodes"]
-        edges = _action_mapping["chart"]["edges"]
+        # nodes = _action_mapping["chart"]["nodes"]
+        # edges = _action_mapping["chart"]["edges"]
 
-        threshold_results = self.assert_threshold(results, report.aggregation)
+        nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops)
 
-        for result in results:
-            threshold_result = threshold_results[result.identifier]
-            status = threshold_result['status']
-            result = threshold_result['data']
-            node = self.find_node(nodes, result.identifier)
+        _action_mapping["chart"]["nodes"] = nodes
+        _action_mapping["chart"]["edges"] = edges
 
-            source_node_id = nodes[-1]["data"]["id"]
-            target_node_id = str(uuid4())
-
-            nodes.append({
-                "data": {
-                    "id": target_node_id,
-                    "name": result.name,
-                    "session_id": result.session_id,
-                    "identifier": result.identifier,
-                    "type": result.type,
-                    "status": status,
-                    "result_id": result.id,
-                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-                }
-            })
-
-            edges.append({
-                "data": {
-                    "source": source_node_id,
-                    "target": target_node_id,
-                    "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
-                },
-                "classes": status
-            })
-
-            if report.loops > 1:
-                source_node_id = nodes[-1]["data"]["id"]
-                target_node_id = nodes[0]["data"]["id"]
-
-                edges.append({
-                    "data": {"source": source_node_id, "target": target_node_id,
-                             "time": "0 sec"}
-                })
+        # threshold_results = self.assert_threshold(results, report.aggregation)
+        #
+        # for result in results:
+        #     threshold_result = threshold_results[result.identifier]
+        #     status = threshold_result['status']
+        #     result = threshold_result['data']
+        #
+        #     source_node_id = nodes[-1]["data"]["id"]
+        #     target_node_id = str(uuid4())
+        #
+        #     node = self.find_node(nodes, result.identifier, result.session_id)
+        #
+        #     if not node:
+        #
+        #         nodes.append({
+        #             "data": {
+        #                 "id": target_node_id,
+        #                 "name": result.name,
+        #                 "session_id": result.session_id,
+        #                 "identifier": result.identifier,
+        #                 "type": result.type,
+        #                 "status": status,
+        #                 "result_id": result.id,
+        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+        #             }
+        #         })
+        #
+        #     edges.append({
+        #         "data": {
+        #             "source": source_node_id,
+        #             "target": target_node_id,
+        #             "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+        #         },
+        #         "classes": status
+        #     })
+        #
+        #     if report.loops > 1:
+        #         source_node_id = nodes[-1]["data"]["id"]
+        #         target_node_id = nodes[0]["data"]["id"]
+        #
+        #         edges.append({
+        #             "data": {"source": source_node_id, "target": target_node_id,
+        #                      "time": "0 sec"}
+        #         })
 
         table = []
         for result in results:
@@ -208,8 +215,75 @@ class VisualResultAPI(Resource):
             threshold_results[name] = {"status": status, "data": result, "time": aggregated_total}
         return threshold_results
 
-    def find_node(self, l, identifier):
-        node = list(filter(lambda x: x['data']['identifier'] == identifier, l))
+    def build_graph(self, project_id, results, aggregation, loops):
+        nodes = [{"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "bucket": "reports",
+                           "file": "", "session_id": "start_point"}}]
+        edges = []
+
+        threshold_results = self.assert_threshold(results, aggregation)
+
+        for result in results:
+            threshold_result = threshold_results[result.identifier]
+            status = threshold_result['status']
+            result = threshold_result['data']
+
+            parent_node = self.find_parent_node(nodes, result.session_id)
+            node = self.find_node(nodes, result.identifier, result.session_id)
+
+            if not node:
+                target_node_id = str(uuid4())
+                nodes.append({
+                    "data": {
+                        "id": target_node_id,
+                        "name": result.name,
+                        "session_id": result.session_id,
+                        "identifier": result.identifier,
+                        "type": result.type,
+                        "status": status,
+                        "result_id": result.id,
+                        "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                    }
+                })
+
+                edges.append({
+                    "data": {
+                        "source": parent_node['data']['id'],
+                        "target": target_node_id,
+                        "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+                    },
+                    "classes": status
+                })
+            else:
+                edges.append({
+                    "data": {
+                        "source": parent_node['data']['id'],
+                        "target": node['data']['id'],
+                        "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+                    },
+                    "classes": status
+                })
+
+            if loops > 1:
+                source_node_id = nodes[-1]["data"]["id"]
+                target_node_id = nodes[0]["data"]["id"]
+
+                edges.append({
+                    "data": {"source": source_node_id, "target": target_node_id,
+                             "time": "0 sec"}
+                })
+
+        return nodes, edges
+
+    def find_node(self, nodes, identifier, session_id):
+        node = list(
+            filter(lambda x: x['data']['identifier'] == identifier and x['data']['session_id'] == session_id, nodes))
         if len(node) == 1:
             return node[0]
         return None
+
+    def find_parent_node(self, nodes, session_id):
+        node = list(
+            filter(lambda x: x['data']['session_id'] == session_id, nodes))
+        if len(node) > 0:
+            return node[-1]
+        return self.find_parent_node(nodes, 'start_point')
