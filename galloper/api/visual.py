@@ -106,7 +106,8 @@ class VisualResultAPI(Resource):
         }
 
         report = UIReport.query.get_or_404(report_id)
-        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.id).all()
+        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.session_id,
+                                                                                                  UIResult.id).all()
 
         # nodes = _action_mapping["chart"]["nodes"]
         # edges = _action_mapping["chart"]["edges"]
@@ -116,50 +117,50 @@ class VisualResultAPI(Resource):
         _action_mapping["chart"]["nodes"] = nodes
         _action_mapping["chart"]["edges"] = edges
 
-        # threshold_results = self.assert_threshold(results, report.aggregation)
-        #
-        # for result in results:
-        #     threshold_result = threshold_results[result.identifier]
-        #     status = threshold_result['status']
-        #     result = threshold_result['data']
-        #
-        #     source_node_id = nodes[-1]["data"]["id"]
-        #     target_node_id = str(uuid4())
-        #
-        #     node = self.find_node(nodes, result.identifier, result.session_id)
-        #
-        #     if not node:
-        #
-        #         nodes.append({
-        #             "data": {
-        #                 "id": target_node_id,
-        #                 "name": result.name,
-        #                 "session_id": result.session_id,
-        #                 "identifier": result.identifier,
-        #                 "type": result.type,
-        #                 "status": status,
-        #                 "result_id": result.id,
-        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-        #             }
-        #         })
-        #
-        #     edges.append({
-        #         "data": {
-        #             "source": source_node_id,
-        #             "target": target_node_id,
-        #             "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
-        #         },
-        #         "classes": status
-        #     })
-        #
-        #     if report.loops > 1:
-        #         source_node_id = nodes[-1]["data"]["id"]
-        #         target_node_id = nodes[0]["data"]["id"]
-        #
-        #         edges.append({
-        #             "data": {"source": source_node_id, "target": target_node_id,
-        #                      "time": "0 sec"}
-        #         })
+        threshold_results = self.assert_threshold(results, report.aggregation)
+
+        for result in results:
+            threshold_result = threshold_results[result.identifier]
+            status = threshold_result['status']
+            result = threshold_result['data']
+
+            source_node_id = nodes[-1]["data"]["id"]
+            target_node_id = str(uuid4())
+
+            node = self.find_node(nodes, result.identifier, result.session_id)
+
+            if not node:
+
+                nodes.append({
+                    "data": {
+                        "id": target_node_id,
+                        "name": result.name,
+                        "session_id": result.session_id,
+                        "identifier": result.identifier,
+                        "type": result.type,
+                        "status": status,
+                        "result_id": result.id,
+                        "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+                    }
+                })
+
+            edges.append({
+                "data": {
+                    "source": source_node_id,
+                    "target": target_node_id,
+                    "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+                },
+                "classes": status
+            })
+
+            if report.loops > 1:
+                source_node_id = nodes[-1]["data"]["id"]
+                target_node_id = nodes[0]["data"]["id"]
+
+                edges.append({
+                    "data": {"source": source_node_id, "target": target_node_id,
+                             "time": "0 sec"}
+                })
 
         table = []
         for result in results:
