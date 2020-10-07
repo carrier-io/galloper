@@ -432,7 +432,7 @@ def find_node(curr_node, node_list):
     return None
 
 
-def result_to_node(res):
+def result_to_node(project_id, status, res):
     return {
         "data": {
             "id": res['id'],
@@ -440,9 +440,9 @@ def result_to_node(res):
             "session_id": res['session_id'],
             "identifier": res['identifier'],
             "type": res['type'],
-            # "status": status,
+            "status": status,
             "result_id": res['id'],
-            # "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+            "file": f"/api/v1/artifacts/{project_id}/reports/{res.file_name}"
         }
     }
 
@@ -465,11 +465,20 @@ def pairwise(iterable):
     return zip(a, b)
 
 
+threshold_result = {"status": "passed", "data": results[0], "time": 0.1}
+
+
 def get_flow(steps):
     flows = {}
     start = {"data": {"id": 'start', "name": 'Start', "identifier": "start_point"}}
     for step in steps:
+        # threshold_result = threshold_results[step.identifier]
+        status = threshold_result['status']
+        result = threshold_result['data']
         curr_session_id = step['session_id']
+        if result['identifier'] == step['identifier']:
+            step = result
+
         if curr_session_id in flows.keys():
             flows[curr_session_id].append(result_to_node(step))
         else:
