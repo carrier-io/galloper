@@ -178,9 +178,20 @@
                 "config": {
                     org: $("#ado_org").val(),
                     project: $("#ado_project").val(),
-                    pat: $("#ado_pat").val(),
-                    team: $("#ado_team").val()
+                    pat: $("#ado_pat").val()
                 }
+            }
+            if ($("#ado_team").val() != "") {
+                settings["config"]["team"] = $("#ado_team").val()
+            }
+            if ($("#ado_issue_type").val() != "") {
+                settings["config"]["issue_type"] = $("#ado_issue_type").val()
+            }
+            if ($("#ado_assignee").val() != "") {
+                settings["config"]["assignee"] = $("#ado_assignee").val()
+            }
+            if ($("#ado_custom_fields").val() != "") {
+                settings["config"]["custom_fields"] = $("#ado_custom_fields").val()
             }
             modal = "#adoModal"
             status_message = "#ado_status"
@@ -603,6 +614,9 @@
                         $("#ado_project").val(data["project"])
                         $("#ado_pat").val(data["pat"])
                         $("#ado_team").val(data["team"])
+                        $("#ado_issue_type").val(data["issue_type"])
+                        $("#ado_assignee").val(data["assignee"])
+                        $("#ado_custom_fields").val(data["custom_fields"])
                     }
                 }
             });

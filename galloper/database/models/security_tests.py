@@ -139,10 +139,10 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                         "file": "/tmp/{project_name}_{testing_type}_{build_id}_report.html",
                     }
             #
-            if "ado" in self.sast_settings.get("reporters_checked", list()):
+            if "ado" in self.dast_settings.get("reporters_checked", list()):
                 project_secrets = get_project_hidden_secrets(self.project_id)
                 if "ado" in project_secrets:
-                    reporters_config["ado"] = loads(project_secrets["ado"])
+                    reporters_config["azure_devops"] = loads(project_secrets["ado"])
 
             # Thresholds
             tholds = {}
@@ -359,7 +359,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
             if "ado" in self.sast_settings.get("reporters_checked", list()):
                 project_secrets = get_project_hidden_secrets(self.project_id)
                 if "ado" in project_secrets:
-                    reporters_config["ado"] = loads(project_secrets["ado"])
+                    reporters_config["azure_devops"] = loads(project_secrets["ado"])
 
             # Thresholds
             tholds = {}
