@@ -295,6 +295,7 @@ class VisualResultAPI(Resource):
             node['status'] = status
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
 
+             # add find edge for node
 
 
         return nodes, edges
