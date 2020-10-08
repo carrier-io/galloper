@@ -123,3 +123,19 @@ def rp_integration(args, project):
         set_project_secrets(project.id, secrets)
         set_project_hidden_secrets(project.id, hidden_secrets)
         return "RP settings saved"
+
+
+def ado_integration(args, project):
+    if args["test"]:
+        url = f'https://dev.azure.com/{args["config"]["org"]}/_apis/teams?api-version=6.1-preview.3'
+        res = get(url, auth=("", (args["config"]["pat"])), headers={'content-type': 'application/json'})
+        if res.status_code == 200:
+            message = "Successfully connected to ADO"
+        else:
+            message = "Connection failed"
+        return message
+    else:
+        hidden_secrets = get_project_hidden_secrets(project.id)
+        hidden_secrets["ado"] = dumps(args["config"])
+        set_project_hidden_secrets(project.id, hidden_secrets)
+        return "ADO settings saved"
