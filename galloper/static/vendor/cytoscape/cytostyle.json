@@ -23,6 +23,12 @@
         }
     },
     {
+        "selector": "edge[time = '']",
+        "css": {
+            "display": "none"
+        }
+    },
+    {
         "selector": "node[id = 'start'], node[type = 'action']",
         "css": {
             "width": 12,
