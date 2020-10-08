@@ -295,14 +295,21 @@ class VisualResultAPI(Resource):
             node['status'] = status
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
 
-             # add find edge for node
-
+            # add find edge for node
+            edge = self.find_edge(result, edges)
+            if len(edge) == 1:
+                edge[0]['data']['time'] = time
+                edge[0]["classes"] = status
+            if len(edge) > 1:
+                for e in edge:
+                    e['data']['time'] = time
+                    e["classes"] = status
 
         return nodes, edges
 
     def get_flow(self, steps):
         flows = {}
-        start = {"data": {"id": 'start', "name": 'Start', "identifier": "start_point"}}
+        start = {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "session_id": "start"}}
         for step in steps:
             curr_session_id = step.session_id
             if curr_session_id in flows.keys():
@@ -313,7 +320,7 @@ class VisualResultAPI(Resource):
 
     def get_nodes(self, steps):
         nodes = [
-            {"data": {"id": 'start', "name": 'Start', "identifier": "start_point"}}
+            {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "session_id": "start"}}
         ]
         for result in steps:
             current_node = self.find_if_exists(result, nodes)
@@ -341,6 +348,10 @@ class VisualResultAPI(Resource):
             raise Exception("Bug! Node duplication")
         return None
 
+    def find_edge(self, res, edges):
+        res = list(filter(lambda x: x['data']['id_to'] == res.identifier, edges))
+        return res
+
     def result_to_node(self, res):
         return {
             "data": {
@@ -360,10 +371,11 @@ class VisualResultAPI(Resource):
             "data": {
                 "source": node_from['data']['id'],
                 "target": node_to['data']['id'],
-                "id_from": node_from['data']['identifier']
-                # "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+                "session_id": node_from['data']['session_id'],
+                "id_to": node_to['data']['identifier'],
+                "time": ""
             },
-            # "classes": status
+            "classes": ""
         }
 
     def pairwise(self, iterable):
@@ -371,17 +383,3 @@ class VisualResultAPI(Resource):
         a, b = itertools.tee(iterable)
         next(b, None)
         return zip(a, b)
-
-    # def find_node(self, nodes, identifier, session_id):
-    #     node = list(
-    #         filter(lambda x: x['data']['identifier'] == identifier and x['data']['session_id'] == session_id, nodes))
-    #     if len(node) == 1:
-    #         return node[0]
-    #     return None
-    #
-    # def find_parent_node(self, nodes, session_id):
-    #     node = list(
-    #         filter(lambda x: x['data']['session_id'] == session_id, nodes))
-    #     if len(node) > 0:
-    #         return node[-1]
-    #     return self.find_parent_node(nodes, 'start_point')
