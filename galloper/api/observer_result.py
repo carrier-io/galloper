@@ -17,6 +17,17 @@ class UIResultsAPI(Resource):
         dict(name="name", type=str, location="json"),
         dict(name="identifier", type=str, location="json"),
         dict(name="type", type=str, location="json"),
+        dict(name="session_id", type=str, location="json"),
+    )
+
+    get_rules = (
+        dict(name="offset", type=int, default=0, location="args"),
+        dict(name="limit", type=int, default=0, location="args"),
+        dict(name="search", type=str, default="", location="args"),
+        dict(name="sort", type=str, default="start_time", location="args"),
+        dict(name="order", type=str, default="", location="args"),
+        dict(name="name", type=str, location="args"),
+        dict(name="filter", type=str, location="args")
     )
 
     put_rules = (
@@ -27,6 +38,7 @@ class UIResultsAPI(Resource):
         self.__init_req_parsers()
 
     def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
 
@@ -46,6 +58,7 @@ class UIResultsAPI(Resource):
             report_uid=report_id,
             name=name,
             identifier=args['identifier'],
+            session_id=args['session_id'],
             type=args["type"],
             bucket_name=args["bucket_name"],
             file_name=args["file_name"],
@@ -76,6 +89,14 @@ class UIResultsAPI(Resource):
         results.commit()
 
         return results.to_json()
+
+    def get(self, project_id: int, report_id: str):
+        results = UIResult.query.filter_by(project_id=project_id, report_uid=report_id).order_by(UIResult.session_id,
+                                                                                                 UIResult.id).all()
+        response = []
+        for res in results:
+            response.append(res.to_json())
+        return response
 
 
 class UIResultsStepAPI(Resource):

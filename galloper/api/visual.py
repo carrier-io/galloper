@@ -1,3 +1,4 @@
+import itertools
 from typing import Optional
 from uuid import uuid4
 
@@ -98,7 +99,7 @@ class VisualResultAPI(Resource):
             "table": [],
             "chart": {
                 "nodes": [
-                    {"data": {"id": 'start', "name": 'Start', "bucket": "reports", "file": ""}}
+
                 ],
                 "edges": [
                 ]
@@ -106,60 +107,63 @@ class VisualResultAPI(Resource):
         }
 
         report = UIReport.query.get_or_404(report_id)
-        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.id).all()
+        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.session_id,
+                                                                                                  UIResult.id).all()
 
-        nodes = _action_mapping["chart"]["nodes"]
-        edges = _action_mapping["chart"]["edges"]
+        # nodes = _action_mapping["chart"]["nodes"]
+        # edges = _action_mapping["chart"]["edges"]
 
-        graph_aggregation = {}
-        for result in results:
-            if result.name in graph_aggregation.keys():
-                graph_aggregation[result.identifier].append(result)
-            else:
-                graph_aggregation[result.identifier] = [result]
+        nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops)
 
-        for name, values in graph_aggregation.items():
-            aggregated_total = get_aggregated_data(report.aggregation, values)
-            result = closest(values, aggregated_total)
+        # for result in results:
+        #     threshold_result = self.assert_threshold(results, report.aggregation)
+        #     status = threshold_result['status']
+        #     result = threshold_result['data']
 
-            source_node_id = nodes[-1]["data"]["id"]
-            target_node_id = str(uuid4())
+        _action_mapping["chart"]["nodes"] = nodes
+        _action_mapping["chart"]["edges"] = edges
 
-            thresholds_failed = sum([d.thresholds_failed for d in values])
-
-            status = "passed"
-            if thresholds_failed > 0:
-                status = "failed"
-
-            nodes.append({
-                "data": {
-                    "id": target_node_id,
-                    "name": result.name,
-                    "indentifier": result.identifier,
-                    "type": result.type,
-                    "status": status,
-                    "result_id": result.id,
-                    "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-                }
-            })
-
-            edges.append({
-                "data": {
-                    "source": source_node_id,
-                    "target": target_node_id,
-                    "time": f"{round(aggregated_total / 1000, 2)} sec"
-                },
-                "classes": status
-            })
-
-        if report.loops > 1:
-            source_node_id = nodes[-1]["data"]["id"]
-            target_node_id = nodes[0]["data"]["id"]
-
-            edges.append({
-                "data": {"source": source_node_id, "target": target_node_id,
-                         "time": "0 sec"}
-            })
+        # for result in results:
+        #     threshold_result = threshold_results[result.identifier]
+        #     status = threshold_result['status']
+        #     result = threshold_result['data']
+        #
+        #     source_node_id = nodes[-1]["data"]["id"]
+        #     target_node_id = str(uuid4())
+        #
+        #     node = self.find_node(nodes, result.identifier, result.session_id)
+        #
+        #     if not node:
+        #         nodes.append({
+        #             "data": {
+        #                 "id": target_node_id,
+        #                 "name": result.name,
+        #                 "session_id": result.session_id,
+        #                 "identifier": result.identifier,
+        #                 "type": result.type,
+        #                 "status": status,
+        #                 "result_id": result.id,
+        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+        #             }
+        #         })
+        #
+        #     edges.append({
+        #         "data": {
+        #             "source": source_node_id,
+        #             "target": target_node_id,
+        #             "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+        #         },
+        #         "classes": status
+        #     })
+        #
+        #     if report.loops > 1:
+        #         source_node_id = nodes[-1]["data"]["id"]
+        #         target_node_id = nodes[0]["data"]["id"]
+        #
+        #         edges.append({
+        #             "data": {"source": source_node_id, "target": target_node_id,
+        #                      "time": "0 sec"}
+        #         })
 
         table = []
         for result in results:
@@ -195,3 +199,187 @@ class VisualResultAPI(Resource):
 
         _action_mapping["table"] = table
         return _action_mapping[action]
+
+    def assert_threshold(self, results, aggregation):
+        graph_aggregation = {}
+        for result in results:
+            if result.name in graph_aggregation.keys():
+                graph_aggregation[result.identifier].append(result)
+            else:
+                graph_aggregation[result.identifier] = [result]
+
+        threshold_results = {}
+        for name, values in graph_aggregation.items():
+            aggregated_total = get_aggregated_data(aggregation, values)
+            result = closest(values, aggregated_total)
+            thresholds_failed = sum([d.thresholds_failed for d in values])
+            status = "passed"
+            if thresholds_failed > 0:
+                status = "failed"
+            threshold_results[name] = {"status": status, "data": result, "time": aggregated_total}
+        return threshold_results
+
+    def build_graph(self, project_id, results, aggregation, loops):
+        # nodes = [{"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "bucket": "reports",
+        #                    "file": "", "session_id": "start_point"}}]
+
+        edges = []
+        nodes = self.get_nodes(results)
+        flow = self.get_flow(results)
+
+        for session, steps in flow.items():
+            for curr, upcoming in self.pairwise(steps):
+                current_node = self.find_node(curr, nodes)
+                upcoming_node = self.find_node(upcoming, nodes)
+                edge = self.make_edge(current_node, upcoming_node)
+                edges.append(edge)
+
+        # for result in results:
+        #     threshold_result = threshold_results[result.identifier]
+        #     status = threshold_result['status']
+        #     result = threshold_result['data']
+        #
+        #     parent_node = self.find_parent_node(nodes, result.session_id)
+        #     node = self.find_node(nodes, result.identifier, result.session_id)
+        #
+        #     if not node:
+        #         target_node_id = str(uuid4())
+        #         nodes.append({
+        #             "data": {
+        #                 "id": target_node_id,
+        #                 "name": result.name,
+        #                 "session_id": result.session_id,
+        #                 "identifier": result.identifier,
+        #                 "type": result.type,
+        #                 "status": status,
+        #                 "result_id": result.id,
+        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+        #             }
+        #         })
+        #
+        #         edges.append({
+        #             "data": {
+        #                 "source": parent_node['data']['id'],
+        #                 "target": target_node_id,
+        #                 "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+        #             },
+        #             "classes": status
+        #         })
+        #     else:
+        #         edges.append({
+        #             "data": {
+        #                 "source": parent_node['data']['id'],
+        #                 "target": node['data']['id'],
+        #                 "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
+        #             },
+        #             "classes": status
+        #         })
+        #
+        #     if loops > 1:
+        #         source_node_id = nodes[-1]["data"]["id"]
+        #         target_node_id = nodes[0]["data"]["id"]
+        #
+        #         edges.append({
+        #             "data": {"source": source_node_id, "target": target_node_id,
+        #                      "time": "0 sec"}
+        #         })
+
+        for result in results:
+            threshold_results = self.assert_threshold(results, aggregation)
+            threshold_result = threshold_results[result.identifier]
+            status = threshold_result['status']
+            result = threshold_result['data']
+            time = round(threshold_result['time'] / 1000, 2)
+
+            node = self.find_if_exists(result, nodes)
+            node['status'] = status
+            node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+
+            # add find edge for node
+            edge = self.find_edge(result, edges)
+            if len(edge) == 1:
+                edge[0]['data']['time'] = time
+                edge[0]["classes"] = status
+            if len(edge) > 1:
+                for e in edge:
+                    e['data']['time'] = time
+                    e["classes"] = status
+
+        return nodes, edges
+
+    def get_flow(self, steps):
+        flows = {}
+        start = {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "session_id": "start"}}
+        for step in steps:
+            curr_session_id = step.session_id
+            if curr_session_id in flows.keys():
+                flows[curr_session_id].append(self.result_to_node(step))
+            else:
+                flows[curr_session_id] = [start, self.result_to_node(step)]
+        return flows
+
+    def get_nodes(self, steps):
+        nodes = [
+            {"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "session_id": "start"}}
+        ]
+        for result in steps:
+            current_node = self.find_if_exists(result, nodes)
+            if not current_node:
+                current_node = self.result_to_node(result)
+                nodes.append(current_node)
+        return nodes
+
+    def find_if_exists(self, curr_node, node_list):
+        res = list(filter(lambda x: x['data']['identifier'] == curr_node.identifier, node_list))
+        if len(res) == 1:
+            return res[0]
+        if len(res) > 1:
+            raise Exception("Bug! Node duplication")
+        return None
+
+    def find_node(self, curr_node, node_list):
+        if curr_node['data']['identifier'] == 'start_point':
+            return curr_node
+
+        res = list(filter(lambda x: x['data']['identifier'] == curr_node['data']['identifier'], node_list))
+        if len(res) == 1:
+            return res[0]
+        if len(res) > 1:
+            raise Exception("Bug! Node duplication")
+        return None
+
+    def find_edge(self, res, edges):
+        res = list(filter(lambda x: x['data']['id_to'] == res.identifier, edges))
+        return res
+
+    def result_to_node(self, res):
+        return {
+            "data": {
+                "id": res.id,
+                "name": res.name,
+                "session_id": res.session_id,
+                "identifier": res.identifier,
+                "type": res.type,
+                "status": "passed",
+                "result_id": res.id,
+                "file": f"/api/v1/artifacts/{res.project_id}/reports/{res.file_name}"
+            }
+        }
+
+    def make_edge(self, node_from, node_to):
+        return {
+            "data": {
+                "source": node_from['data']['id'],
+                "target": node_to['data']['id'],
+                "session_id": node_from['data']['session_id'],
+                "id_to": node_to['data']['identifier'],
+                "time": ""
+            },
+            "classes": ""
+        }
+
+    def pairwise(self, iterable):
+        "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+        a, b = itertools.tee(iterable)
+        next(b, None)
+        return zip(a, b)
