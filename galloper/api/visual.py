@@ -110,61 +110,14 @@ class VisualResultAPI(Resource):
         results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.session_id,
                                                                                                   UIResult.id).all()
 
-        # nodes = _action_mapping["chart"]["nodes"]
-        # edges = _action_mapping["chart"]["edges"]
-
         nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops)
-
-        # for result in results:
-        #     threshold_result = self.assert_threshold(results, report.aggregation)
-        #     status = threshold_result['status']
-        #     result = threshold_result['data']
-
         _action_mapping["chart"]["nodes"] = nodes
         _action_mapping["chart"]["edges"] = edges
 
-        # for result in results:
-        #     threshold_result = threshold_results[result.identifier]
-        #     status = threshold_result['status']
-        #     result = threshold_result['data']
-        #
-        #     source_node_id = nodes[-1]["data"]["id"]
-        #     target_node_id = str(uuid4())
-        #
-        #     node = self.find_node(nodes, result.identifier, result.session_id)
-        #
-        #     if not node:
-        #         nodes.append({
-        #             "data": {
-        #                 "id": target_node_id,
-        #                 "name": result.name,
-        #                 "session_id": result.session_id,
-        #                 "identifier": result.identifier,
-        #                 "type": result.type,
-        #                 "status": status,
-        #                 "result_id": result.id,
-        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-        #             }
-        #         })
-        #
-        #     edges.append({
-        #         "data": {
-        #             "source": source_node_id,
-        #             "target": target_node_id,
-        #             "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
-        #         },
-        #         "classes": status
-        #     })
-        #
-        #     if report.loops > 1:
-        #         source_node_id = nodes[-1]["data"]["id"]
-        #         target_node_id = nodes[0]["data"]["id"]
-        #
-        #         edges.append({
-        #             "data": {"source": source_node_id, "target": target_node_id,
-        #                      "time": "0 sec"}
-        #         })
+        _action_mapping["table"] = self.build_table(results, report.base_url)
+        return _action_mapping[action]
 
+    def build_table(self, results, base_url):
         table = []
         for result in results:
             data = {
@@ -178,14 +131,14 @@ class VisualResultAPI(Resource):
                 "content_load": result.dom_content_loading,
                 "dom_processing": result.dom_processing,
                 "missed_thresholds": result.thresholds_failed,
-                "report": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}",
+                "report": f"/api/v1/artifacts/{result.project_id}/reports/{result.file_name}",
                 "actions": []
             }
 
             actions = []
             for loc in result.locators:
                 if loc['target'] == "/":
-                    loc['target'] = report.base_url
+                    loc['target'] = base_url
 
                 actions.append({
                     "action": loc["command"],
@@ -196,9 +149,7 @@ class VisualResultAPI(Resource):
             data["actions"] = actions
 
             table.append(data)
-
-        _action_mapping["table"] = table
-        return _action_mapping[action]
+        return table
 
     def assert_threshold(self, results, aggregation):
         graph_aggregation = {}
@@ -220,9 +171,6 @@ class VisualResultAPI(Resource):
         return threshold_results
 
     def build_graph(self, project_id, results, aggregation, loops):
-        # nodes = [{"data": {"id": 'start', "name": 'Start', "identifier": "start_point", "bucket": "reports",
-        #                    "file": "", "session_id": "start_point"}}]
-
         edges = []
         nodes = self.get_nodes(results)
         flow = self.get_flow(results)
@@ -233,56 +181,6 @@ class VisualResultAPI(Resource):
                 upcoming_node = self.find_node(upcoming, nodes)
                 edge = self.make_edge(current_node, upcoming_node)
                 edges.append(edge)
-
-        # for result in results:
-        #     threshold_result = threshold_results[result.identifier]
-        #     status = threshold_result['status']
-        #     result = threshold_result['data']
-        #
-        #     parent_node = self.find_parent_node(nodes, result.session_id)
-        #     node = self.find_node(nodes, result.identifier, result.session_id)
-        #
-        #     if not node:
-        #         target_node_id = str(uuid4())
-        #         nodes.append({
-        #             "data": {
-        #                 "id": target_node_id,
-        #                 "name": result.name,
-        #                 "session_id": result.session_id,
-        #                 "identifier": result.identifier,
-        #                 "type": result.type,
-        #                 "status": status,
-        #                 "result_id": result.id,
-        #                 "file": f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-        #             }
-        #         })
-        #
-        #         edges.append({
-        #             "data": {
-        #                 "source": parent_node['data']['id'],
-        #                 "target": target_node_id,
-        #                 "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
-        #             },
-        #             "classes": status
-        #         })
-        #     else:
-        #         edges.append({
-        #             "data": {
-        #                 "source": parent_node['data']['id'],
-        #                 "target": node['data']['id'],
-        #                 "time": f"{round(threshold_result['time'] / 1000, 2)} sec"
-        #             },
-        #             "classes": status
-        #         })
-        #
-        #     if loops > 1:
-        #         source_node_id = nodes[-1]["data"]["id"]
-        #         target_node_id = nodes[0]["data"]["id"]
-        #
-        #         edges.append({
-        #             "data": {"source": source_node_id, "target": target_node_id,
-        #                      "time": "0 sec"}
-        #         })
 
         for result in results:
             threshold_results = self.assert_threshold(results, aggregation)
