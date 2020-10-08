@@ -179,6 +179,11 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                                 "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
                                 "project_id": f"{self.project_id}",
                                 "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)
+                            },
+                            "ignore_finding": {
+                                "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                                "project_id": f"{self.project_id}",
+                                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)
                             }
                         },
                         "reporters": reporters_config
@@ -393,6 +398,11 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                                 "thresholds": tholds
                             },
                             "false_positive": {
+                                "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
+                                "project_id": f"{self.project_id}",
+                                "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)
+                            },
+                            "ignore_finding": {
                                 "galloper": unsecret("{{secret.galloper_url}}", project_id=self.project_id),
                                 "project_id": f"{self.project_id}",
                                 "token": unsecret("{{secret.auth_token}}", project_id=self.project_id)

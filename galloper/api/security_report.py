@@ -308,7 +308,12 @@ class FindingsAnalysisAPI(Resource):
                                SecurityResults.scan_type == args["scan_type"])
         ids = SecurityResults.query.filter(projects_filter).all()
         ids = [each.id for each in ids]
-        hashes = SecurityReport.query.filter(
-            and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
-            ).with_entities(SecurityReport.issue_hash).distinct()
+        if args["type"] == "ignored":
+            hashes = SecurityReport.query.filter(
+                and_(SecurityReport.excluded_finding == 1, SecurityReport.report_id.in_(ids))
+                ).with_entities(SecurityReport.issue_hash).distinct()
+        else:
+            hashes = SecurityReport.query.filter(
+                and_(SecurityReport.false_positive == 1, SecurityReport.report_id.in_(ids))
+                ).with_entities(SecurityReport.issue_hash).distinct()
         return [_.issue_hash for _ in hashes]
