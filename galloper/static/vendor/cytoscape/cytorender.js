@@ -5,8 +5,8 @@ function renderCy() {
         container: document.getElementById('cy'),
         layout: {
             name: 'euler',
-            springLength: edge => 150,
-            springCoeff: edge => 0.0005,
+            springLength: edge => 30,
+            springCoeff: edge => 0.0008,
             gravity: -12.5,
             randomize: true,
             fit: true,
@@ -15,8 +15,8 @@ function renderCy() {
         ready: function(){ console.log("done") },
         style: fetch('/static/vendor/cytoscape/cytostyle.json').then(function(res) { return res.json() }),
         elements: fetch(`/api/v1/visual/${getSelectedProjectId()}/${page_params.get("report_id")}/chart`).then(function(res) { return res.json() }),
-        userPanningEnabled: true,
-        userZoomingEnabled: true,
+        userPanningEnabled: false,
+        userZoomingEnabled: false,
         maxZoom: 2.5,
     });
 

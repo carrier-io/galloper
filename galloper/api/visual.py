@@ -199,9 +199,8 @@ class VisualResultAPI(Resource):
                 edge[0]['data']['time'] = time
                 edge[0]["classes"] = status
             if len(edge) > 1:
-                for e in edge:
-                    e['data']['time'] = time
-                    e["classes"] = status
+                edge[0]['data']['time'] = time
+                edge[0]["classes"] = status
 
         return nodes, edges
 
