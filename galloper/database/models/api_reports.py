@@ -23,7 +23,7 @@ class APIReport(AbstractBaseMixin, Base):
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, unique=False, nullable=False)
-    test_uid = Column(String(128), unique=True, nullable=False)
+    test_uid = Column(String(128), unique=False, nullable=False)
     name = Column(String(128), unique=False)
     status = Column(String(128), unique=False)
     environment = Column(String(128), unique=False)
