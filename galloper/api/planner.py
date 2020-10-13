@@ -213,9 +213,13 @@ class TestApiBackend(Resource):
 
         if args.get("reporter"):
             task.reporting = args["reporter"]
+        else:
+            task.reporting = []
 
         if args.get("emails"):
             task.emails = args["emails"]
+        else:
+            task.emails = ""
 
         if args.get("parallel"):
             task.parallel = args.get("parallel")

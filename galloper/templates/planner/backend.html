@@ -268,9 +268,13 @@
                     $('#emails').val(data.emails);
                     if (data.git != null && data.git.hasOwnProperty("repo")) {
                         $('#repo').val(data.git.repo);
+                        $('#repo').prop("disabled", true);
                         $('#repo_user').val(data.git.repo_user);
+                        $('#repo_user').prop("disabled", true);
                         $('#repo_pass').val(data.git.repo_pass);
+                        $('#repo_pass').prop("disabled", true);
                         $('#repo_key').val(data.git.repo_key);
+                        $('#repo_key').prop("disabled", true);
                         $('#repo_branch').val(data.git.repo_branch);
                         $("#nav-file-tab").prop("disabled", true)
                         $('a[href="#nav-git"]').click();
