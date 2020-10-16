@@ -183,7 +183,7 @@ class TestApiBackend(Resource):
         if args.raw:
             return test.to_json(["influx.port", "influx.host", "galloper_url",
                                  "influx.db", "comparison_db",
-                                 "loki_host", "loki_port"])
+                                 "loki_host", "loki_port", "influx.username", "influx.password"])
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
         else:
@@ -192,7 +192,7 @@ class TestApiBackend(Resource):
 
     def put(self, project_id, test_id):
         default_params = ["influx.port", "influx.host", "galloper_url", "influx.db", "comparison_db",
-                          "loki_host", "loki_port", "test.type", "test_type"]
+                          "loki_host", "loki_port", "test.type", "test_type", "influx.username", "influx.password"]
         project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
         if isinstance(test_id, int):
@@ -228,7 +228,7 @@ class TestApiBackend(Resource):
         task.commit()
         return task.to_json(["influx.port", "influx.host", "galloper_url",
                              "influx.db", "comparison_db",
-                             "loki_host", "loki_port"])
+                             "loki_host", "loki_port", "influx.username", "influx.password"])
 
     def post(self, project_id, test_id):
         project = Project.get_or_404(project_id)

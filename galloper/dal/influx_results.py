@@ -15,16 +15,18 @@
 from influxdb import InfluxDBClient
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp
+from galloper.dal.vault import get_project_hidden_secrets
 
 influx_client = None
 
 
 def get_client(db_name=None):
+    secrets = get_project_hidden_secrets(1)
     if db_name:
-        return InfluxDBClient("carrier-influx", 8086, '', '', db_name)
+        return InfluxDBClient("carrier-influx", 8086, 'admin', secrets["influx_password"], db_name)
     global influx_client
     if not influx_client:
-        influx_client = InfluxDBClient("carrier-influx", 8086, '', '')
+        influx_client = InfluxDBClient("carrier-influx", 8086, 'admin', secrets["influx_password"])
     return influx_client
 
 
