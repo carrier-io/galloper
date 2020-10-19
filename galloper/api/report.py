@@ -201,6 +201,8 @@ class ReportPostProcessingAPI(Resource):
             "token": "{{secret.auth_token}}",
             "report_id": args["report_id"],
             "influx_host": "{{secret.influx_ip}}",
+            "influx_user": "admin",
+            "influx_password": "{{secret.influx_password}}",
             "config_file": "{}",
             "bucket": str(report["name"]).lower().replace(" ", "").replace("_", "").replace("-", ""),
             "prefix": f'test_results_{uuid4()}_',
@@ -209,8 +211,14 @@ class ReportPostProcessingAPI(Resource):
                                                   PerformanceTests.test_uid == report["test_uid"])).first()
         event["email_recipients"] = task.emails
         integration = []
+        reporters = {
+            "jira": "jira",
+            "report_portal": "rp",
+            "email": "email",
+            "azure_devops": "ado"
+        }
         for each in ["jira", "report_portal", "email", "azure_devops"]:
-            if each in task.reporting:
+            if reporters[each] in task.reporting:
                 integration.append(each)
         junit = True if "junit" in task.reporting else False
         event["integration"] = integration

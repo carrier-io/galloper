@@ -9,6 +9,7 @@ from galloper.database.models.task import Task
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
+from galloper.constants import CURRENT_RELEASE
 from galloper.dal.vault import get_project_secrets, unsecret, get_project_hidden_secrets
 
 from werkzeug.exceptions import Forbidden
@@ -51,8 +52,8 @@ def get(project_id, args, data_model, additional_filter=None):
 def compile_tests(project_id, file_name, runner):
     client = docker.from_env()
     container_mapper = {
-        "gatling2": "getcarrier/perfgun:2.3",
-        "gatling3": "getcarrier/perfgun:latest"
+        "v2.3": f"getcarrier/perfgun:{CURRENT_RELEASE}.2.3",
+        "v3.1": f"getcarrier/perfgun:{CURRENT_RELEASE}.3.1"
     }
     container_name = container_mapper.get(runner)
     secrets = get_project_secrets(project_id)

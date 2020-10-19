@@ -8,7 +8,7 @@ from werkzeug.datastructures import FileStorage
 
 from galloper.api.base import get, create_task, run_task
 from galloper.constants import allowed_file, POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_HOST, \
-    APP_IP, EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD
+    APP_IP, EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD, INFLUX_PASSWORD
 from galloper.data_utils.file_utils import File
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
@@ -225,6 +225,7 @@ class TaskUpgradeApi(Resource):
             secrets["influx_port"] = INFLUX_PORT
             secrets["loki_port"] = LOKI_PORT
             secrets["redis_password"] = REDIS_PASSWORD
+            secrets["influx_password"] = INFLUX_PASSWORD
             set_project_secrets(project.id, project_secrets)
         else:
             return {"message": "go away", "code": 400}, 400

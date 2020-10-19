@@ -65,6 +65,10 @@ class PerformanceTests(AbstractBaseMixin, Base):
             self.params["influx.port"] = "{{secret.influx_port}}"
         if "influx.host" not in self.params.keys():
             self.params["influx.host"] = "{{secret.influx_ip}}"
+        if "influx_user" not in self.params.keys():
+            self.params["influx.username"] = "admin"
+        if "influx_password" not in self.params.keys():
+            self.params["influx.password"] = "{{secret.influx_password}}"
         if "galloper_url" not in self.env_vars.keys():
             self.params["galloper_url"] = "{{secret.galloper_url}}"
         if "influx.db" not in self.params.keys():
@@ -153,6 +157,10 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["execution_params"][key] = value
         if "influxdb_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["influxdb_host"] = "{{secret.influx_ip}}"
+        if "influxdb_user" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_user"] = "admin"
+        if "influxdb_password" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_password"] = "{{secret.influx_password}}"
         if "loki_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in execution_json["execution_params"].keys():
