@@ -9,7 +9,7 @@ from galloper.database.models.task import Task
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.processors.minio import MinioClient
-from galloper.constants import CURRENT_RELEASE
+from galloper.constants import CURRENT_RELEASE, REDIS_DB
 from galloper.dal.vault import get_project_secrets, unsecret, get_project_hidden_secrets
 
 from werkzeug.exceptions import Forbidden
@@ -83,7 +83,7 @@ def create_task(project, file, args):
     filename = str(uuid4())
     filename = secure_filename(filename)
     file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
-    app = run.connect_to_celery(1)
+    app = run.connect_to_celery(concurrency=1, redis_db=REDIS_DB)
     celery_task = app.signature(
         "tasks.volume",
         kwargs={"task_id": filename, "file_path": current_app.config["UPLOAD_FOLDER"]}

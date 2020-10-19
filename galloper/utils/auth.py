@@ -100,6 +100,8 @@ def filter_projects(func):
 
 
 def _get_user_data():
+    if current_app.config['DEV']:
+        return {"groups": ["/superadmin"]}
     user_data = SessionUser.get()
     if not user_data:
         headers = {}
@@ -125,6 +127,8 @@ def only_users_projects():
 
 
 def is_superadmin():
+    if current_app.config['DEV']:
+        return True
     user_data = _get_user_data()
     current_app.logger.info(str(user_data))
     current_app.logger.info("Is admin")

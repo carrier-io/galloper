@@ -16,6 +16,8 @@ from os import environ
 from datetime import datetime
 from urllib.parse import urlparse
 
+LOCAL_DEV = False
+
 ALLOWED_EXTENSIONS = ['zip', 'py']
 CURRENT_RELEASE = '2.0'
 REDIS_USER = environ.get('REDIS_USER', '')
@@ -34,13 +36,13 @@ APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
 POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/releases/download/v.2.0/post_processing_v_2_0.zip"
 CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/releases/download/v.2.0/control-tower_v_2_0.zip"
 EMAIL_NOTIFICATION_PATH = "https://github.com/carrier-io/performance_email_notification/releases/download/v.2.0/email_notifications_v_2_0.zip"
-MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://carrier-minio:9000')
+MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://127.0.0.1:9000' if LOCAL_DEV else 'http://carrier-minio:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
 MINIO_REGION = environ.get('MINIO_REGION', 'us-east-1')
 LOKI_HOST = environ.get('LOKI', 'http://carrier-loki:3100')
 MAX_DOTS_ON_CHART = 100
-VAULT_URL = environ.get('VAULT_URL', 'http://carrier-vault:8200')
+VAULT_URL = environ.get('VAULT_URL', 'http://127.0.0.1:8200' if LOCAL_DEV else 'http://carrier-vault:8200')
 VAULT_DB_PK = 1
 GRID_ROUTER_URL = environ.get("GRID_ROUTER_URL", f"{EXTERNAL_LOKI_HOST}:4444/quota")
 

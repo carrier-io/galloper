@@ -12,6 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+from os import environ
 from flask import Flask
 from datetime import datetime
 from flask_restful import Api
@@ -37,14 +38,20 @@ def register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(secrets.bp)
 
 
-def register_api(flask_app: Flask) -> None:
-    api = Api(flask_app, prefix="/api/v1", catch_all_404s=True)
+def register_api(flask_app: Flask, config: Config) -> None:
+    api = Api(flask_app, catch_all_404s=True)
     initialize_api_routes(api=api)
+    if config.DEV:
+        from galloper.api.local_dev import forwardAuth
+        from galloper.api.local_dev import token
+        api.add_resource(forwardAuth, "/forward-auth/me")
+        api.add_resource(token, "/forward-auth/token")
 
 
 def create_app(config_class: type = Config) -> Flask:
     flask_app = Flask(__name__)
-    flask_app.config.from_object(config_class())
+    config = config_class()
+    flask_app.config.from_object(config)
     init_db()
     init_vault()  # won't do anything is vault is not available
 
@@ -67,12 +74,13 @@ def create_app(config_class: type = Config) -> Flask:
             return 0
 
     register_blueprints(flask_app=flask_app)
-    register_api(flask_app=flask_app)
+    register_api(flask_app=flask_app, config=config)
 
     # registering logging handler for loki
-    handler = init_logger_handler()
-    handler.setLevel(logging.INFO)
-    logging.root.handlers = [handler]
+    if not config.DEV:
+        handler = init_logger_handler()
+        handler.setLevel(logging.INFO)
+        logging.root.handlers = [handler]
 
     return flask_app
 

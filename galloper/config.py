@@ -14,7 +14,7 @@
 
 import os
 from typing import Optional
-
+from galloper.constants import LOCAL_DEV
 from galloper.utils.patterns import SingletonABC
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -23,8 +23,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(metaclass=SingletonABC):
     APP_HOST: str = os.environ.get("IP") or "0.0.0.0"
     APP_PORT: int = int(os.environ.get("APP_PORT", 5000)) or 5000
-    DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "sqlite")
-    DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/db/test.db"
+    DATABASE_VENDOR: str = os.environ.get("DATABASE_VENDOR", "postgres")
+    DATABASE_URI: str = os.environ.get("DATABASE_URL") or "sqlite:////tmp/test.db"
     UPLOAD_FOLDER: str = os.environ.get("TASKS_UPLOAD_FOLDER", "/tmp/tasks")
     DATE_TIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
     SUPERADMIN_GROUP = "/superadmin"
@@ -34,6 +34,7 @@ class Config(metaclass=SingletonABC):
     SECRET_KEY = os.environ.get("SECRET_KEY", ":iMHK_F`4hyrE;Wfr;+Ui8l&R3wYiB")
     PROJECT_CACHE_KEY = os.environ.get("PROJECT_CACHE_KEY", "project_cache_key")
     USER_CACHE_KEY = os.environ.get("USER_CACHE_KEY", "user_session")
+    DEV = LOCAL_DEV
 
     def __init__(self) -> None:
 
@@ -46,7 +47,7 @@ class Config(metaclass=SingletonABC):
 
             self.DATABASE_SCHEMA = os.environ.get("POSTGRES_SCHEMA", "carrier")
 
-            host = os.environ.get("POSTGRES_HOST", "carrier-postgres")
+            host = os.environ.get("POSTGRES_HOST", "127.0.0.1" if self.DEV else "carrier-postgres")
             port = os.environ.get("POSTGRES_PORT", 5432)
             database = os.environ.get("POSTGRES_DB", "carrier")
             username = os.environ.get("POSTGRES_USER", "carrier")
