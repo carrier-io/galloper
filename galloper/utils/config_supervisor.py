@@ -37,7 +37,7 @@ stopasgroup=true
 [program:beat]
 command=celery -A galloper.celeryapp beat -f /var/log/beat.log
 autostart=true
-autorestart=trueс
+autorestart=true
 stopsignal=QUIT
 stopwaitsecs=20
 stopasgroup=true
