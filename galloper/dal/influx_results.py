@@ -15,14 +15,14 @@
 from influxdb import InfluxDBClient
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp
-from galloper.constants import INFLUX_PASSWORD
+from galloper.constants import INFLUX_PASSWORD, INFLUX_USER
 
 influx_client = None
 
 
 def get_client(db_name=None):
     if INFLUX_PASSWORD:
-        influx_user = "admin"
+        influx_user = INFLUX_USER
         influx_pass = INFLUX_PASSWORD
     else:
         influx_user = ""
