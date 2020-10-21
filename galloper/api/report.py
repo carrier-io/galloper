@@ -201,7 +201,7 @@ class ReportPostProcessingAPI(Resource):
             "token": "{{secret.auth_token}}",
             "report_id": args["report_id"],
             "influx_host": "{{secret.influx_ip}}",
-            "influx_user": "admin",
+            "influx_user": "{{secret.influx_user}}",
             "influx_password": "{{secret.influx_password}}",
             "config_file": "{}",
             "bucket": str(report["name"]).lower().replace(" ", "").replace("_", "").replace("-", ""),

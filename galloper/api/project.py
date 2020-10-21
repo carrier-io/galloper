@@ -169,10 +169,16 @@ class ProjectAPI(Resource):
         project_hidden_secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
         project_hidden_secrets["influx_ip"] = APP_IP
         project_hidden_secrets["influx_port"] = INFLUX_PORT
-        project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
         project_hidden_secrets["loki_port"] = LOKI_PORT
         project_hidden_secrets["redis_password"] = REDIS_PASSWORD
         project_hidden_secrets["control_tower_id"] = cc.task_id
+        if INFLUX_PASSWORD:
+            project_hidden_secrets["influx_user"] = "admin"
+            project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
+        else:
+            project_hidden_secrets["influx_user"] = ""
+            project_hidden_secrets["influx_password"] = ""
+
         project_vault_data = {
             "auth_role_id": "",
             "auth_secret_id": ""

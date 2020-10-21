@@ -66,7 +66,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "influx.host" not in self.params.keys():
             self.params["influx.host"] = "{{secret.influx_ip}}"
         if "influx_user" not in self.params.keys():
-            self.params["influx.username"] = "admin"
+            self.params["influx.username"] = "{{secret.influx_user}}"
         if "influx_password" not in self.params.keys():
             self.params["influx.password"] = "{{secret.influx_password}}"
         if "galloper_url" not in self.env_vars.keys():
@@ -158,7 +158,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "influxdb_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["influxdb_host"] = "{{secret.influx_ip}}"
         if "influxdb_user" not in execution_json["execution_params"].keys():
-            execution_json["execution_params"]["influxdb_user"] = "admin"
+            execution_json["execution_params"]["influxdb_user"] = "{{secret.influx_user}}"
         if "influxdb_password" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["influxdb_password"] = "{{secret.influx_password}}"
         if "loki_host" not in execution_json["execution_params"].keys():

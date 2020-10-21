@@ -225,7 +225,12 @@ class TaskUpgradeApi(Resource):
             secrets["influx_port"] = INFLUX_PORT
             secrets["loki_port"] = LOKI_PORT
             secrets["redis_password"] = REDIS_PASSWORD
-            secrets["influx_password"] = INFLUX_PASSWORD
+            if INFLUX_PASSWORD:
+                secrets["influx_user"] = "admin"
+                secrets["influx_password"] = INFLUX_PASSWORD
+            else:
+                secrets["influx_user"] = ""
+                secrets["influx_password"] = ""
             set_project_secrets(project.id, project_secrets)
         else:
             return {"message": "go away", "code": 400}, 400
