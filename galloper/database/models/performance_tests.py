@@ -258,6 +258,9 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         if "jira" in self.reporting:
             execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
 
+        if "ado" in self.reporting:
+            execution_json["execution_params"]["ADO"] = unsecret("{{secret.ado}}", project_id=self.project_id)
+
         if "quality" in self.reporting:
             execution_json["quality_gate"] = True
         if "junit" in self.reporting:
