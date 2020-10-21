@@ -1,0 +1,36 @@
+# Docker
+# Build a Docker image 
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Bash@3
+      displayName: SAST Scan
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Write your commands here
+          docker run --rm -e project_id=4 -e galloper_url=https://public.getcarrier.io -e token="$(auth_token)" getcarrier/control_tower:latest -tid $(test_id)
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        command: build
+        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        tags: |
+          $(tag)
