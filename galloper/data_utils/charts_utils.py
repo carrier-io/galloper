@@ -101,7 +101,8 @@ def get_data_from_influx(args):
     start_time, end_time, aggregation = _timeframe(args)
     metric = args.get('metric', '')
     scope = args.get('scope', '')
-    timestamps, users = get_backend_users(args['build_id'], args['lg_type'],
+    project_id = APIReport.query.filter_by(build_id=args["build_id"]).first().to_json()["project_id"]
+    timestamps, users = get_backend_users(project_id, args['build_id'], args['lg_type'],
                                           start_time, end_time, aggregation)
     axe = 'count'
     if metric == "Users":
@@ -137,8 +138,8 @@ def prepare_comparison_responses(args):
     metric = args.get('metric', '')
     scope = args.get('scope', '')
     status = args.get("status", 'all')
-    timestamps, users = get_backend_users(tests_meta[longest_test]['build_id'], tests_meta[longest_test]['lg_type'],
-                                          start_time, end_time, aggregation)
+    timestamps, users = get_backend_users(project_id, tests_meta[longest_test]['build_id'],
+                                          tests_meta[longest_test]['lg_type'], start_time, end_time, aggregation)
     test_start_time = "{}_{}".format(tests_meta[longest_test]['start_time'].replace("T", " ").split(".")[0], metric)
     data = {test_start_time: calculate_analytics_dataset(tests_meta[longest_test]['build_id'],
                                                          tests_meta[longest_test]['name'],

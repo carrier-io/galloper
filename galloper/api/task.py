@@ -223,14 +223,10 @@ class TaskUpgradeApi(Resource):
             secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
             secrets["influx_ip"] = APP_IP
             secrets["influx_port"] = INFLUX_PORT
+            secrets["influx_user"] = INFLUX_USER
+            secrets["influx_password"] = INFLUX_PASSWORD
             secrets["loki_port"] = LOKI_PORT
             secrets["redis_password"] = REDIS_PASSWORD
-            if INFLUX_PASSWORD:
-                secrets["influx_user"] = INFLUX_USER
-                secrets["influx_password"] = INFLUX_PASSWORD
-            else:
-                secrets["influx_user"] = ""
-                secrets["influx_password"] = ""
             set_project_secrets(project.id, project_secrets)
         else:
             return {"message": "go away", "code": 400}, 400

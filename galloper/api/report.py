@@ -134,7 +134,8 @@ class ReportAPI(Resource):
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
         project = Project.get_or_404(project_id)
-        test_data = get_test_details(build_id=args["build_id"], test_name=args["test_name"], lg_type=args["lg_type"])
+        test_data = get_test_details(project_id=project_id, build_id=args["build_id"], test_name=args["test_name"],
+                                     lg_type=args["lg_type"])
         report = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.build_id == args["build_id"])
         ).first()
@@ -488,7 +489,8 @@ class TestSaturation(Resource):
             user_array.sort()
             user_array.reverse()
             uber_array = {}
-            _, users = get_backend_users(report.build_id, report.lg_type, str_start_time, str_current_time, "1s")
+            _, users = get_backend_users(project.id, report.build_id, report.lg_type, str_start_time, str_current_time,
+                                         "1s")
             u = user_array.pop()
             start_time = _[0]
             end_time = _[-1]
