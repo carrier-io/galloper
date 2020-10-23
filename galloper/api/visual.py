@@ -202,11 +202,13 @@ class VisualResultAPI(Resource):
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
             timings[node['data']['id']] = {"time": time, "status": status}
 
-        for edge in edges:
-            target_node_id = edge['data']['target']
-            data = timings[target_node_id]
-            edge['data']['time'] = data['time']
-            edge["classes"] = data['status']
+            edge = self.find_edge(result, edges)
+            if len(edge) == 1:
+                edge[0]['data']['time'] = time
+                edge[0]["classes"] = status
+            if len(edge) > 1:
+                edge[0]['data']['time'] = time
+                edge[0]["classes"] = status
 
         return nodes, edges
 
