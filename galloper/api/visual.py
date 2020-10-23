@@ -121,7 +121,7 @@ class VisualResultAPI(Resource):
     def assert_threshold(self, results, aggregation):
         graph_aggregation = {}
         for result in results:
-            if result.name in graph_aggregation.keys():
+            if result.identifier in graph_aggregation.keys():
                 graph_aggregation[result.identifier].append(result)
             else:
                 graph_aggregation[result.identifier] = [result]
@@ -181,6 +181,9 @@ class VisualResultAPI(Resource):
             for curr, upcoming in self.pairwise(steps):
                 current_node = self.find_node(curr, nodes)
                 upcoming_node = self.find_node(upcoming, nodes)
+                if self.is_edge_exists(current_node, upcoming_node, edges):
+                    continue
+
                 edge = self.make_edge(current_node, upcoming_node)
                 edges.append(edge)
 
@@ -257,6 +260,12 @@ class VisualResultAPI(Resource):
     def find_edge(self, res, edges):
         res = list(filter(lambda x: x['data']['id_to'] == res.identifier, edges))
         return res
+
+    def is_edge_exists(self, node1, node2, edges):
+        res = list(
+            filter(lambda e: e['data']['source'] == node1['data']['id'] and e['data']['target'] == node2['data']['id'],
+                   edges))
+        return len(res) > 0
 
     def result_to_node(self, res):
         return {
