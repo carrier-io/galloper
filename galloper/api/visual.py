@@ -175,6 +175,7 @@ class VisualResultAPI(Resource):
         edges = []
         nodes = self.get_nodes(results)
         flow = self.get_flow(results)
+        threshold_results = self.assert_threshold(results, aggregation)
 
         for session, steps in flow.items():
             for curr, upcoming in self.pairwise(steps):
@@ -183,26 +184,34 @@ class VisualResultAPI(Resource):
                 edge = self.make_edge(current_node, upcoming_node)
                 edges.append(edge)
 
-        for result in results:
-            threshold_results = self.assert_threshold(results, aggregation)
+        timings = {}
+
+        for node in nodes:
+            result = self.find_result(node, results)
+            if not result:
+                continue
+
             threshold_result = threshold_results[result.identifier]
             status = threshold_result['status']
             result = threshold_result['data']
             time = round(threshold_result['time'] / 1000, 2)
-
-            node = self.find_if_exists(result, nodes)
             node['status'] = status
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
+            timings[node['data']['id']] = {"time": time, "status": status}
 
-            edge = self.find_edge(result, edges)
-            if len(edge) == 1:
-                edge[0]['data']['time'] = time
-                edge[0]["classes"] = status
-            if len(edge) > 1:
-                edge[0]['data']['time'] = time
-                edge[0]["classes"] = status
+        for edge in edges:
+            target_node_id = edge['data']['target']
+            data = timings[target_node_id]
+            edge['data']['time'] = data['time']
+            edge["classes"] = data['status']
 
         return nodes, edges
+
+    def find_result(self, node, results):
+        res = list(filter(lambda r: r.id == node['data']['id'], results))
+        if len(res) == 1:
+            return res[0]
+        return None
 
     def get_flow(self, steps):
         flows = {}
