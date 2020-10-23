@@ -187,8 +187,6 @@ class VisualResultAPI(Resource):
                 edge = self.make_edge(current_node, upcoming_node)
                 edges.append(edge)
 
-        timings = {}
-
         for node in nodes:
             result = self.find_result(node, results)
             if not result:
@@ -200,7 +198,6 @@ class VisualResultAPI(Resource):
             time = round(threshold_result['time'] / 1000, 2)
             node['status'] = status
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
-            timings[node['data']['id']] = {"time": time, "status": status}
 
             edge = self.find_edge(result, edges)
             if len(edge) == 1:
