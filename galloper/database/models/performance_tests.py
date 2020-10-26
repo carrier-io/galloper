@@ -226,6 +226,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     cc_env_vars = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
+    emails = Column(Text)
     loops = Column(Integer)
     aggregation = Column(String(20))
 

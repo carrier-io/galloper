@@ -37,7 +37,8 @@ class UITestsApiPerformance(Resource):
         dict(name="loops", type=int, location='form', default=1),
         dict(name="aggregation", type=str, location='form', default="max"),
         dict(name="customization", type=str, location='form'),
-        dict(name="cc_env_vars", type=str, location='form')
+        dict(name="cc_env_vars", type=str, location='form'),
+        dict(name="emails", type=str, location='form'),
     )
 
     _delete_rules = (
@@ -81,6 +82,7 @@ class UITestsApiPerformance(Resource):
                                   file=file_name,
                                   entrypoint=args["entrypoint"],
                                   runner=runner,
+                                  emails=args['emails'],
                                   browser=browser,
                                   parallel=1,
                                   reporting=args["reporter"].split(","),
