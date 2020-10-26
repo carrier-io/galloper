@@ -121,7 +121,7 @@ class VisualResultAPI(Resource):
     def assert_threshold(self, results, aggregation):
         graph_aggregation = {}
         for result in results:
-            if result.name in graph_aggregation.keys():
+            if result.identifier in graph_aggregation.keys():
                 graph_aggregation[result.identifier].append(result)
             else:
                 graph_aggregation[result.identifier] = [result]
@@ -175,22 +175,27 @@ class VisualResultAPI(Resource):
         edges = []
         nodes = self.get_nodes(results)
         flow = self.get_flow(results)
+        threshold_results = self.assert_threshold(results, aggregation)
 
         for session, steps in flow.items():
             for curr, upcoming in self.pairwise(steps):
                 current_node = self.find_node(curr, nodes)
                 upcoming_node = self.find_node(upcoming, nodes)
+                if self.is_edge_exists(current_node, upcoming_node, edges):
+                    continue
+
                 edge = self.make_edge(current_node, upcoming_node)
                 edges.append(edge)
 
-        for result in results:
-            threshold_results = self.assert_threshold(results, aggregation)
+        for node in nodes:
+            result = self.find_result(node, results)
+            if not result:
+                continue
+
             threshold_result = threshold_results[result.identifier]
             status = threshold_result['status']
             result = threshold_result['data']
             time = round(threshold_result['time'] / 1000, 2)
-
-            node = self.find_if_exists(result, nodes)
             node['status'] = status
             node['file'] = f"/api/v1/artifacts/{project_id}/reports/{result.file_name}"
 
@@ -203,6 +208,12 @@ class VisualResultAPI(Resource):
                 edge[0]["classes"] = status
 
         return nodes, edges
+
+    def find_result(self, node, results):
+        res = list(filter(lambda r: r.id == node['data']['id'], results))
+        if len(res) == 1:
+            return res[0]
+        return None
 
     def get_flow(self, steps):
         flows = {}
@@ -248,6 +259,12 @@ class VisualResultAPI(Resource):
     def find_edge(self, res, edges):
         res = list(filter(lambda x: x['data']['id_to'] == res.identifier, edges))
         return res
+
+    def is_edge_exists(self, node1, node2, edges):
+        res = list(
+            filter(lambda e: e['data']['source'] == node1['data']['id'] and e['data']['target'] == node2['data']['id'],
+                   edges))
+        return len(res) > 0
 
     def result_to_node(self, res):
         return {
