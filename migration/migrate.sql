@@ -17,3 +17,4 @@ ALTER TABLE project_quota ADD COLUMN last_update_time DATETIME DEFAULT (TIMEZONE
 ALTER TABLE ui_result ADD COLUMN name VARCHAR(256);
 ALTER TABLE ui_result ADD COLUMN session_id VARCHAR(256);
 ALTER TABLE project_quota ADD COLUMN last_update_time TIMESTAMP DEFAULT (TIMEZONE('utc', CURRENT_TIMESTAMP));
+ALTER TABLE ui_performance_tests ADD COLUMN emails TEXT;

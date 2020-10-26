@@ -89,6 +89,14 @@
                           <p><small>Choose the browser for the test.</small></p>
                           <select id="browsers-list" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count > 5"></select>
                       </div>
+                      <div class="form-group" id="email_input" style="display: none;">
+                          <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
+                          <p><small>
+                              Please specify recipient emails.
+                          </small></p>
+                          <input type="text" id="emails" class="form-control form-control-alternative"
+                                           placeholder="Email recipients">
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -227,12 +235,18 @@
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
                     $('#loops').val(data.loops);
+                    $('#emails').val(data.emails);
 
                     data.reporting.forEach(item => {
                         if(item) {
                            $(`#${item}`).prop( "checked", true );
                         }
                     });
+
+                    if ($(`#email`).prop( "checked")) {
+                        $("#email_input").show();
+                    }
+
                     for (let [key, value] of Object.entries(data.params)) {
                         add('script_params');
                         $("#script_params").children().last().children()[0].value = key;
@@ -259,6 +273,14 @@
                     $('#browsers-list').selectpicker('val', data.browser.split(",").map(s => s.trim().toLowerCase()));
                     $("#browsers-list").selectpicker('refresh').trigger('change');
                 });
+        }
+    });
+
+    $("#email").change(function() {
+        if (this.checked) {
+          $("#email_input").show();
+        } else {
+          $("#email_input").hide();
         }
     });
 
@@ -319,7 +341,8 @@
             'loops': $('#loops').val(),
             'aggregation': $('#aggregation').children("option:selected").val(),
             'browser': $('#browsers .filter-option-inner-inner').text(),
-            'entrypoint': $('#entrypoint').val()
+            'entrypoint': $('#entrypoint').val(),
+            'emails': $('#emails').val()
         }
         $.ajax({
             url: `/api/v1/tests/${project_id}/frontend/${test_id}`,
@@ -356,6 +379,7 @@
           data.append('customization', JSON.stringify(params[2]));
           data.append('cc_env_vars', JSON.stringify(params[3]));
           data.append('aggregation', $('#aggregation').children("option:selected").val());
+          data.append('emails', $('#emails').val());
 
           $.ajax({
               url: `/api/v1/tests/${project_id}/frontend`,
