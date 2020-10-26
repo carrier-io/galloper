@@ -240,7 +240,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 reports.append(f"-r {report}")
 
         cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {browser} " \
-              f"-a {self.aggregation} {' '.join(reports)}"
+              f"-a {self.aggregation} {' '.join(reports)} -tid {self.test_uid}"
 
         execution_json = {
             "container": self.runner,
