@@ -75,6 +75,9 @@ def smtp_integration(args, project):
             env_vars["error_rate"] = 10
             env_vars["performance_degradation_rate"] = 20
             env_vars["missed_thresholds"] = 50
+            env_vars["galloper_url"] = "{{secret.galloper_url}}"
+            env_vars["token"] = "{{secret.auth_token}}"
+            env_vars["project_id"] = "{{secret.project_id}}"
             if "email_notification_id" in secrets:
                 update_task(secrets["email_notification_id"], dumps(env_vars))
             elif "email_notification_id" in hidden_secrets:

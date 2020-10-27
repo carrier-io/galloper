@@ -6,6 +6,7 @@ var statusType;
 var build_id;
 var test_name;
 var lg_type;
+var environment;
 var lineChartData;
 var analyticsData;
 var analyticsLine;
@@ -15,12 +16,14 @@ function setParams(){
     build_id = page_params.get("build_id");
     test_name = page_params.get("test_name");
     lg_type = page_params.get("lg_type");
+    environment = page_params.get("environment");
     samplerType = $("#sampler").val().toUpperCase();
     statusType = $("#status").val().toLowerCase();
     if (build_id == null) {
         build_id = document.querySelector("[property~=build_id][content]").content;
         lg_type = document.querySelector("[property~=lg_type][content]").content;
         test_name = document.querySelector("[property~=test_name][content]").content;
+        environment = document.querySelector("[property~=environment][content]").content;
     }
 }
 
@@ -313,6 +316,7 @@ function setBaseline() {
     let selectedProjectId = getSelectedProjectId();
     var data = {
         test_name: test_name,
+        env: environment,
         build_id: build_id
     };
 
@@ -331,9 +335,10 @@ function getBaseline() {
       `/api/v1/baseline/${selectedProjectId}`,
       {
         test_name: test_name,
+        env: environment
       }, function( data ) {
         if (data['baseline'].length != 0) {
-            var baseline_id = data['baseline'][0]['report_id']
+            var baseline_id = data['report_id']
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             var report_id = urlParams.get('report_id');

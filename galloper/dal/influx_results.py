@@ -95,10 +95,11 @@ def get_sampler_types(project_id, build_id, test_name, lg_type):
     return [each["value"] for each in list(client.query(q_samplers)[test_name])]
 
 
-def get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation):
+def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
     query = f"select sum(\"max\") from (select max(\"active\") from {lg_type}..\"users\" " \
             f"where build_id='{build_id}' group by lg_id) " \
             f"WHERE time>='{start_time}' and time<='{end_time}' GROUP BY time(1s)"
+    project_id = get_project_id(build_id)
     client = get_client(project_id)
     res = client.query(query)['users']
     timestamps = []
@@ -150,7 +151,7 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
         status_addon = f" and status='{status.upper()}'"
 
     if not (timestamps and users):
-        timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+        timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     query = f"select time, {group_by}{aggr_func} as rt from {lg_type}..{test_name} " \
             f"where time>='{start_time}' and time<='{end_time}' {status_addon} and sampler_type='{sampler}' and " \
             f"build_id='{build_id}' {scope_addon} group by {group_by}time({aggregation})"
@@ -230,7 +231,7 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
             timestamps=None, users=None, scope=None, status='all'):
     project_id = get_project_id(build_id)
     if not (timestamps and users):
-        timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+        timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = ""
     status_addon = ""
     if scope and scope != 'All':
@@ -253,7 +254,7 @@ def get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggre
                        timestamps=None, users=None, scope=None, aggr="2xx", status='all'):
     project_id = get_project_id(build_id)
     if not (timestamps and users):
-        timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+        timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = f"and status_code=~/^{aggr[0]}/ "
     status_addon = ""
     if scope and scope != 'All':
@@ -276,7 +277,7 @@ def get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, 
                timestamps=None, users=None, scope=None):
     project_id = get_project_id(build_id)
     if not (timestamps and users):
-        timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+        timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
@@ -302,7 +303,7 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
              timestamps=None, users=None, scope=None, status='all'):
     project_id = get_project_id(build_id)
     if not (timestamps and users):
-        timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+        timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     scope_addon = ""
     status_addon = ""
     if scope and scope != 'All':
@@ -338,8 +339,7 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
 
 
 def get_hits_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler, status='all'):
-    project_id = get_project_id(build_id)
-    timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+    timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     results = {"responses": {}, "hits": {}}
     _, responses, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
                               timestamps, users, status=status)
@@ -352,7 +352,7 @@ def get_hits_tps(build_id, test_name, lg_type, start_time, end_time, aggregation
 
 def average_responses(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler, status='all'):
     project_id = get_project_id(build_id)
-    timestamps, users = get_backend_users(project_id, build_id, lg_type, start_time, end_time, aggregation)
+    timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
     status_addon = ""
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
@@ -394,60 +394,11 @@ def delete_test_data(build_id, test_name, lg_type):
     project_id = get_project_id(build_id)
     query_one = f"DELETE from {test_name} where build_id='{build_id}'"
     query_two = f"DELETE from api_comparison where build_id='{build_id}'"
-    query_three = f"DELETE from api_comparison where build_id='audit_{test_name}_{build_id}'"
     client = get_client(project_id, lg_type)
     client.query(query_one)
     client.close()
     client = get_client(project_id, 'comparison')
     client.query(query_two)
-    client.query(query_three)
-    client.close()
-    return True
-
-
-def get_threholds(test_name, environment):
-    query = f'select time, scope, target, aggregation, comparison, yellow, red from thresholds..thresholds ' \
-            f'where "simulation"=\'{test_name}\' and "environment"=\'{environment}\' order by time'
-    return list(get_client().query(query)['thresholds'])
-
-
-def _create_threshold(test, environment, scope, target, aggregation, comparison, yellow, red, client):
-    json_body = [{
-        "measurement": "thresholds",
-        "tags": {
-            "simulation": test,
-            "environment": environment,
-            "scope": scope,
-            "target": target,
-            "aggregation": aggregation,
-            "comparison": comparison
-        },
-        "time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "fields": {
-            "yellow": yellow,
-            "red": red
-        }
-    }]
-    return client.write_points(json_body)
-
-
-def _delete_threshold(test, environment, target, scope, aggregation, comparison, client):
-    query = f"DELETE from thresholds where simulation='{test}' and environment='{environment}' " \
-            f"and target='{target}' and scope='{scope}' " \
-            f"and aggregation='{aggregation}' and comparison='{comparison}'"
-    return client.query(query)
-
-
-def create_thresholds(test, environment, scope, target, aggregation, comparison, yellow, red):
-    client = get_client('thresholds')
-    res = _create_threshold(test, environment, scope, target, aggregation, comparison, yellow, red, client)
-    client.close()
-    return res
-
-
-def delete_threshold(test, environment, target, scope, aggregation, comparison):
-    client = get_client('thresholds')
-    _delete_threshold(test, environment, target, scope, aggregation, comparison, client)
     client.close()
     return True
 
@@ -456,56 +407,6 @@ def get_aggregated_test_results(test, build_id):
     project_id = get_project_id(build_id)
     query = f"SELECT * from api_comparison where simulation='{test}' and build_id='{build_id}'"
     return list(get_client(project_id, 'comparison').query(query))
-
-
-def get_baseline(test):
-    query = f"SELECT * from api_comparison where build_id=~/audit_{test}_/"
-    return list(get_client('comparison').query(query))
-
-
-def delete_baseline(build_id):
-    query = f"DELETE from api_comparison where build_id='{build_id}'"
-    return get_client('comparison').query(query)
-
-
-def set_baseline(request):
-    json_body = [{
-        "measurement": "api_comparison",
-        "tags": {
-            "build_id": f"audit_{request['simulation']}_{request['build_id']}",
-            "duration": request['duration'],
-            "env": request['env'],
-            "method": request['method'],
-            "request_name": request['request_name'],
-            "simulation": request['simulation'],
-            "test_type": request['test_type'],
-            "users": request['users']
-        },
-        "time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "fields": {
-            "1xx": int(request['1xx']),
-            "2xx": int(request['2xx']),
-            "3xx": int(request['3xx']),
-            "4xx": int(request['4xx']),
-            "5xx": int(request['5xx']),
-            "NaN": int(request['NaN']),
-            "ko": int(request['ko']),
-            "ok": int(request['ok']),
-            "pct50": int(request['pct50']),
-            "pct75": int(request['pct75']),
-            "pct90": int(request['pct90']),
-            "pct95": int(request['pct95']),
-            "pct99": int(request['pct99']),
-            "total": int(request['total']),
-            "max": float(request['max']),
-            "mean": float(request['mean']),
-            "min": float(request['min']),
-            "throughput": float(request['throughput']),
-            "report_id": int(request['report_id'])
-        }
-    }]
-    project_id = get_project_id(request['build_id'])
-    return get_client(project_id, 'comparison').write_points(json_body)
 
 
 def get_project_id(build_id):
