@@ -226,6 +226,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     cc_env_vars = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
+    emails = Column(Text)
     loops = Column(Integer)
     aggregation = Column(String(20))
 
@@ -239,7 +240,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 reports.append(f"-r {report}")
 
         cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {browser} " \
-              f"-a {self.aggregation} {' '.join(reports)}"
+              f"-a {self.aggregation} {' '.join(reports)} -tid {self.test_uid}"
 
         execution_json = {
             "container": self.runner,
@@ -257,6 +258,9 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
 
         if "jira" in self.reporting:
             execution_json["execution_params"]["JIRA"] = unsecret("{{secret.jira}}", project_id=self.project_id)
+
+        if "ado" in self.reporting:
+            execution_json["execution_params"]["ADO"] = unsecret("{{secret.ado}}", project_id=self.project_id)
 
         if "quality" in self.reporting:
             execution_json["quality_gate"] = True
