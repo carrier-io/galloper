@@ -126,6 +126,7 @@ class TestApiFrontend(Resource):
         dict(name="aggregation", type=str, required=False, location='json'),
         dict(name="browser", type=str, required=False, location='json'),
         dict(name="entrypoint", type=str, required=False, location='json'),
+        dict(name="emails", type=str, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -184,6 +185,7 @@ class TestApiFrontend(Resource):
         task.aggregation = args['aggregation']
         task.browser = args['browser']
         task.entrypoint = args['entrypoint']
+        task.emails = args['emails']
         task.commit()
         return task.to_json()
 
