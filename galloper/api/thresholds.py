@@ -15,11 +15,11 @@
 from flask_restful import Resource
 from sqlalchemy import and_
 
-from galloper.dal.influx_results import get_threholds, create_thresholds, delete_threshold
 from galloper.database.models.api_reports import APIReport
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.database.models.ui_thresholds import UIThresholds
+from galloper.database.models.api_thresholds import APIThresholds
 from galloper.database.models.project import Project
 from galloper.database.models.security_thresholds import SecurityThresholds
 from galloper.database.models.security_tests import SecurityTestsSAST, SecurityTestsDAST
@@ -53,33 +53,40 @@ class BackendThresholdsAPI(Resource):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_delete = build_req_parser(rules=self.delete_rules)
 
-    def get(self):
+    def get(self, project_id: int):
+        project = Project.get_or_404(project_id)
         args = self._parser_get.parse_args(strict=False)
-        return get_threholds(test_name=args.get("name"), environment=args.get("environment"))
+        res = APIThresholds.query.filter().filter(
+            and_(APIThresholds.project_id == project.id,
+                 APIThresholds.test == args.get("name"),
+                 APIThresholds.environment == args.get("environment"))).all()
+        return [th.to_json() for th in res]
 
-    def post(self):
+    def post(self, project_id: int):
+        project = Project.get_or_404(project_id)
         args = self._parser_post.parse_args(strict=False)
-        return {"message": create_thresholds(
-            test=args["test"],
-            scope=args["scope"],
-            target=args["target"],
-            aggregation=args["aggregation"],
-            comparison=args["comparison"],
-            yellow=args["yellow"],
-            red=args["red"],
-            environment=args["env"]
-        )}
+        APIThresholds(project_id=project.id,
+                      test=args["test"],
+                      scope=args["scope"],
+                      environment=args["env"],
+                      target=args["target"],
+                      yellow=args["yellow"],
+                      red=args["red"],
+                      aggregation=args["aggregation"],
+                      comparison=args["comparison"]).insert()
+        return {"message": "OK"}
 
-    def delete(self):
+    def delete(self, project_id: int):
+        project = Project.get_or_404(project_id)
         args = self._parser_delete.parse_args(strict=False)
-        delete_threshold(
-            test=args["test"],
-            environment=args["env"],
-            target=args["target"],
-            scope=args["scope"],
-            aggregation=args["aggregation"],
-            comparison=args["comparison"]
-        )
+        APIThresholds.query.filter().filter(
+            and_(APIThresholds.project_id == project.id,
+                 APIThresholds.test == args.get("test"),
+                 APIThresholds.scope == args.get("scope"),
+                 APIThresholds.target == args.get("target"),
+                 APIThresholds.environment == args.get("env"),
+                 APIThresholds.aggregation == args.get("aggregation"),
+                 APIThresholds.comparison == args.get("comparison"))).first().delete()
         return {"message": "OK"}
 
 

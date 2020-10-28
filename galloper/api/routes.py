@@ -43,7 +43,7 @@ def initialize_api_routes(api: Api):
     add_resource_to_api(api, ApiReportsAPI, "/releases/<int:project_id>/reports")
     add_resource_to_api(api, ReleaseApiSaturation, "/release/<int:project_id>/saturation")
 
-    add_resource_to_api(api, BackendThresholdsAPI, "/thresholds/backend")
+    add_resource_to_api(api, BackendThresholdsAPI, "/thresholds/<int:project_id>/backend")
     add_resource_to_api(api, UIThresholdsAPI, "/thresholds/<int:project_id>/ui")
     add_resource_to_api(api, SecurityThresholdsAPI, "/thresholds/<int:project_id>/security")
     add_resource_to_api(api, RequestsAPI, "/requests/<int:project_id>")

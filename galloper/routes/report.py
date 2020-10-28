@@ -61,11 +61,12 @@ def view_report(project: Project):
     if request.args.get("report_id", None):
         test_data = APIReport.query.filter_by(id=request.args.get("report_id")).first().to_json()
     else:
-        test_data = get_test_details(build_id=request.args["build_id"],
+        test_data = get_test_details(project_id=project.id,
+                                     build_id=request.args["build_id"],
                                      test_name=request.args["test_name"],
                                      lg_type=request.args["lg_type"])
     analytics_control = render_analytics_control(test_data["requests"])
-    samplers = get_sampler_types(test_data["build_id"], test_data["name"], test_data["lg_type"])
+    samplers = get_sampler_types(project.id, test_data["build_id"], test_data["name"], test_data["lg_type"])
     return render_template("perftemplate/api_test_report.html", test_data=test_data,
                            analytics_control=analytics_control, samplers=samplers)
 
@@ -79,7 +80,7 @@ def compare_reports(project: Project):
     for each in APIReport.query.filter(
         and_(APIReport.id.in_(tests)), APIReport.project_id == project.id
     ).order_by(APIReport.id.asc()).all():
-        samplers.update(get_sampler_types(each.build_id, each.name, each.lg_type))
+        samplers.update(get_sampler_types(project.id, each.build_id, each.name, each.lg_type))
         requests_data.update(set(each.requests.split(";")))
     return render_template("perftemplate/comparison_report.html", samplers=samplers, requests=requests_data)
 

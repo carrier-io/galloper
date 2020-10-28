@@ -45,11 +45,11 @@
                   data-page-size=10
                   data-page-list=[10,20,50,100]
                   data-pagination="true"
-                  data-unique-id="time">
+                  data-unique-id="id">
                   <thead class="thead-light">
                     <tr>
                       <th scope="col" data-checkbox="true"></th>
-                      <th data-visible="false" data-field="time">time</th>
+                      <th data-visible="false" data-field="id">id</th>
                       <th scope="col" data-sortable="true" data-field="scope">Scope</th>
                       <th scope="col" data-sortable="true" data-field="target">Target</th>
                       <th scope="col" data-sortable="true" data-field="aggregation">Metric</th>
@@ -177,11 +177,12 @@
           });
     }
     function renderTable() {
-        $("#thresholds").bootstrapTable('refresh', {url: "/api/v1/thresholds/backend?name="+$("#testName").val()+"&environment="+$("#envName").val()});
+        let selectedProjectId = getSelectedProjectId();
+        $("#thresholds").bootstrapTable('refresh', {url: "/api/v1/thresholds/"+selectedProjectId+"/backend?name="+$("#testName").val()+"&environment="+$("#envName").val()});
     }
 
     function editAndDelete(value, row, index) {
-        var id = row['time'];
+        var id = row['id'];
         return `<a href="#" onclick="showEditThreshold('${id}')" class="mr-3"><i class="fa fa-edit"></i></a><a href="#" onclick="deleteThreshold('`+id+`')"><i class="fa fa-trash"></i></a>`
     }
 
@@ -237,8 +238,9 @@
 
 
     function insertThreshold(){
+        let selectedProjectId = getSelectedProjectId();
         $.ajax({
-            url: "/api/v1/thresholds/backend",
+            url: `/api/v1/thresholds/${selectedProjectId}/backend`,
             type: "POST",
             data: JSON.stringify({
                 test: $("#testName").val(),
@@ -260,6 +262,7 @@
     }
 
     function deleteThreshold(id, callback) {
+        let selectedProjectId = getSelectedProjectId();
         var data = $("#thresholds").bootstrapTable('getRowByUniqueId', id);
         var request_params = $.param({
             test: $("#testName").val(),
@@ -270,7 +273,7 @@
             comparison: data['comparison']
         });
         $.ajax({
-            url: "/api/v1/thresholds/backend?"+request_params,
+            url: `/api/v1/thresholds/${selectedProjectId}/backend?`+request_params,
             type: "DELETE",
             success: function(){
                 $("#thresholds").bootstrapTable('refresh');

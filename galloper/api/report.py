@@ -19,14 +19,14 @@ from flask_restful import Resource
 from sqlalchemy import and_
 from statistics import mean, harmonic_mean
 from uuid import uuid4
-from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results, set_baseline,\
-    get_baseline, delete_baseline, get_tps, get_errors, get_response_time_per_test, get_backend_users, \
-    get_backend_requests
+from galloper.dal.influx_results import get_test_details, delete_test_data, get_aggregated_test_results,\
+    get_tps, get_errors, get_response_time_per_test, get_backend_users, get_backend_requests
 from galloper.data_utils.charts_utils import (
     requests_summary, requests_hits, avg_responses, summary_table, get_issues, get_data_from_influx,
     prepare_comparison_responses, compare_tests, create_benchmark_dataset
 )
 from galloper.database.models.api_reports import APIReport
+from galloper.database.models.api_baseline import APIBaseline
 from galloper.database.models.performance_tests import PerformanceTests
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
@@ -134,7 +134,8 @@ class ReportAPI(Resource):
     def put(self, project_id: int):
         args = self._parser_put.parse_args(strict=False)
         project = Project.get_or_404(project_id)
-        test_data = get_test_details(build_id=args["build_id"], test_name=args["test_name"], lg_type=args["lg_type"])
+        test_data = get_test_details(project_id=project_id, build_id=args["build_id"], test_name=args["test_name"],
+                                     lg_type=args["lg_type"])
         report = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.build_id == args["build_id"])
         ).first()
@@ -165,6 +166,9 @@ class ReportAPI(Resource):
         ).all()
         for each in query_result:
             delete_test_data(each.build_id, each.name, each.lg_type)
+            baseline = APIBaseline.query.filter_by(project_id=project.id, report_id=each.id).first()
+            if baseline:
+                baseline.delete()
             each.delete()
         return {"message": "deleted"}
 
@@ -201,7 +205,7 @@ class ReportPostProcessingAPI(Resource):
             "token": "{{secret.auth_token}}",
             "report_id": args["report_id"],
             "influx_host": "{{secret.influx_ip}}",
-            "influx_user": "admin",
+            "influx_user": "{{secret.influx_user}}",
             "influx_password": "{{secret.influx_password}}",
             "config_file": "{}",
             "bucket": str(report["name"]).lower().replace(" ", "").replace("_", "").replace("-", ""),
@@ -330,10 +334,12 @@ class ReportsCompareAPI(Resource):
 class BaselineAPI(Resource):
     get_rules = (
         dict(name="test_name", type=str, location="args"),
+        dict(name="env", type=str, location="args")
     )
     post_rules = (
         dict(name="test_name", type=str, location="json"),
-        dict(name="build_id", type=str, location="json")
+        dict(name="build_id", type=str, location="json"),
+        dict(name="env", type=str, location="json")
     )
 
     def __init__(self):
@@ -345,21 +351,32 @@ class BaselineAPI(Resource):
 
     def get(self, project_id: int):
         args = self._parser_get.parse_args(strict=False)
-        test = get_baseline(args['test_name'])
-        test = test[0] if len(test) > 0 else []
-        return {"baseline": test}
+        project = Project.get_or_404(project_id)
+        baseline = APIBaseline.query.filter_by(project_id=project.id, test=args.get("test_name"),
+                                               environment=args.get("env")).first()
+        test = baseline.summary if baseline else []
+        report_id = baseline.report_id if baseline else 0
+        return {"baseline": test, "report_id": report_id}
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args(strict=False)
+        project = Project.get_or_404(project_id)
         report_id = APIReport.query.filter_by(project_id=project_id, name=args['test_name'],
                                               build_id=args['build_id']).first().to_json()['id']
-        baseline = get_baseline(args['test_name'])
+        baseline = APIBaseline.query.filter_by(project_id=project.id, test=args.get("test_name"),
+                                               environment=args.get("env")).first()
         if baseline:
-            delete_baseline(baseline[0][0]['build_id'])
+            baseline.delete()
         test = get_aggregated_test_results(args['test_name'], args['build_id'])
+        summary = []
         for req in test[0]:
-            req['report_id'] = report_id
-            set_baseline(req)
+            summary.append(req)
+        baseline = APIBaseline(test=args["test_name"],
+                               environment=args["env"],
+                               project_id=project.id,
+                               report_id=report_id,
+                               summary=summary)
+        baseline.insert()
         return {"message": "baseline is set"}
 
 

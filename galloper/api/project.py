@@ -28,7 +28,8 @@ from galloper.dal.vault import initialize_project_space, remove_project_space, s
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
-                                EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD, INFLUX_PASSWORD)
+                                EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD,
+                                INFLUX_PASSWORD, INFLUX_USER)
 
 from datetime import datetime
 from galloper.utils.auth import only_users_projects, superadmin_required
@@ -169,10 +170,12 @@ class ProjectAPI(Resource):
         project_hidden_secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
         project_hidden_secrets["influx_ip"] = APP_IP
         project_hidden_secrets["influx_port"] = INFLUX_PORT
-        project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
         project_hidden_secrets["loki_port"] = LOKI_PORT
         project_hidden_secrets["redis_password"] = REDIS_PASSWORD
         project_hidden_secrets["control_tower_id"] = cc.task_id
+        project_hidden_secrets["influx_user"] = INFLUX_USER
+        project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
+
         project_vault_data = {
             "auth_role_id": "",
             "auth_secret_id": ""

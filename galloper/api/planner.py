@@ -73,7 +73,7 @@ class TestsApiPerformance(Resource):
             bucket = "tests"
             upload_file(bucket, args["file"], project, create_if_not_exists=True)
 
-        if args["compile"] and "gatling" in args["runner"]:
+        if args["compile"] and args["runner"] in ["v3.1", "v2.3"]:
             compile_tests(project.id, file_name, args["runner"])
 
         reporting = args["reporter"].split(",") if args["reporter"] else []
