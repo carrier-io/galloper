@@ -16,7 +16,7 @@ from os import environ
 from datetime import datetime
 from urllib.parse import urlparse
 
-LOCAL_DEV = True
+LOCAL_DEV = False
 
 ALLOWED_EXTENSIONS = ['zip', 'py']
 CURRENT_RELEASE = '2.0'
