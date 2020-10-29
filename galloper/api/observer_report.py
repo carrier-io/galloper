@@ -8,6 +8,10 @@ from galloper.utils.api_utils import build_req_parser
 
 
 class UIReportsAPI(Resource):
+    get_rules = (
+        dict(name="report_id", type=str, location="args"),
+    )
+
     post_rules = (
         dict(name="test_name", type=str, location="json"),
         dict(name="time", type=str, location="json"),
@@ -34,6 +38,7 @@ class UIReportsAPI(Resource):
     def __init_req_parsers(self):
         self._parser_post = build_req_parser(rules=self.post_rules)
         self._parser_put = build_req_parser(rules=self.put_rules)
+        self._parser_get = build_req_parser(rules=self.get_rules)
 
     def post(self, project_id: int):
         args = self._parser_post.parse_args()
@@ -86,3 +91,9 @@ class UIReportsAPI(Resource):
         # Date format: %Y-%m-%d %H:%M:%S
         date_format = '%Y-%m-%d %H:%M:%S'
         return datetime.strptime(d2, date_format) - datetime.strptime(d1, date_format)
+
+    def get(self, project_id):
+        args = self._parser_get.parse_args()
+
+        report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+        return report.to_json()

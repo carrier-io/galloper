@@ -1,180 +1,243 @@
 {% include 'common/head.html' %}
 {% include 'common/nav.html' %}
 {% include 'common/page_nav.html' %}
-      <div class="row">
-        <div class="col">
-          <div class="card shadow">
+<div class="row">
+    <div class="col">
+        <div class="card shadow">
             <div class="card-header bg-white border-0">
-              <div class="row align-items-center">
-                <div class="col-8">
-                  <h3 class="mb-0">{{title}}</h3>
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h3 class="mb-0">{{title}}</h3>
+                    </div>
+                    <div class="col-4 text-right">
+                        <a href="/tests?type=frontend" class="btn btn-sm btn-primary">Cancel</a>
+                    </div>
                 </div>
-                <div class="col-4 text-right">
-                  <a href="/tests?type=frontend" class="btn btn-sm btn-primary">Cancel</a>
-                </div>
-              </div>
             </div>
             <div class="card-body">
-              <form id="crtask">
-                <h6 class="heading-small text-muted mb-4">Test Details</h6>
-                <div class="pl-lg-4">
-                  <div class="row">
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <label class="form-control-label" for="testname">Test Name</label>
-                        <p><small>Enter a name that describes the purpose of your test.</small></p>
-                        <input type="text" id="testname" class="form-control form-control-alternative" placeholder="Test Name">
-                      </div>
-                      <div class="form-group">
-                        <label class="form-control-label" for="loops">Number of loops</label>
-                        <p><small>How many times to repeat scenario execution.</small></p>
-                        <input type="text" id="loops" class="form-control form-control-alternative" placeholder="# of loops" value="1">
-                      </div>
-                      <div class="form-group">
-                            <label class="form-control-label" for="aggregation">Chart data aggregation</label>
-                            <p><small>Aggregation rule for chard data.</small></p>
-                            <select class="form-control selectpicker" id="aggregation">
-                              <option value="max">Max</option>
-                              <option value="min">Min</option>
-                              <option value="avg">Avg</option>
-                            </select>
-                      </div>
-                      <div class="form-group" id="reporters">
-                            <label class="form-control-label">Reporting</label>
-                            <p><small>Specify expected report types.</small></p>
-                            <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="junit">
-                              <label class="custom-control-label" for="junit">jUnit Report</label>
+                <form id="crtask">
+                    <h6 class="heading-small text-muted mb-4">Test Details</h6>
+                    <div class="pl-lg-4">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label class="form-control-label" for="testname">Test Name</label>
+                                    <p><small>Enter a name that describes the purpose of your test.</small></p>
+                                    <input type="text" id="testname" class="form-control form-control-alternative"
+                                           placeholder="Test Name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-control-label" for="loops">Number of loops</label>
+                                    <p><small>How many times to repeat scenario execution.</small></p>
+                                    <input type="text" id="loops" class="form-control form-control-alternative"
+                                           placeholder="# of loops" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-control-label" for="aggregation">Chart data aggregation</label>
+                                    <p><small>Aggregation rule for chard data.</small></p>
+                                    <select class="form-control selectpicker" id="aggregation">
+                                        <option value="max">Max</option>
+                                        <option value="min">Min</option>
+                                        <option value="avg">Avg</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="reporters">
+                                    <label class="form-control-label">Reporting</label>
+                                    <p><small>Specify expected report types.</small></p>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="junit">
+                                        <label class="custom-control-label" for="junit">jUnit Report</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="quality">
+                                        <label class="custom-control-label" for="quality">Quality Gate</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="perfreports">
+                                        <label class="custom-control-label" for="perfreports">Tool Reports</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="email">
+                                        <label class="custom-control-label" for="email">Email</label>
+                                    </div>
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="jira">
+                                        <label class="custom-control-label" for="jira">Jira</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="quality">
-                              <label class="custom-control-label" for="quality">Quality Gate</label>
-                            </div>
-                            <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="perfreports">
-                              <label class="custom-control-label" for="perfreports">Tool Reports</label>
-                            </div>
-                            <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="email">
-                              <label class="custom-control-label" for="email">Email</label>
-                            </div>
-                            <div class="custom-control custom-checkbox custom-control-inline">
-                              <input type="checkbox" class="custom-control-input" id="jira">
-                              <label class="custom-control-label" for="jira">Jira</label>
-                            </div>
-                      </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="form-group" id="fileUpload">
-                          <label class="form-control-label" for="file">Test package</label>
-                          <p><small>
-                              Please upload .zip file with your tests. Packaging guidelines.
-                          </small></p>
-                          <input type="file" class="form-control" id="file" multiple="">
-                        </div>
-                        <div class="form-group" id="testid" style="display:none">
-                            <label class="form-control-label" for="file">Test UUID</label>
-                          <p><small>
-                              UUID of the tests, may be used to refer it.
-                          </small></p>
-                          <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-control-label" for="entrypoint">Entry point</label>
-                            <p><small>Scenario file name.</small></p>
-                            <input type="text" id="entrypoint" class="form-control form-control-alternative" placeholder="Entrypoint (e.g. demo.side)">
-                      </div>
-                      <div id="browsers" class="form-group">
-                          <label class="form-control-label">Browser</label>
-                          <p><small>Choose the browser for the test.</small></p>
-                          <select id="browsers-list" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count > 5"></select>
-                      </div>
-                      <div class="form-group" id="email_input" style="display: none;">
-                          <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
-                          <p><small>
-                              Please specify recipient emails.
-                          </small></p>
-                          <input type="text" id="emails" class="form-control form-control-alternative"
+                            <div class="col-lg-6">
+                                <nav>
+                                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                        <a class="nav-item nav-link active" id="nav-file-tab" data-toggle="tab"
+                                           href="#nav-file" role="tab" aria-controls="nav-file" aria-selected="true">Artifact</a>
+                                        <a class="nav-item nav-link" id="nav-git-tab" data-toggle="tab" href="#nav-git-ui"
+                                           role="tab" aria-controls="nav-git" aria-selected="false">Git</a>
+                                    </div>
+                                </nav>
+                                <div class="tab-content" id="nav-tabContent-ui">
+                                    <div class="tab-pane fade show active" id="nav-file" role="tabpanel"
+                                         aria-labelledby="nav-file-tab">
+                                        <div class="form-group" id="fileUpload">
+                                            <p><small>
+                                                Please upload .zip file with your tests. Packaging guidelines.
+                                            </small></p>
+                                            <input type="file" class="form-control" id="file" multiple="">
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="nav-git-ui" role="tabpanel"
+                                         aria-labelledby="nav-git-tab">
+                                        <div id="target_git" class="carrier-sast-target">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo">Git Repo with
+                                                        Tests</label>
+                                                    <input type="text" id="repo"
+                                                           class="form-control form-control-alternative"
+                                                           placeholder="Repository URL (e.g. https://github.com/carrier-io/dusty.git)">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_user">Git
+                                                        Username</label>
+                                                    <input type="text" id="repo_user"
+                                                           class="form-control form-control-alternative"
+                                                           placeholder="(optional, for HTTPS URLs)">
+                                                </div>
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_pass">Git
+                                                        Password</label>
+                                                    <input type="text" id="repo_pass"
+                                                           class="form-control form-control-alternative"
+                                                           placeholder="(optional, for HTTPS URLs)">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_key">Git SSH private
+                                                        key</label>
+                                                    <input type="text" id="repo_key"
+                                                           class="form-control form-control-alternative"
+                                                           placeholder="(optional, for GIT+SSH URLs)">
+                                                </div>
+                                                <div class="col">
+                                                    <label class="form-control-label" for="repo_branch">Git
+                                                        Branch</label>
+                                                    <input type="text" id="repo_branch"
+                                                           class="form-control form-control-alternative"
+                                                           placeholder="(optional, default - master)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="testid" style="display:none">
+                                    <label class="form-control-label" for="file">Test UUID</label>
+                                    <p><small>
+                                        UUID of the tests, may be used to refer it.
+                                    </small></p>
+                                    <input type="text" id="testuuid" class="form-control form-control-alternative"
+                                           disabled placeholder="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-control-label" for="entrypoint">Entry point</label>
+                                    <p><small>Scenario file name.</small></p>
+                                    <input type="text" id="entrypoint" class="form-control form-control-alternative"
+                                           placeholder="Entrypoint (e.g. demo.side)">
+                                </div>
+                                <div id="browsers" class="form-group">
+                                    <label class="form-control-label">Browser</label>
+                                    <p><small>Choose the browser for the test.</small></p>
+                                    <select id="browsers-list" class="selectpicker" multiple data-live-search="true"
+                                            data-selected-text-format="count > 5"></select>
+                                </div>
+                                <div class="form-group" id="email_input" style="display: none;">
+                                    <label class="form-control-label" for="emails">Comaseparated list of emails.</label>
+                                    <p><small>
+                                        Please specify recipient emails.
+                                    </small></p>
+                                    <input type="text" id="emails" class="form-control form-control-alternative"
                                            placeholder="Email recipients">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <hr class="my-4" />
-                <!-- Address -->
-                <h6 class="heading-small text-muted mb-4">Test Parameters</h6>
-                <div class="pl-lg-4">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <label class="form-control-label">Script Params</label>
-                            <p>
-                                <small>Parameters required for the script to run</small>
-                                <a class="ml-3" href="javascript:void(0)" onclick="add('script_params')">
-                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
-                                </a>
-                                <a class="ml-3" href="javascript:void(0)" onclick="remove('script_params')">
-                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
-                                </a>
-                            </p>
-                            <div class="col-lg-10" id="script_params"></div>
-                        </div>
-                        <div class="col-lg-6">
-                            <label class="form-control-label">Test Runner Environment</label>
-                            <p>
-                                <small>Environment variables required for your test</small>
-                                <a class="ml-3" href="javascript:void(0)" onclick="add('env_vars')">
-                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
-                                </a>
-                                <a class="ml-3" href="javascript:void(0)" onclick="remove('env_vars')">
-                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
-                                </a>
-                            </p>
-                            <div class="col-lg-10" id="env_vars"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <label class="form-control-label">Runner customizations</label>
-                            <p>
-                                <small>Bucket and file for your customizations</small>
-                                <a class="ml-3" href="javascript:void(0)" onclick="addB('customs')">
-                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
-                                </a>
-                                <a class="ml-3" href="javascript:void(0)" onclick="remove('customs')">
-                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
-                                </a>
-                            </p>
-                            <div class="col-lg-10" id="customs"></div>
+                    <hr class="my-4"/>
+                    <!-- Address -->
+                    <h6 class="heading-small text-muted mb-4">Test Parameters</h6>
+                    <div class="pl-lg-4">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="form-control-label">Script Params</label>
+                                <p>
+                                    <small>Parameters required for the script to run</small>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="add('script_params')">
+                                        <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                    </a>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="remove('script_params')">
+                                        <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                    </a>
+                                </p>
+                                <div class="col-lg-10" id="script_params"></div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="form-control-label">Test Runner Environment</label>
+                                <p>
+                                    <small>Environment variables required for your test</small>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="add('env_vars')">
+                                        <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                    </a>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="remove('env_vars')">
+                                        <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                    </a>
+                                </p>
+                                <div class="col-lg-10" id="env_vars"></div>
+                            </div>
                         </div>
-                        <div class="col-lg-6">
-                            <label class="form-control-label">Distribution Environment</label>
-                            <p>
-                                <small>Environment variables required for control tower</small>
-                                <a class="ml-3" href="javascript:void(0)" onclick="add('cc_env_vars')">
-                                    <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
-                                </a>
-                                <a class="ml-3" href="javascript:void(0)" onclick="remove('cc_env_vars')">
-                                    <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
-                                </a>
-                            </p>
-                            <div class="col-lg-10" id="cc_env_vars"></div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <label class="form-control-label">Runner customizations</label>
+                                <p>
+                                    <small>Bucket and file for your customizations</small>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="addB('customs')">
+                                        <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                    </a>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="remove('customs')">
+                                        <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                    </a>
+                                </p>
+                                <div class="col-lg-10" id="customs"></div>
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="form-control-label">Distribution Environment</label>
+                                <p>
+                                    <small>Environment variables required for control tower</small>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="add('cc_env_vars')">
+                                        <span class="btn-inner--icon"><i class="fas fa-plus"></i></span>
+                                    </a>
+                                    <a class="ml-3" href="javascript:void(0)" onclick="remove('cc_env_vars')">
+                                        <span class="btn-inner--icon"><i class="fas fa-minus"></i></span>
+                                    </a>
+                                </p>
+                                <div class="col-lg-10" id="cc_env_vars"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="pl-lg-4 mt-4">
-                  <div class="row">
-                    <div class="col-lg-12">
-                        <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
-                        <a href="javascript:void(0)" class="btn btn-warning">Test</a>
-                        <a href="/tests?type=frontend" class="btn btn-danger">Cancel</a>
+                    <div class="pl-lg-4 mt-4">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <button onclick="submitForm()" id="submit" class="btn btn-success">Create</button>
+                                <a href="javascript:void(0)" class="btn btn-warning">Test</a>
+                                <a href="/tests?type=frontend" class="btn btn-danger">Cancel</a>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              </form>
+                </form>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
 {% include 'common/foot.html' %}
 <script>
     var test_id = {{test_id}};
@@ -394,6 +457,7 @@
             }
           );
         }
+
 </script>
 </body>
 </html>
