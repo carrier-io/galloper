@@ -300,6 +300,22 @@
                     $('#loops').val(data.loops);
                     $('#emails').val(data.emails);
 
+                    if (data.git != null && data.git.hasOwnProperty("repo")) {
+                        $('#repo').val(data.git.repo);
+                        $('#repo').prop("disabled", true);
+                        $('#repo_user').val(data.git.repo_user);
+                        $('#repo_user').prop("disabled", true);
+                        $('#repo_pass').val(data.git.repo_pass);
+                        $('#repo_pass').prop("disabled", true);
+                        $('#repo_key').val(data.git.repo_key);
+                        $('#repo_key').prop("disabled", true);
+                        $('#repo_branch').val(data.git.repo_branch);
+                        $("#nav-file-tab").prop("disabled", true)
+                        $('a[href="#nav-git"]').click();
+                    } else {
+                        $("#nav-git-tab").prop("disabled", true)
+                    }
+
                     data.reporting.forEach(item => {
                         if(item) {
                            $(`#${item}`).prop( "checked", true );
@@ -395,6 +411,16 @@
         $("input:checkbox:checked").each(function() {
             checked.push($(this).attr("id"));
         });
+
+        git_settings = {}
+        if ($('#repo').val() != '') {
+          git_settings["repo"] = $('#repo').val()
+          git_settings["repo_user"] = $('#repo_user').val()
+          git_settings["repo_pass"] = $('#repo_pass').val()
+          git_settings["repo_key"] = $('#repo_key').val()
+          git_settings["repo_branch"] = $('#repo_branch').val()
+        }
+
         var data = {
             'params': JSON.stringify(params[0]),
             'env_vars': JSON.stringify(params[1]),
@@ -405,7 +431,8 @@
             'aggregation': $('#aggregation').children("option:selected").val(),
             'browser': $('#browsers .filter-option-inner-inner').text(),
             'entrypoint': $('#entrypoint').val(),
-            'emails': $('#emails').val()
+            'emails': $('#emails').val(),
+            'git': JSON.stringify(git_settings)
         }
         $.ajax({
             url: `/api/v1/tests/${project_id}/frontend/${test_id}`,
@@ -431,7 +458,19 @@
           $('#loops').val('1')
 
           var data = new FormData();
-          data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
+
+          git_settings = {}
+          if ($('#repo').val() != '') {
+            git_settings["repo"] = $('#repo').val()
+            git_settings["repo_user"] = $('#repo_user').val()
+            git_settings["repo_pass"] = $('#repo_pass').val()
+            git_settings["repo_key"] = $('#repo_key').val()
+            git_settings["repo_branch"] = $('#repo_branch').val()
+            data.append('git', JSON.stringify(git_settings));
+          } else if ($('#file')[0].files[0] != undefined) {
+            data.append('file', $('#file')[0].files[0], $('#file')[0].files[0].name);
+          }
+
           data.append('name', $('#testname').val());
           data.append('loops', $('#loops').val());
           data.append('entrypoint', $('#entrypoint').val());

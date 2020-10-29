@@ -223,6 +223,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     params = Column(JSON)
     env_vars = Column(JSON)
     customization = Column(JSON)
+    git = Column(JSON)
     cc_env_vars = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
