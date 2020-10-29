@@ -143,7 +143,17 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                 project_secrets = get_project_hidden_secrets(self.project_id)
                 if "ado" in project_secrets:
                     reporters_config["azure_devops"] = loads(project_secrets["ado"])
-
+            #
+            if "rp" in self.dast_settings.get("reporters_checked", list()):
+                project_secrets = get_project_hidden_secrets(self.project_id)
+                if "rp" in project_secrets:
+                    rp = loads(project_secrets.get("rp"))
+                    reporters_config["reportportal"] = {
+                        "rp_host": rp["rp_host"],
+                        "rp_token": rp["rp_token"],
+                        "rp_project_name": rp["rp_project"],
+                        "rp_launch_name": "dast"
+                    }
             # Thresholds
             tholds = {}
             if thresholds and any(int(thresholds[key]) > -1 for key in thresholds.keys()):
@@ -365,6 +375,17 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                 project_secrets = get_project_hidden_secrets(self.project_id)
                 if "ado" in project_secrets:
                     reporters_config["azure_devops"] = loads(project_secrets["ado"])
+            #
+            if "rp" in self.sast_settings.get("reporters_checked", list()):
+                project_secrets = get_project_hidden_secrets(self.project_id)
+                if "rp" in project_secrets:
+                    rp = loads(project_secrets.get("rp"))
+                    reporters_config["reportportal"] = {
+                        "rp_host": rp["rp_host"],
+                        "rp_token": rp["rp_token"],
+                        "rp_project_name": rp["rp_project"],
+                        "rp_launch_name": "sast"
+                    }
 
             # Thresholds
             tholds = {}
