@@ -268,6 +268,9 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         if "junit" in self.reporting:
             execution_json["junit"] = True
 
+        if self.git:
+            execution_json["git"] = self.git
+
         if self.env_vars:
             for key, value in self.env_vars.items():
                 execution_json["execution_params"][key] = value
