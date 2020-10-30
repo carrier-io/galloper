@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from json import loads
 from uuid import uuid4
@@ -136,6 +137,7 @@ class TestApiFrontend(Resource):
         dict(name="browser", type=str, required=False, location='json'),
         dict(name="entrypoint", type=str, required=False, location='json'),
         dict(name="emails", type=str, required=False, location='json'),
+        dict(name="git", type=str, required=False, location='json'),
     )
 
     _post_rules = _put_rules + (
@@ -195,6 +197,7 @@ class TestApiFrontend(Resource):
         task.browser = args['browser']
         task.entrypoint = args['entrypoint']
         task.emails = args['emails']
+        task.git = json.loads(args['git'])
         task.commit()
         return task.to_json()
 
