@@ -138,3 +138,7 @@ button.dropdown-toggle {
     position: relative;
     left: -100%;
 }
+
+#nav-git-ui {
+    padding-bottom: 20px;
+}

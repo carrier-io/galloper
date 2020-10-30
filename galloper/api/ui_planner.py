@@ -28,6 +28,7 @@ class UITestsApiPerformance(Resource):
 
     _post_rules = (
         dict(name="file", type=FileStorage, location='files'),
+        dict(name="git", type=str, location='form'),
         dict(name="name", type=str, location='form'),
         dict(name="entrypoint", type=str, location='form'),
         dict(name="reporter", type=str, location='form'),
@@ -64,12 +65,20 @@ class UITestsApiPerformance(Resource):
     def post(self, project_id: int):
         args = self.post_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
-        file_name = args["file"].filename
-        bucket = "tests"
-        upload_file(bucket, args["file"], project, create_if_not_exists=True)
+
         browser = args["browser"]
         runner = "getcarrier/observer:latest"
         job_type = "observer"
+
+        if args.get("git"):
+            file_name = ""
+            bucket = ""
+            git_settings = loads(args["git"])
+        else:
+            git_settings = {}
+            file_name = args["file"].filename
+            bucket = "tests"
+            upload_file(bucket, args["file"], project, create_if_not_exists=True)
 
         env_vars = loads(args["env_vars"])
         if "ENV" not in env_vars.keys():
@@ -84,6 +93,7 @@ class UITestsApiPerformance(Resource):
                                   runner=runner,
                                   emails=args['emails'],
                                   browser=browser,
+                                  git=git_settings,
                                   parallel=1,
                                   reporting=args["reporter"].split(","),
                                   params=loads(args["params"]),
@@ -92,8 +102,7 @@ class UITestsApiPerformance(Resource):
                                   cc_env_vars=loads(args["cc_env_vars"]),
                                   job_type=job_type,
                                   loops=args['loops'],
-                                  aggregation=args['aggregation']
-                                  )
+                                  aggregation=args['aggregation'])
         test.insert()
         current_app.logger.info(test.to_json())
         return test.to_json(exclude_fields=("id",))

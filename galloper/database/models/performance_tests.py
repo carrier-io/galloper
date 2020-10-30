@@ -223,6 +223,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     params = Column(JSON)
     env_vars = Column(JSON)
     customization = Column(JSON)
+    git = Column(JSON)
     cc_env_vars = Column(JSON)
     last_run = Column(Integer)
     job_type = Column(String(20))
@@ -239,7 +240,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             if report:
                 reports.append(f"-r {report}")
 
-        cmd = f"-f {self.file} -sc /tmp/data/{self.entrypoint} -l {self.loops} -b {browser} " \
+        cmd = f"-sc {self.entrypoint} -l {self.loops} -b {browser} " \
               f"-a {self.aggregation} {' '.join(reports)} -tid {self.test_uid}"
 
         execution_json = {
@@ -266,6 +267,9 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             execution_json["quality_gate"] = True
         if "junit" in self.reporting:
             execution_json["junit"] = True
+
+        if self.git:
+            execution_json["git"] = self.git
 
         if self.env_vars:
             for key, value in self.env_vars.items():
