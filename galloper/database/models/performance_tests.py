@@ -254,6 +254,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             "job_name": self.name,
             "artifact": self.file,
             "job_type": self.job_type,
+            "test_id": self.test_uid,
             "concurrency": 1
         }
 
