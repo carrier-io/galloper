@@ -13,6 +13,7 @@ from galloper.database.models.performance_tests import UIPerformanceTests
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
 from galloper.utils.api_utils import build_req_parser, str2bool
+from galloper.constants import CURRENT_RELEASE
 
 
 class UITestsApiPerformance(Resource):
@@ -68,7 +69,7 @@ class UITestsApiPerformance(Resource):
         project = Project.get_or_404(project_id)
 
         browser = args["browser"]
-        runner = "getcarrier/observer:latest"
+        runner = f"getcarrier/observer:{CURRENT_RELEASE}"
         job_type = "observer"
 
         if args.get("git"):

@@ -222,7 +222,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                    f"-e project_id={self.project_id} " \
                    f"-e galloper_url={unsecret('{{secret.galloper_url}}', project_id=self.project_id)} " \
                    f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
-                   f"getcarrier/control_tower:latest " \
+                   f"getcarrier/control_tower:{CURRENT_RELEASE} " \
                    f"-tid {self.test_uid}"
         if output == "cc":
             execution_json = {
@@ -460,7 +460,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                    f"-e project_id={self.project_id} " \
                    f"-e galloper_url={unsecret('{{secret.galloper_url}}', project_id=self.project_id)} " \
                    f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
-                   f"getcarrier/control_tower:latest " \
+                   f"getcarrier/control_tower:{CURRENT_RELEASE} " \
                    f"-tid {self.test_uid}"
         if output == "cc":
             execution_json = {

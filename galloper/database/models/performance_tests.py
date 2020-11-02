@@ -21,7 +21,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret
-from galloper.constants import JOB_CONTAINER_MAPPING
+from galloper.constants import JOB_CONTAINER_MAPPING, CURRENT_RELEASE
 
 
 class PerformanceTests(AbstractBaseMixin, Base):
@@ -193,9 +193,9 @@ class PerformanceTests(AbstractBaseMixin, Base):
             return execution_json
         else:
             return "docker run -e project_id=%s -e galloper_url=%s -e token=%s" \
-                   " getcarrier/control_tower:latest --test_id=%s" \
+                   " getcarrier/control_tower:%s --test_id=%s" \
                    "" % (self.project_id, unsecret("{{secret.galloper_url}}", project_id=self.project_id),
-                         unsecret("{{secret.auth_token}}", project_id=self.project_id), self.test_uid)
+                         unsecret("{{secret.auth_token}}", project_id=self.project_id), CURRENT_RELEASE, self.test_uid)
 
     def to_json(self, exclude_fields: tuple = ()) -> dict:
         test_param = super().to_json()
@@ -299,5 +299,5 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         return f'docker run -t --rm -e project_id={self.project_id} ' \
                f'-e galloper_url={unsecret("{{secret.galloper_url}}", project_id=self.project_id)} ' \
                f"-e token=\"{unsecret('{{secret.auth_token}}', project_id=self.project_id)}\" " \
-               f'getcarrier/control_tower:latest ' \
+               f'getcarrier/control_tower:{CURRENT_RELEASE} ' \
                f'--test_id {self.test_uid}'
