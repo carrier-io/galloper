@@ -8,13 +8,12 @@ ALTER TABLE ui_result ADD COLUMN report_uid VARCHAR(128);
 ALTER TABLE api_report ADD COLUMN status VARCHAR(128);
 ALTER TABLE performance_tests ADD COLUMN git JSON;
 ALTER TABLE ui_report ADD COLUMN browser_version VARCHAR(128);
-
-#
-
 ALTER TABLE api_report ADD COLUMN test_uid VARCHAR(128);
 ALTER TABLE ui_thresholds ADD COLUMN name VARCHAR(256);
 ALTER TABLE project_quota ADD COLUMN last_update_time DATETIME DEFAULT (TIMEZONE('utc', CURRENT_TIMESTAMP))
 ALTER TABLE ui_result ADD COLUMN name VARCHAR(256);
 ALTER TABLE ui_result ADD COLUMN session_id VARCHAR(256);
 ALTER TABLE project_quota ADD COLUMN last_update_time TIMESTAMP DEFAULT (TIMEZONE('utc', CURRENT_TIMESTAMP));
+ALTER TABLE ui_performance_tests ADD COLUMN git JSON;
 ALTER TABLE ui_performance_tests ADD COLUMN emails TEXT;
+# Done 2.0
