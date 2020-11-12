@@ -23,8 +23,10 @@ from galloper.database.models.statistic import Statistic
 from galloper.database.models import project_quota
 from galloper.utils.api_utils import build_req_parser
 from galloper.utils.auth import SessionProject, SessionUser
+from galloper.utils.grafana import set_grafana_datasources
 from galloper.dal.vault import initialize_project_space, remove_project_space, set_project_secrets,\
     set_project_hidden_secrets
+from galloper.dal.influx_results import create_project_databases, drop_project_databases
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
@@ -175,6 +177,10 @@ class ProjectAPI(Resource):
         project_hidden_secrets["control_tower_id"] = cc.task_id
         project_hidden_secrets["influx_user"] = INFLUX_USER
         project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
+        project_hidden_secrets["jmeter_db"] = f'jmeter_{project.id}'
+        project_hidden_secrets["gatling_db"] = f'gatling_{project.id}'
+        project_hidden_secrets["comparison_db"] = f'comparison_{project.id}'
+        project_hidden_secrets["telegraf_db"] = f'telegraf_{project.id}'
 
         project_vault_data = {
             "auth_role_id": "",
@@ -191,6 +197,8 @@ class ProjectAPI(Resource):
         project.commit()
         set_project_secrets(project.id, project_secrets)
         set_project_hidden_secrets(project.id, project_hidden_secrets)
+        create_project_databases(project.id)
+        set_grafana_datasources(project.id)
         return {"message": f"Project was successfully created"}, 200
 
     def put(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
@@ -217,6 +225,7 @@ class ProjectAPI(Resource):
         return project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS)
 
     def delete(self, project_id: int) -> Tuple[dict, int]:
+        drop_project_databases(project_id)
         Project.apply_full_delete_by_pk(pk=project_id)
         remove_project_space(project_id)
         return {"message": f"Project with id {project_id} was successfully deleted"}, 200
