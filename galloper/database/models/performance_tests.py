@@ -76,7 +76,9 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if "test_name" not in self.params.keys():
             self.params["test_name"] = self.name  # TODO: add sanitization
         if "comparison_db" not in self.params.keys():
-            self.params["comparison_db"] = 'comparison'
+            self.params["comparison_db"] = "{{secret.comparison_db}}"
+        if "telegraf_db" not in self.params.keys():
+            self.params["telegraf_db"] = "{{secret.telegraf_db}}"
         if "loki_host" not in self.env_vars.keys():
             self.params["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in self.env_vars.keys():
@@ -161,6 +163,12 @@ class PerformanceTests(AbstractBaseMixin, Base):
             execution_json["execution_params"]["influxdb_user"] = "{{secret.influx_user}}"
         if "influxdb_password" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["influxdb_password"] = "{{secret.influx_password}}"
+        if "influxdb_database" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_database"] = "{{secret.gatling_db}}"
+        if "influxdb_comparison" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_comparison"] = "{{secret.comparison_db}}"
+        if "influxdb_telegraf" not in execution_json["execution_params"].keys():
+            execution_json["execution_params"]["influxdb_telegraf"] = "{{secret.telegraf_db}}"
         if "loki_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in execution_json["execution_params"].keys():

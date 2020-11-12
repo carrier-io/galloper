@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 LOCAL_DEV = False
 
 ALLOWED_EXTENSIONS = ['zip', 'py']
-CURRENT_RELEASE = '2.0'
+CURRENT_RELEASE = 'latest'
 REDIS_USER = environ.get('REDIS_USER', '')
 REDIS_PASSWORD = environ.get('REDIS_PASSWORD', 'password')
 REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
@@ -34,9 +34,9 @@ _url = urlparse(APP_HOST)
 EXTERNAL_LOKI_HOST = f"http://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST.replace("https://", "http://")
 INTERNAL_LOKI_HOST = "http://carrier-loki"
 APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
-POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/releases/download/v.2.0/post_processing_v_2_0.zip"
-CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/releases/download/v.2.0/control-tower_v_2_0.zip"
-EMAIL_NOTIFICATION_PATH = "https://github.com/carrier-io/performance_email_notification/releases/download/v.2.0/email_notifications_v_2_0.zip"
+POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/raw/master/package/post_processing.zip"
+CONTROL_TOWER_PATH = "https://github.com/carrier-io/control_tower/raw/master/package/control-tower.zip"
+EMAIL_NOTIFICATION_PATH = "https://github.com/carrier-io/performance_email_notification/raw/master/package/email_notifications.zip"
 MINIO_ENDPOINT = environ.get('MINIO_HOST', 'http://127.0.0.1:9000' if LOCAL_DEV else 'http://carrier-minio:9000')
 MINIO_ACCESS = environ.get('MINIO_ACCESS_KEY', 'admin')
 MINIO_SECRET = environ.get('MINIO_SECRET_KEY', 'password')
@@ -66,49 +66,49 @@ NAME_CONTAINER_MAPPING = {
 
 JOB_CONTAINER_MAPPING = {
     "v5.3": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.3",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.3",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v5.2.1": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.2.1",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.2.1",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v5.2": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.2",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.2",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v5.1.1": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.1.1",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.1.1",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v5.1": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.1",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.1",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v5.0": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.0",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-5.0",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v4.0": {
-        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.4.0",
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}-4.0",
         "job_type": "perfmeter",
-        "influx_db": "jmeter"
+        "influx_db": "{{secret.jmeter_db}}"
     },
     "v3.1": {
-        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.3.1",
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}-3.1",
         "job_type": "perfgun",
-        "influx_db": "gatling"
+        "influx_db": "{{secret.gatling_db}}"
     },
     "v2.3": {
-        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}.2.3",
+        "container": f"getcarrier/perfgun:{CURRENT_RELEASE}-2.3",
         "job_type": "perfgun",
-        "influx_db": "gatling"
+        "influx_db": "{{secret.gatling_db}}"
     }
 }
 

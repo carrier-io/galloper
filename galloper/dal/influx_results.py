@@ -29,6 +29,24 @@ def get_client(project_id, db_name=None):
     return InfluxDBClient("carrier-influx", 8086, influx_user, influx_password, db_name)
 
 
+def create_project_databases(project_id):
+    hidden_secrets = get_project_hidden_secrets(project_id)
+    db_list = [hidden_secrets.get("jmeter_db"), hidden_secrets.get("gatling_db"), hidden_secrets.get("comparison_db"),
+               hidden_secrets.get("telegraf_db")]
+    client = get_client(project_id)
+    for each in db_list:
+        client.query(f"create database {each} with duration 180d replication 1 shard duration 7d name autogen")
+
+
+def drop_project_databases(project_id):
+    hidden_secrets = get_project_hidden_secrets(project_id)
+    db_list = [hidden_secrets.get("jmeter_db"), hidden_secrets.get("gatling_db"), hidden_secrets.get("comparison_db"),
+               hidden_secrets.get("telegraf_db")]
+    client = get_client(project_id)
+    for each in db_list:
+        client.query(f"drop database {each}")
+
+
 def get_test_details(project_id, build_id, test_name, lg_type):
     test = {
         "start_time": 0,
@@ -52,20 +70,20 @@ def get_test_details(project_id, build_id, test_name, lg_type):
         "lg_type": lg_type,
         "requests": []
     }
-    q_start_time = f"select time, active from {lg_type}..\"users\" " \
+    q_start_time = f"select time, active from {lg_type}_{project_id}..\"users\" " \
                    f"where build_id='{build_id}' order by time asc limit 1"
-    q_end_time = f"select time, active from {lg_type}..\"users\" " \
+    q_end_time = f"select time, active from {lg_type}_{project_id}..\"users\" " \
                  f"where build_id='{build_id}' order by time desc limit 1"
     q_response_codes = f"select sum(\"1xx\") as \"1xx\", sum(\"2xx\") as \"2xx\", sum(\"3xx\") as \"3xx\", " \
                        f"sum(\"4xx\") as \"4xx\", sum(\"5xx\") as \"5xx\", sum(\"ko\") as KO, " \
                        f"sum(\"total\") as Total, sum(throughput) as \"throughput\" " \
-                       f"from comparison..api_comparison where build_id='{build_id}'"
-    q_total_users = f"show tag values on comparison with key=\"users\" where build_id='{build_id}'"
-    q_env = f"show tag values on comparison with key=\"env\" where build_id='{build_id}'"
-    q_type = f"show tag values on comparison with key=\"test_type\" where build_id='{build_id}'"
-    q_pct95 = f"select percentile(response_time, 95) from {lg_type}..{test_name} " \
+                       f"from comparison_{project_id}..api_comparison where build_id='{build_id}'"
+    q_total_users = f"show tag values on comparison_{project_id} with key=\"users\" where build_id='{build_id}'"
+    q_env = f"show tag values on comparison_{project_id} with key=\"env\" where build_id='{build_id}'"
+    q_type = f"show tag values on comparison_{project_id} with key=\"test_type\" where build_id='{build_id}'"
+    q_pct95 = f"select percentile(response_time, 95) from {lg_type}_{project_id}..{test_name} " \
               f"where build_id='{build_id}' and status='OK'"
-    q_requests_name = f"show tag values on comparison with key=\"request_name\" " \
+    q_requests_name = f"show tag values on comparison_{project_id} with key=\"request_name\" " \
                       f"where build_id='{build_id}'"
     client = get_client(project_id)
     test["start_time"] = list(client.query(q_start_time)["users"])[0]["time"]
@@ -90,16 +108,16 @@ def get_test_details(project_id, build_id, test_name, lg_type):
 
 
 def get_sampler_types(project_id, build_id, test_name, lg_type):
-    q_samplers = f"show tag values on {lg_type} with key=sampler_type where build_id='{build_id}'"
+    q_samplers = f"show tag values on {lg_type}_{project_id} with key=sampler_type where build_id='{build_id}'"
     client = get_client(project_id)
     return [each["value"] for each in list(client.query(q_samplers)[test_name])]
 
 
 def get_backend_users(build_id, lg_type, start_time, end_time, aggregation):
-    query = f"select sum(\"max\") from (select max(\"active\") from {lg_type}..\"users\" " \
+    project_id = get_project_id(build_id)
+    query = f"select sum(\"max\") from (select max(\"active\") from {lg_type}_{project_id}..\"users\" " \
             f"where build_id='{build_id}' group by lg_id) " \
             f"WHERE time>='{start_time}' and time<='{end_time}' GROUP BY time(1s)"
-    project_id = get_project_id(build_id)
     client = get_client(project_id)
     res = client.query(query)['users']
     timestamps = []
@@ -152,7 +170,7 @@ def get_backend_requests(build_id, test_name, lg_type, start_time, end_time, agg
 
     if not (timestamps and users):
         timestamps, users = get_backend_users(build_id, lg_type, start_time, end_time, aggregation)
-    query = f"select time, {group_by}{aggr_func} as rt from {lg_type}..{test_name} " \
+    query = f"select time, {group_by}{aggr_func} as rt from {lg_type}_{project_id}..{test_name} " \
             f"where time>='{start_time}' and time<='{end_time}' {status_addon} and sampler_type='{sampler}' and " \
             f"build_id='{build_id}' {scope_addon} group by {group_by}time({aggregation})"
     res = get_client(project_id).query(query)[test_name]
@@ -200,7 +218,7 @@ def get_response_time_per_test(build_id, test_name, lg_type, sampler, scope, agg
         status_addon = f" and status='{status.upper()}'"
     if sampler:
         sampler_piece = f"sampler_type='{sampler}' and "
-    query = f"select {aggr_func} as rt from {lg_type}..{test_name} where {sampler_piece}" \
+    query = f"select {aggr_func} as rt from {lg_type}_{project_id}..{test_name} where {sampler_piece}" \
             f"build_id='{build_id}'{status_addon} {scope_addon} {group_by}"
     return round(list(get_client(project_id).query(query)[test_name])[0]["rt"], 2)
 
@@ -221,7 +239,7 @@ def get_throughput_per_test(build_id, test_name, lg_type, sampler, scope, aggreg
         status_addon = f" and status='{status.upper()}'"
     group_by = f"group by {group_by_addon} time({aggregator})"
     query = f"select mean(rt) as throughput from (" \
-            f"select count(response_time) as rt from {lg_type}..{test_name} " \
+            f"select count(response_time) as rt from {lg_type}_{project_id}..{test_name} " \
             f"where {sampler_piece} build_id='{build_id}'{status_addon} {scope_addon} {group_by} " \
             f")"
     return round(list(get_client(project_id).query(query)[test_name])[0]["throughput"], 2)
@@ -238,7 +256,7 @@ def get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sam
         scope_addon = f"and request_name='{scope}'"
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    responses_query = f"select time, count(response_time) from {lg_type}..{test_name} where time>='{start_time}' " \
+    responses_query = f"select time, count(response_time) from {lg_type}_{project_id}..{test_name} where time>='{start_time}' " \
                       f"and time<='{end_time}' and sampler_type='{sampler}' {status_addon} and build_id='{build_id}' " \
                       f"{scope_addon} group by time({aggregation}) fill(0)"
     res = get_client(project_id).query(responses_query)[test_name]
@@ -261,7 +279,7 @@ def get_response_codes(build_id, test_name, lg_type, start_time, end_time, aggre
         scope_addon = f"and request_name='{scope}'"
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    rcode_query = f"select time, count(status_code) from {lg_type}..{test_name} where build_id='{build_id}' " \
+    rcode_query = f"select time, count(status_code) from {lg_type}_{project_id}..{test_name} where build_id='{build_id}' " \
                   f"and sampler_type='{sampler}' and time>='{start_time}' and time<='{end_time}'{status_addon} " \
                   f"{scope_addon} group by time({aggregation})"
     res = get_client(project_id).query(rcode_query)[test_name]
@@ -281,7 +299,7 @@ def get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, 
     scope_addon = ""
     if scope and scope != 'All':
         scope_addon = f"and request_name='{scope}'"
-    error_query = f"select time, count(status) from {lg_type}..{test_name} " \
+    error_query = f"select time, count(status) from {lg_type}_{project_id}..{test_name} " \
                   f"where time>='{start_time}' and time<='{end_time}' and sampler_type='{sampler}' and" \
                   f" build_id='{build_id}' and status='KO' {scope_addon} group by time(1s)"
     results = {"errors": {}}
@@ -310,7 +328,7 @@ def get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sa
         scope_addon = f"and request_name='{scope}'"
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    hits_query = f"select hit from {lg_type}..{test_name} where " \
+    hits_query = f"select hit from {lg_type}_{project_id}..{test_name} where " \
                  f"time>='{start_time}' and time<='{end_time}'{status_addon} and sampler_type='{sampler}' and" \
                  f" build_id='{build_id}' {scope_addon}"
     results = {"hits": {}}
@@ -356,7 +374,7 @@ def average_responses(build_id, test_name, lg_type, start_time, end_time, aggreg
     status_addon = ""
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    responses_query = f"select time, percentile(response_time, 95) from {lg_type}..{test_name} " \
+    responses_query = f"select time, percentile(response_time, 95) from {lg_type}_{project_id}..{test_name} " \
                       f"where time>='{start_time}' " \
                       f"and time<='{end_time}' and sampler_type='{sampler}'{status_addon} and " \
                       f"build_id='{build_id}' group by time({aggregation})"
@@ -374,7 +392,7 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, 
     project_id = get_project_id(build_id)
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    requests_in_range = f"select time, request_name, max(response_time) from {lg_type}..{test_name} " \
+    requests_in_range = f"select time, request_name, max(response_time) from {lg_type}_{project_id}..{test_name} " \
                         f"where time>='{start_time}' " \
                         f"and time<='{end_time}' and sampler_type='{sampler}'{status_addon} and " \
                         f"build_id='{build_id}' group by request_name"
@@ -386,7 +404,7 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, 
         requests = requests_names[0].replace("'", "")
     else:
         return []
-    query = f"select * from comparison..api_comparison where build_id='{build_id}' and request_name=~/^{requests}/"
+    query = f"select * from comparison_{project_id}..api_comparison where build_id='{build_id}' and request_name=~/^{requests}/"
     return list(get_client(project_id).query(query)['api_comparison'])
 
 
@@ -397,7 +415,7 @@ def delete_test_data(build_id, test_name, lg_type):
     client = get_client(project_id, lg_type)
     client.query(query_one)
     client.close()
-    client = get_client(project_id, 'comparison')
+    client = get_client(project_id, f'comparison_{project_id}')
     client.query(query_two)
     client.close()
     return True
@@ -406,7 +424,7 @@ def delete_test_data(build_id, test_name, lg_type):
 def get_aggregated_test_results(test, build_id):
     project_id = get_project_id(build_id)
     query = f"SELECT * from api_comparison where simulation='{test}' and build_id='{build_id}'"
-    return list(get_client(project_id, 'comparison').query(query))
+    return list(get_client(project_id, f'comparison_{project_id}').query(query))
 
 
 def get_project_id(build_id):

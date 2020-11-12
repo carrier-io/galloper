@@ -182,7 +182,7 @@ class TestApiBackend(Resource):
         test = PerformanceTests.query.filter(_filter).first()
         if args.raw:
             return test.to_json(["influx.port", "influx.host", "galloper_url",
-                                 "influx.db", "comparison_db",
+                                 "influx.db", "comparison_db", "telegraf_db",
                                  "loki_host", "loki_port", "influx.username", "influx.password"])
         if args["type"] == "docker":
             message = test.configure_execution_json(args.get("type"), execution=args.get("exec"))
@@ -191,7 +191,7 @@ class TestApiBackend(Resource):
         return {"config": message}  # this is cc format
 
     def put(self, project_id, test_id):
-        default_params = ["influx.port", "influx.host", "galloper_url", "influx.db", "comparison_db",
+        default_params = ["influx.port", "influx.host", "galloper_url", "influx.db", "comparison_db", "telegraf_db",
                           "loki_host", "loki_port", "test.type", "test_type", "influx.username", "influx.password"]
         project = Project.get_or_404(project_id)
         args = self.put_parser.parse_args(strict=False)
@@ -227,7 +227,7 @@ class TestApiBackend(Resource):
             task.git = loads(args.get("git"))
         task.commit()
         return task.to_json(["influx.port", "influx.host", "galloper_url",
-                             "influx.db", "comparison_db",
+                             "influx.db", "comparison_db", "telegraf_db",
                              "loki_host", "loki_port", "influx.username", "influx.password"])
 
     def post(self, project_id, test_id):
