@@ -234,31 +234,6 @@ class ReportPostProcessingAPI(Resource):
         return run_task(project.id, event, secrets["post_processor_id"])
 
 
-class ReportStatusAPI(Resource):
-    put_rules = (
-        dict(name="status", type=str, location="json"),
-    )
-
-    def __init__(self):
-        self.__init_req_parsers()
-
-    def __init_req_parsers(self):
-        self._parser_put = build_req_parser(rules=self.put_rules)
-
-    def get(self, project_id: int, report_id: int):
-        project = Project.get_or_404(project_id)
-        report = APIReport.query.filter_by(project_id=project.id, id=report_id).first().to_json()
-        return {"message": report["status"]}
-
-    def put(self, project_id: int, report_id: int):
-        args = self._parser_put.parse_args(strict=False)
-        project = Project.get_or_404(project_id)
-        report = APIReport.query.filter_by(project_id=project.id, id=report_id).first()
-        report.status = args["status"]
-        report.commit()
-        return {"message": f"status changed to {args['status']}"}
-
-
 class ReportChartsAPI(Resource):
     get_rules = (
         dict(name="low_value", type=float, default=0, location="args"),

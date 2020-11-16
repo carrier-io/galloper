@@ -10,6 +10,7 @@ class UIReport(AbstractBaseMixin, Base):
     uid = Column(String(128), unique=True, nullable=False)
     name = Column(String(128), unique=False)
     project_id = Column(Integer, unique=False, nullable=False)
+    status = Column(String(128), unique=False)
     start_time = Column(String(128), unique=False)
     stop_time = Column(String(128), unique=False)
     duration = Column(Integer, unique=False, nullable=True)

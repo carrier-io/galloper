@@ -15,6 +15,7 @@ class UIReportsAPI(Resource):
     post_rules = (
         dict(name="test_name", type=str, location="json"),
         dict(name="time", type=str, location="json"),
+        dict(name="status", type=str, location="json"),
         dict(name="browser_name", type=str, location="json"),
         dict(name="browser_version", type=str, location="json"),
         dict(name="env", type=str, location="json"),
@@ -27,6 +28,7 @@ class UIReportsAPI(Resource):
     put_rules = (
         dict(name="report_id", type=str, location="json"),
         dict(name="time", type=str, location="json"),
+        dict(name="status", type=str, location="json"),
         dict(name="thresholds_total", type=int, location="json"),
         dict(name="thresholds_failed", type=int, location="json"),
         dict(name="exception", type=str, location="json")
@@ -53,6 +55,7 @@ class UIReportsAPI(Resource):
         report = UIReport(
             uid=args['report_id'],
             name=args["test_name"],
+            status=args["status"],
             project_id=project.id,
             start_time=args["time"],
             is_active=True,
@@ -74,6 +77,7 @@ class UIReportsAPI(Resource):
         report = UIReport.query.filter_by(project_id=project_id, uid=args['report_id']).first_or_404()
         report.is_active = False
         report.stop_time = args["time"]
+        report.status = args["status"]
         report.thresholds_total = args["thresholds_total"],
         report.thresholds_failed = args["thresholds_failed"]
         report.duration = self.__diffdates(report.start_time, args["time"]).seconds
