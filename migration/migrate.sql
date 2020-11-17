@@ -21,5 +21,4 @@ ALTER TABLE ui_performance_tests ADD COLUMN emails TEXT;
 
 # from 2.0 to 2.5
 
-ALTER TABLE security_report ADD COLUMN status VARCHAR(128);
 ALTER TABLE ui_report ADD COLUMN status VARCHAR(128);
