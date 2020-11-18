@@ -66,7 +66,7 @@ class VisualReportAPI(Resource):
                         failures=thresholds_missed, total=10,
                         thresholds_missed=thresholds_missed,
                         avg_page_load=round(avg_page_load / 1000, 2),
-                        avg_step_duration=0.5, build_id=str(uuid4()), release_id=1)
+                        avg_step_duration=0.5, build_id=str(uuid4()), release_id=1, status=report.status)
 
             res.append(data)
 

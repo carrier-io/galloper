@@ -246,7 +246,7 @@
             'status': 'Canceled'
         }
         $.ajax({
-            url: `/api/v1/reports/${project_id}/${report_id}/status`,
+            url: `/api/v1/reports/${project_id}/backend/${report_id}/status`,
             data: JSON.stringify(data),
             contentType: 'application/json',
             type: 'PUT',

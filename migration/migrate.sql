@@ -17,3 +17,8 @@ ALTER TABLE project_quota ADD COLUMN last_update_time TIMESTAMP DEFAULT (TIMEZON
 ALTER TABLE ui_performance_tests ADD COLUMN git JSON;
 ALTER TABLE ui_performance_tests ADD COLUMN emails TEXT;
 # Done 2.0
+
+
+# from 2.0 to 2.5
+
+ALTER TABLE ui_report ADD COLUMN status VARCHAR(128);
