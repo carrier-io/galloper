@@ -26,7 +26,7 @@ stages:
         targetType: 'inline'
         script: |
           # Write your commands here
-          docker run --rm -e project_id=4 -e galloper_url=https://public.getcarrier.io -e token="$(auth_token)" getcarrier/control_tower:latest -tid 03cace51-b366-4c36-89f7-0395c5e02263
+          docker run --rm -e project_id=4 -e galloper_url=https://public.getcarrier.io -e token="$(auth_token)" getcarrier/control_tower:latest -tid fb8dac16-f8f4-4e02-ad6c-1510c168e434
     - task: Docker@2
       displayName: Build an image
       inputs:
