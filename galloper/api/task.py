@@ -196,7 +196,11 @@ class TaskUpgradeApi(Resource):
             "funcname": "post_processor",
             "invoke_func": "lambda_function.lambda_handler",
             "runtime": "Python 3.7",
-            "env_vars": dumps({})
+            "env_vars": dumps({
+                "jmeter_db": "{{secret.jmeter_db}}",
+                "gatling_db": "{{secret.gatling_db}}",
+                "comparison_db": "{{secret.comparison_db}}"
+            })
         }
         pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
         secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
