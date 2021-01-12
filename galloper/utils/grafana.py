@@ -14,7 +14,6 @@
 
 from requests import post, get
 from galloper.dal.vault import get_project_secrets, get_project_hidden_secrets
-from galloper.constants import APP_HOST
 from copy import deepcopy
 
 DATASOURCE = {
@@ -36,8 +35,10 @@ def set_grafana_datasources(project_id):
     influx_user = secrets.get("influx_user") if "influx_user" in secrets else hidden_secrets.get("influx_user", "")
     influx_password = secrets.get("influx_password") if "influx_password" in secrets else \
         hidden_secrets.get("influx_password", "")
-    url = f"{APP_HOST}/grafana/api/datasources".replace("://", "://user:user@")
+    grafana_api_key = secrets.get("gf_api_key") if "gf_api_key" in secrets else hidden_secrets.get("gf_api_key", "")
+    url = f"http://carrier-grafana:3000/grafana/api/datasources"
     headers = {
+        "Authorization": f"Bearer {grafana_api_key}",
         "Content-Type": "application/json"
     }
     for each in ["jmeter", "gatling", "telegraf"]:
@@ -47,4 +48,4 @@ def set_grafana_datasources(project_id):
         data["user"] = influx_user
         data["password"] = influx_password
 
-        post(url, json=data, headers=headers).json()
+        post(url, json=data, headers=headers)

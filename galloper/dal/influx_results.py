@@ -412,7 +412,7 @@ def delete_test_data(build_id, test_name, lg_type):
     project_id = get_project_id(build_id)
     query_one = f"DELETE from {test_name} where build_id='{build_id}'"
     query_two = f"DELETE from api_comparison where build_id='{build_id}'"
-    client = get_client(project_id, lg_type)
+    client = get_client(project_id, f"{lg_type}_{project_id}")
     client.query(query_one)
     client.close()
     client = get_client(project_id, f'comparison_{project_id}')
