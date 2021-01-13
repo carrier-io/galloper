@@ -31,7 +31,7 @@ from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
                                 EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD,
-                                INFLUX_PASSWORD, INFLUX_USER)
+                                INFLUX_PASSWORD, INFLUX_USER, GF_API_KEY)
 
 from datetime import datetime
 from galloper.utils.auth import only_users_projects, superadmin_required
@@ -185,6 +185,7 @@ class ProjectAPI(Resource):
         project_hidden_secrets["gatling_db"] = f'gatling_{project.id}'
         project_hidden_secrets["comparison_db"] = f'comparison_{project.id}'
         project_hidden_secrets["telegraf_db"] = f'telegraf_{project.id}'
+        project_hidden_secrets["gf_api_key"] = GF_API_KEY
 
         project_vault_data = {
             "auth_role_id": "",

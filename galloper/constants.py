@@ -26,6 +26,7 @@ REDIS_HOST = environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = environ.get('REDIS_PORT', '6379')
 REDIS_DB = environ.get('REDIS_DB', 2)
 APP_HOST = environ.get('APP_HOST', 'localhost')
+GF_API_KEY = environ.get('GF_API_KEY', '')
 INFLUX_PASSWORD = environ.get('INFLUX_PASSWORD', '')
 INFLUX_USER = environ.get('INFLUX_USER', '')
 INFLUX_PORT = 8086
