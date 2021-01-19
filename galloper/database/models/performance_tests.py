@@ -176,10 +176,12 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if self.cc_env_vars:
             for key, value in self.cc_env_vars.items():
                 execution_json["cc_env_vars"][key] = value
-        if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
-        if "REDIS_PASSWORD" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["REDIS_PASSWORD"] = "{{secret.redis_password}}"
+        if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
+        if "RABBIT_USER" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
+        if "RABBIT_PASSWORD" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
         if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
         if self.customization:
@@ -287,10 +289,12 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
         if self.cc_env_vars:
             for key, value in self.cc_env_vars.items():
                 execution_json["cc_env_vars"][key] = value
-        if "REDIS_HOST" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["REDIS_HOST"] = "{{secret.redis_host}}"
-        if "REDIS_PASSWORD" not in execution_json["cc_env_vars"].keys():
-            execution_json["cc_env_vars"]["REDIS_PASSWORD"] = "{{secret.redis_password}}"
+        if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
+        if "RABBIT_USER" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
+        if "RABBIT_PASSWORD" not in execution_json["cc_env_vars"].keys():
+            execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
 
         if self.customization:
             for key, value in self.customization.items():

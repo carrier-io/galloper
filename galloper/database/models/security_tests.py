@@ -212,8 +212,9 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
             "GALLOPER_AUTH_TOKEN": unsecret("{{secret.auth_token}}", project_id=self.project_id),
         }
         cc_env_vars = {
-            "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id),
-            "REDIS_PASSWORD": unsecret("{{secret.redis_password}}", project_id=self.project_id),
+            "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+            "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
+            "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id)
         }
         concurrency = 1
         #
@@ -447,8 +448,9 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
         if self.sast_settings.get("sast_target_type") == "target_code_path":
             parameters["code_path"] = self.sast_settings.get("sast_target_code")
         cc_env_vars = {
-            "REDIS_HOST": unsecret("{{secret.redis_host}}", project_id=self.project_id),
-            "REDIS_PASSWORD": unsecret("{{secret.redis_password}}", project_id=self.project_id),
+            "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+            "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
+            "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id)
         }
         concurrency = 1
         #

@@ -176,8 +176,6 @@ class TaskUpgradeApi(Resource):
             "invoke_func": "lambda.handler",
             "runtime": "Python 3.7",
             "env_vars": dumps({
-                "REDIS_HOST": "{{secret.redis_host}}",
-                "REDIS_DB": 1,
                 "token": "{{secret.auth_token}}",
                 "galloper_url": "{{secret.galloper_url}}",
                 "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',

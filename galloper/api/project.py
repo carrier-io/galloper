@@ -31,7 +31,7 @@ from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
                                 EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD,
-                                INFLUX_PASSWORD, INFLUX_USER, GF_API_KEY)
+                                INFLUX_PASSWORD, INFLUX_USER, GF_API_KEY, RABBIT_USER, RABBIT_PASSWORD)
 
 from datetime import datetime
 from galloper.utils.auth import only_users_projects, superadmin_required
@@ -157,8 +157,6 @@ class ProjectAPI(Resource):
             "invoke_func": "lambda.handler",
             "runtime": "Python 3.7",
             "env_vars": dumps({
-                "REDIS_HOST": "{{secret.redis_host}}",
-                "REDIS_DB": 1,
                 "token": "{{secret.auth_token}}",
                 "galloper_url": "{{secret.galloper_url}}",
                 "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
@@ -178,6 +176,9 @@ class ProjectAPI(Resource):
         project_hidden_secrets["influx_port"] = INFLUX_PORT
         project_hidden_secrets["loki_port"] = LOKI_PORT
         project_hidden_secrets["redis_password"] = REDIS_PASSWORD
+        project_hidden_secrets["rabbit_host"] = APP_IP
+        project_hidden_secrets["rabbit_user"] = RABBIT_USER
+        project_hidden_secrets["rabbit_password"] = RABBIT_PASSWORD
         project_hidden_secrets["control_tower_id"] = cc.task_id
         project_hidden_secrets["influx_user"] = INFLUX_USER
         project_hidden_secrets["influx_password"] = INFLUX_PASSWORD
