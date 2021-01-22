@@ -7,14 +7,15 @@ from werkzeug.exceptions import Forbidden
 from werkzeug.datastructures import FileStorage
 
 from galloper.api.base import get, create_task, run_task
-from galloper.constants import allowed_file, POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_HOST, \
-    APP_IP, EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD, INFLUX_PASSWORD, INFLUX_USER
+from galloper.constants import allowed_file, POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_HOST, REDIS_PASSWORD, \
+    APP_IP, EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, RABBIT_USER, RABBIT_PASSWORD, INFLUX_PASSWORD, INFLUX_USER
 from galloper.data_utils.file_utils import File
 from galloper.database.models.task import Task
 from galloper.database.models.task_results import Results
 from galloper.database.models.project import Project
 from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser, str2bool
+from galloper.api.base import upload_file
 from galloper.dal.vault import unsecret
 from galloper.dal.vault import get_project_hidden_secrets, set_project_hidden_secrets, set_project_secrets
 
@@ -168,43 +169,6 @@ class TaskUpgradeApi(Resource):
     def __init_req_parsers(self):
         self.get_parser = build_req_parser(rules=self._get_rules)
 
-    def _create_cc(self, project, secrets):
-        task = Task.query.filter(and_(Task.project_id == project.id, Task.task_name == 'control_tower')).first()
-        task.delete()
-        cc_args = {
-            "funcname": "control_tower",
-            "invoke_func": "lambda.handler",
-            "runtime": "Python 3.7",
-            "env_vars": dumps({
-                "token": "{{secret.auth_token}}",
-                "galloper_url": "{{secret.galloper_url}}",
-                "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
-                "project_id": '{{secret.project_id}}',
-                "loki_host": '{{secret.loki_host}}'
-            })
-        }
-        cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
-        secrets["control_tower_id"] = cc.task_id
-        return secrets
-
-    def _create_pp(self, project, secrets):
-        task = Task.query.filter(and_(Task.project_id == project.id, Task.task_name == 'post_processor')).first()
-        task.delete()
-        pp_args = {
-            "funcname": "post_processor",
-            "invoke_func": "lambda_function.lambda_handler",
-            "runtime": "Python 3.7",
-            "env_vars": dumps({
-                "jmeter_db": "{{secret.jmeter_db}}",
-                "gatling_db": "{{secret.gatling_db}}",
-                "comparison_db": "{{secret.comparison_db}}"
-            })
-        }
-        pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
-        secrets["post_processor"] = f'{APP_HOST}{pp.webhook}'
-        secrets["post_processor_id"] = pp.task_id
-        return secrets
-
     def get(self, project_id):
         project = Project.get_or_404(project_id)
         args = self.get_parser.parse_args(strict=False)
@@ -213,12 +177,12 @@ class TaskUpgradeApi(Resource):
         secrets = get_project_hidden_secrets(project.id)
         project_secrets = {}
         if args['name'] == 'post_processor':
-            secrets = self._create_pp(project, secrets)
+            upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
         elif args['name'] == 'control_tower':
-            secrets = self._create_cc(project, secrets)
+            upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
         elif args['name'] == 'all':
-            secrets = self._create_pp(project, secrets)
-            secrets = self._create_cc(project, secrets)
+            upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
+            upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
             project_secrets["galloper_url"] = APP_HOST
             project_secrets["project_id"] = project.id
             secrets["redis_host"] = APP_IP
@@ -229,6 +193,9 @@ class TaskUpgradeApi(Resource):
             secrets["influx_password"] = INFLUX_PASSWORD
             secrets["loki_port"] = LOKI_PORT
             secrets["redis_password"] = REDIS_PASSWORD
+            secrets["rabbit_host"] = APP_IP
+            secrets["rabbit_user"] = RABBIT_USER
+            secrets["rabbit_password"] = RABBIT_PASSWORD
             set_project_secrets(project.id, project_secrets)
         else:
             return {"message": "go away", "code": 400}, 400

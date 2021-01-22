@@ -30,8 +30,8 @@ from galloper.dal.influx_results import create_project_databases, drop_project_d
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
-                                EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT, REDIS_PASSWORD,
-                                INFLUX_PASSWORD, INFLUX_USER, GF_API_KEY, RABBIT_USER, RABBIT_PASSWORD)
+                                EXTERNAL_LOKI_HOST, INFLUX_PORT, LOKI_PORT,
+                                INFLUX_PASSWORD, INFLUX_USER, GF_API_KEY, RABBIT_USER, RABBIT_PASSWORD, REDIS_PASSWORD)
 
 from datetime import datetime
 from galloper.utils.auth import only_users_projects, superadmin_required

@@ -12,10 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import argparse
 from os import environ
 
 interceptor_conf = """[supervisord]
+logfile=/tmp/supervisord.log
 
 [unix_http_server]
 file=/run/supervisord.sock
@@ -25,23 +25,6 @@ serverurl=unix:///run/supervisord.sock
 
 [rpcinterface:supervisor]
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[program:worker]
-command=celery -A galloper.celeryapp worker -l info -c%s --max-tasks-per-child 1 -f /var/log/worker.log
-autostart=true
-autorestart=true
-stopsignal=QUIT
-stopwaitsecs=20
-stopasgroup=true
-
-[program:beat]
-command=celery -A galloper.celeryapp beat -f /var/log/beat.log
-autostart=true
-autorestart=true
-stopsignal=QUIT
-stopwaitsecs=20
-stopasgroup=true
-
 
 """
 
@@ -63,14 +46,7 @@ stopwaitsecs=20
 stopasgroup=true"""
 
 
-def arg_parse():
-    parser = argparse.ArgumentParser(description='Supervisord Config Creator')
-    parser.add_argument('-p', '--procs', type=int, default=4, help="specify amount of cores on server")
-    return parser.parse_args()
-
-
 def main():
-    args = arg_parse()
     ini_file = interceptor_conf + (prod if environ.get("env", "prod") == "prod" else dev)
     with open('/etc/galloper.conf', 'w') as f:
-        f.write(ini_file % args.procs)
+        f.write(ini_file)

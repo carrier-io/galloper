@@ -26,7 +26,7 @@ class Task(AbstractBaseMixin, Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, unique=False, nullable=False)
     task_id = Column(String(128), unique=True, nullable=False)
-    zippath = Column(String(128), unique=True, nullable=False)
+    zippath = Column(String(128), unique=False, nullable=False)
     task_name = Column(String(128), unique=False, nullable=False)
     task_handler = Column(String(128), unique=False, nullable=False)
     runtime = Column(String(128), unique=False, nullable=False)

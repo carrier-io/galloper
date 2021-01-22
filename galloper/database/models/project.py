@@ -42,6 +42,7 @@ class Project(AbstractBaseMixin, Base):
         super().insert()
 
         MinioClient(project=self).create_bucket(bucket="reports")
+        MinioClient(project=self).create_bucket(bucket="tasks")
 
     def used_in_session(self):
         selected_id = SessionProject.get()
