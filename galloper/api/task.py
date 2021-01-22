@@ -169,6 +169,18 @@ class TaskUpgradeApi(Resource):
     def __init_req_parsers(self):
         self.get_parser = build_req_parser(rules=self._get_rules)
 
+    def create_cc_task(self, project):
+        upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
+        task = Task.query.filter(and_(Task.task_name == "control_tower", Task.project_id == project.id)).first()
+        setattr(task, "zippath", "tasks/control-tower.zip")
+        task.commit()
+
+    def create_pp_task(self, project):
+        upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
+        task = Task.query.filter(and_(Task.task_name == "post_processor", Task.project_id == project.id)).first()
+        setattr(task, "zippath", "tasks/post_processor.zip")
+        task.commit()
+
     def get(self, project_id):
         project = Project.get_or_404(project_id)
         args = self.get_parser.parse_args(strict=False)
@@ -177,12 +189,12 @@ class TaskUpgradeApi(Resource):
         secrets = get_project_hidden_secrets(project.id)
         project_secrets = {}
         if args['name'] == 'post_processor':
-            upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
+            self.create_pp_task(project)
         elif args['name'] == 'control_tower':
-            upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
+            self.create_cc_task(project)
         elif args['name'] == 'all':
-            upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
-            upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
+            self.create_pp_task(project)
+            self.create_cc_task(project)
             project_secrets["galloper_url"] = APP_HOST
             project_secrets["project_id"] = project.id
             secrets["redis_host"] = APP_IP
