@@ -16,12 +16,15 @@ from flask import Blueprint, request, render_template, redirect, url_for
 from sqlalchemy import and_
 
 
-from galloper.constants import NAME_CONTAINER_MAPPING
-from control_tower import run
+from galloper.constants import NAME_CONTAINER_MAPPING, RABBIT_QUEUE_NAME
 
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
+from galloper.database.models.statistic import Statistic
+from galloper.api.base import check_tasks_quota
 from galloper.utils.auth import project_required
+from galloper.api.base import get_arbiter
+from galloper.dal.vault import unsecret
 
 bp = Blueprint("tasks", __name__)
 
@@ -40,11 +43,17 @@ def call_lambda(task_id: str):
             task = Task.query.filter(
                 and_(Task.task_id == task_id)
             ).first().to_json()
+            check_tasks_quota(task)
+            statistic = Statistic.query.filter(Statistic.project_id == task['project_id']).first()
+            setattr(statistic, 'tasks_executions', Statistic.tasks_executions + 1)
+            statistic.commit()
             event = request.get_json()
-            app = run.connect_to_celery(1)
-            celery_task = app.signature("tasks.execute",
-                                        kwargs={"task": task, "event": event})
-            celery_task.apply_async()
+            arbiter = get_arbiter()
+            task_kwargs = {"task": task, "event": event,
+                           "galloper_url": unsecret("{{secret.galloper_url}}", project_id=task['project_id']),
+                           "token": unsecret("{{secret.auth_token}}", project_id=task['project_id'])}
+            arbiter.apply("execute_lambda", queue=RABBIT_QUEUE_NAME, task_kwargs=task_kwargs)
+            arbiter.close()
             return "Accepted", 201
         elif request.content_type == "application/x-www-form-urlencoded":
             return f"Calling {task_id} with {request.form}"

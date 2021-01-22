@@ -1,25 +1,26 @@
-import os
 import operator
 
-from flask import current_app
 from json import loads
 from uuid import uuid4
+from datetime import datetime
+from time import mktime
+from json import dumps
+from requests import post
 from sqlalchemy import and_
 from galloper.database.models.task import Task
 from galloper.database.models.project import Project
 from galloper.database.models.statistic import Statistic
+from galloper.database.models.project_quota import ProjectQuota
 from galloper.processors.minio import MinioClient
-from galloper.constants import CURRENT_RELEASE, REDIS_DB, JOB_CONTAINER_MAPPING
+from galloper.constants import JOB_CONTAINER_MAPPING, APP_HOST, RABBIT_USER, RABBIT_PASSWORD, RABBIT_PORT,\
+    RABBIT_QUEUE_NAME, RABBIT_HOST
 from galloper.dal.vault import get_project_secrets, unsecret, get_project_hidden_secrets
 
 from werkzeug.exceptions import Forbidden
 from werkzeug.utils import secure_filename
 
-from botocore.exceptions import ClientError
-
-from control_tower import run
+from arbiter import Arbiter
 import docker
-
 
 
 def _calcualte_limit(limit, total):
@@ -58,37 +59,33 @@ def compile_tests(project_id, file_name, runner):
     client.containers.run(container_name, stderr=True, remove=True, environment=env_vars, tty=True, user='0:0')
 
 
-def upload_file(bucket, f, project, create_if_not_exists=False):
+def upload_file(bucket, f, project, create_if_not_exists=True):
     name = f.filename
     content = f.read()
     f.seek(0, 2)
     file_size = f.tell()
+    try:
+        f.remove()
+    except:
+        pass
     storage_space_quota = project.get_storage_space_quota()
     statistic = Statistic.query.filter_by(project_id=project.id).first().to_json()
     if storage_space_quota != -1 and statistic['storage_space'] + file_size > storage_space_quota * 1000000:
         raise Forbidden(description="The storage space limit allowed in the project has been exceeded")
-    try:
-        MinioClient(project=project).upload_file(bucket, content, name)
-    except ClientError as err:
-        if err.response["ResponseMetadata"]["HTTPStatusCode"] == 404:
+    if create_if_not_exists:
+        if bucket not in MinioClient(project=project).list_bucket():
             MinioClient(project=project).create_bucket(bucket)
-            MinioClient(project=project).upload_file(bucket, content, name)
+    MinioClient(project=project).upload_file(bucket, content, name)
 
 
 def create_task(project, file, args):
     filename = str(uuid4())
     filename = secure_filename(filename)
-    file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
-    app = run.connect_to_celery(concurrency=1, redis_db=REDIS_DB)
-    celery_task = app.signature(
-        "tasks.volume",
-        kwargs={"task_id": filename, "file_path": current_app.config["UPLOAD_FOLDER"]}
-    )
-    celery_task.apply_async()
+    upload_file(bucket="tasks", f=file, project=project)
     task = Task(
         task_id=filename,
         project_id=project.id,
-        zippath=filename,
+        zippath=f"tasks/{file.filename}",
         task_name=args.get("funcname"),
         task_handler=args.get("invoke_func"),
         runtime=args.get("runtime"),
@@ -110,9 +107,36 @@ def run_task(project_id, event, task_id=None):
         secrets = get_project_hidden_secrets(project_id)
     task_id = task_id if task_id else secrets["control_tower_id"]
     task = Task.query.filter(and_(Task.task_id == task_id)).first().to_json()
-    app = run.connect_to_celery(1)
-    celery_task = app.signature("tasks.execute",
-                                kwargs={"task": unsecret(task, project_id=project_id),
-                                        "event": unsecret(event, project_id=project_id)})
-    celery_task.apply_async()
+    check_tasks_quota(task)
+    statistic = Statistic.query.filter(Statistic.project_id == task['project_id']).first()
+    setattr(statistic, 'tasks_executions', Statistic.tasks_executions + 1)
+    statistic.commit()
+    arbiter = get_arbiter()
+    task_kwargs = {"task": unsecret(task, project_id=project_id),
+                   "event": unsecret(event, project_id=project_id),
+                   "galloper_url": unsecret("{{secret.galloper_url}}", project_id=task['project_id']),
+                   "token": unsecret("{{secret.auth_token}}", project_id=task['project_id'])}
+    arbiter.apply("execute_lambda", queue=RABBIT_QUEUE_NAME, task_kwargs=task_kwargs)
+    arbiter.close()
     return {"message": "Accepted", "code": 200, "task_id": task_id}
+
+
+def get_arbiter():
+    arbiter = Arbiter(host=RABBIT_HOST, port=RABBIT_PORT, user=RABBIT_USER, password=RABBIT_PASSWORD)
+    return arbiter
+
+
+def check_tasks_quota(task):
+    if not ProjectQuota.check_quota(project_id=task['project_id'], quota='tasks_executions'):
+        data = {"ts": int(mktime(datetime.utcnow().timetuple())), 'results': 'Forbidden',
+                'stderr': "The number of task executions allowed in the project has been exceeded"}
+
+        headers = {
+            "Content-Type": "application/json",
+            "Token": task['token']
+        }
+        auth_token = unsecret("{{secret.auth_token}}", project_id=task['project_id'])
+        if auth_token:
+            headers['Authorization'] = f'bearer {auth_token}'
+        post(f'{APP_HOST}/api/v1/task/{task["task_id"]}/results', headers=headers, data=dumps(data))
+        raise Forbidden(description="The number of task executions allowed in the project has been exceeded")

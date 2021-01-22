@@ -82,14 +82,14 @@ ADD MANIFEST.in /tmp/MANIFEST.in
 ADD requirements.txt /tmp/requirements.txt
 COPY galloper /tmp/galloper
 
+RUN pip install git+https://github.com/carrier-io/arbiter.git
 RUN cd /tmp && python setup.py install && rm -rf /tmp/*
 RUN mkdir /tmp/tasks
 RUN mkdir /tmp/db
 ADD start.sh /tmp/start.sh
 RUN chmod +x /tmp/start.sh
 WORKDIR /tmp
-RUN pip install celery==4.3.0 kombu==4.5.0 selenium==3.141.0 vine==1.3.0
-RUN pip install git+https://github.com/carrier-io/control_tower.git
+RUN pip install selenium==3.141.0
 RUN echo "Starting point" > /var/log/worker.log
 
 SHELL ["/bin/bash", "-c"]

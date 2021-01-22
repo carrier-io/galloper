@@ -22,11 +22,12 @@ from galloper.database.models.api_reports import APIReport
 def get_client(project_id, db_name=None):
     secrets = get_project_secrets(project_id)
     hidden_secrets = get_project_hidden_secrets(project_id)
+    influx_host = secrets.get("influx_ip") if "influx_ip" in secrets else hidden_secrets.get("influx_ip", "")
     influx_user = secrets.get("influx_user") if "influx_user" in secrets else hidden_secrets.get("influx_user", "")
     influx_password = secrets.get("influx_password") if "influx_password" in secrets else \
         hidden_secrets.get("influx_password", "")
 
-    return InfluxDBClient("carrier-influx", 8086, influx_user, influx_password, db_name)
+    return InfluxDBClient(influx_host, 8086, influx_user, influx_password, db_name)
 
 
 def create_project_databases(project_id):
