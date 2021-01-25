@@ -178,7 +178,7 @@ class TaskUpgradeApi(Resource):
     def create_pp_task(self, project):
         upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
         task = Task.query.filter(and_(Task.task_name == "post_processor", Task.project_id == project.id)).first()
-        setattr(task, "zippath", "tasks/post_processor.zip")
+        setattr(task, "zippath", "tasks/post_processing.zip")
         task.commit()
 
     def get(self, project_id):
