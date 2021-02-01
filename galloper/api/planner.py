@@ -29,6 +29,7 @@ class TestsApiPerformance(Resource):
         dict(name="name", type=str, location='form'),
         dict(name="entrypoint", type=str, location='form'),
         dict(name="parallel", type=int, location='form'),
+        dict(name="region", type=str, location='form'),
         dict(name="reporter", type=str, location='form'),
         dict(name="emails", type=str, location='form'),
         dict(name="runner", type=str, location='form'),
@@ -81,6 +82,7 @@ class TestsApiPerformance(Resource):
                                 test_uid=str(uuid4()),
                                 name=args["name"],
                                 parallel=args["parallel"],
+                                region=args["region"],
                                 bucket=bucket,
                                 file=file_name,
                                 git=git_settings,
@@ -149,6 +151,7 @@ class TestApiBackend(Resource):
 
     _put_rules = (
         dict(name="parallel", type=int, required=False, location='json'),
+        dict(name="region", type=str, required=False, location='json'),
         dict(name="params", type=str, default="{}", required=False, location='json'),
         dict(name="env_vars", type=str, default="{}", required=False, location='json'),
         dict(name="customization", type=str, default="{}", required=False, location='json'),
@@ -223,6 +226,8 @@ class TestApiBackend(Resource):
 
         if args.get("parallel"):
             task.parallel = args.get("parallel")
+        if args.get("region"):
+            task.region = args.get("region")
         if args.get("git"):
             task.git = loads(args.get("git"))
         task.commit()
@@ -248,11 +253,12 @@ class TestApiBackend(Resource):
                                                    customization=loads(args.get("customization", None)),
                                                    cc_env_vars=loads(args.get("cc_env_vars", None)),
                                                    parallel=args.get("parallel", None),
+                                                   region=args.get("region", "default"),
                                                    execution=execution, emails=args.get("emails", None)))
         if args['type'] and args["type"] == "config":
             return event[0]
-        for each in event:
-            each["test_id"] = task.test_uid
+        # for each in event:
+        #     each["test_id"] = task.test_uid
         response = run_task(project.id, event)
         response["redirect"] = f'/task/{response["task_id"]}/results'
         return response

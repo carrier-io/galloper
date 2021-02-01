@@ -66,6 +66,12 @@
                                     <input type="text" id="parallel" class="form-control form-control-alternative"
                                            placeholder="# of Runners">
                                 </div>
+                                <div class="form-group">
+                                    <label class="form-control-label" for="region">Worker region</label>
+                                    <p><small>Region (Interceptor queue) in which to run the test</small></p>
+                                    <input type="text" id="region" class="form-control form-control-alternative"
+                                           placeholder="default - to run the test from Carrier instance">
+                                </div>
                             </div>
                             <div class="col-lg-6">
                                 <nav>
@@ -265,6 +271,7 @@
                     $('#entrypoint').val(data.entrypoint);
                     $('#entrypoint').prop("disabled", true);
                     $('#parallel').val(data.parallel);
+                    $('#region').val(data.region);
                     $('#emails').val(data.emails);
                     if (data.git != null && data.git.hasOwnProperty("repo")) {
                         $('#repo').val(data.git.repo);
@@ -390,6 +397,7 @@
             'customization': JSON.stringify(params[2]),
             'java_opts': $("#javaopts").val(),
             'parallel': $('#parallel').val(),
+            'region': $('#region').val(),
             'reporter': checked,
             'emails': $('#emails').val(),
             'git': JSON.stringify(git_settings)
@@ -436,6 +444,7 @@
 
           data.append('name', $('#testname').val());
           data.append('parallel', $('#parallel').val());
+          data.append('region', $('#region').val());
           data.append('entrypoint', $('#entrypoint').val());
           data.append('runner', $('#runner').val());
           data.append('reporter', checked);

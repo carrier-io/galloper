@@ -89,29 +89,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="showTestParametersModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="test_modal_title">Test parameters</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="test_params_form">
-
-
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" id="run_test" class="btn btn-secondary">Run test</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 <script>
@@ -152,7 +129,7 @@
     });
 
     function actionFormatter(value, row, index) {
-        return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showTestConfigModal(this, '${row.id}')"><i class="fas fa-play"></i></a>
+        return `<a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="runTask(this, '${row.id}')"><i class="fas fa-play"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="editItem('${row.id}')"><i class="fas fa-cog"></i></a>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showExecutionConfig('${row.id}')"><i class="fas fa-ship"></i></a></span>
         <a class="mr-1 ml-1 btn btn-sm" href="javascript:void(0)" onclick="showDockerSnippet('${row.id}')"><i class="fab fa-docker"></i></a>
@@ -163,106 +140,14 @@
         window.location.href = `/tests/${page_params.get("type")}?test=${rowId}`
     }
 
-    function showTestConfigModal(elem, test_id) {
+    function runTask(elem, test_id) {
         var project_id = getSelectedProjectId();
-        //elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
-        //elem.classList.add("disabled");
+        elem.innerHTML = `<span class="spinner-border text-primary spinner-border-sm"></span>`;
+        elem.classList.add("disabled");
 
         var type = page_params.get("type")
-        $.ajax({
-            url: `/api/v1/tests/${project_id}/${type}/${test_id}?raw=1`,
-            type: 'GET',
-            success: function (result) {
-                console.log(result)
-
-                var test_params_html = `<nav>
-                                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                                        <a class="nav-item nav-link active" id="nav-file-tab" data-toggle="tab" href="#nav-test-params" role="tab" aria-controls="nav-test-params" aria-selected="true">Test params</a>
-                                        <a class="nav-item nav-link" id="nav-git-tab" data-toggle="tab" href="#nav-runner-env-vars" role="tab" aria-controls="nav-runner-env-vars" aria-selected="false">Runner env vars</a>
-                                        <a class="nav-item nav-link" id="nav-git-tab" data-toggle="tab" href="#nav-cc-env-vars" role="tab" aria-controls="nav-cc-env-vars" aria-selected="false">CC env vars</a>
-                                        <a class="nav-item nav-link" id="nav-git-tab" data-toggle="tab" href="#nav-lg" role="tab" aria-controls="nav-lg" aria-selected="false">Load generators</a>
-                                    </div>
-                                    </nav>`
-                test_params_html += `<div class="tab-content" id="nav-tabContent">
-                                     <div class="tab-pane fade show active" id="nav-test-params" role="tabpanel" aria-labelledby="nav-test-params-tab">`
-                $.each( result.params, function( key, value ) {
-                    test_params_html += `<div class="form-group test_param">
-                        <label class="form-control-label">${key}</label>
-                        <input class="form-control" type="text" value="${value}">
-                        </div>`
-                });
-                test_params_html += `</div>`
-
-                test_params_html += `<div class="tab-pane fade" id="nav-runner-env-vars" role="tabpanel" aria-labelledby="nav-runner-env-vars-tab">`
-                $.each( result.env_vars, function( key, value ) {
-                    test_params_html += `<div class="form-group env_vars">
-                        <label class="form-control-label">${key}</label>
-                        <input class="form-control" type="text" value="${value}">
-                        </div>`
-                });
-                test_params_html += `</div>`
-
-                test_params_html += `<div class="tab-pane fade" id="nav-cc-env-vars" role="tabpanel" aria-labelledby="nav-cc-env-vars-tab">`
-                $.each( result.cc_env_vars, function( key, value ) {
-                    test_params_html += `<div class="form-group cc_env_vars">
-                        <label class="form-control-label">${key}</label>
-                        <input class="form-control" type="text" value="${value}">
-                        </div>`
-                });
-                test_params_html += `</div>`
-
-                test_params_html += `<div class="tab-pane fade" id="nav-lg" role="tabpanel" aria-labelledby="nav-lg-tab">`
-                test_params_html += `<div class="form-group">
-                                     <label class="form-control-label">Load generators count</label>
-                                     <input class="form-control parallel" type="text" value="${result.parallel}">
-                                     </div>
-                                     <div class="form-group">
-                                     <label class="form-control-label">Region</label>
-                                     <input class="form-control region" type="text" value="${result.region}">
-                                     </div>`
-                test_params_html += `</div></div>`
-                $("#test_params_form").html(test_params_html);
-                $('#run_test').removeAttr('onclick');
-                $('#run_test').attr('onClick', `runTask("${result.test_uid}");`);
-                $("#showTestParametersModal").modal("show");
-            }
-        });
-    }
-
-    function runTask(test_id) {
-        var project_id = getSelectedProjectId();
-        console.log(`going to run test ${test_id}`)
-        var type = page_params.get("type")
-        var params = {}
-        $("#nav-test-params .test_param").each(function() {
-           if ($(this).children()[0].innerText !== "" && $(this).children()[1].value !== "") {
-                params[$(this).children()[0].innerText] = $(this).children()[1].value;
-           }
-        });
-        var env_vars = {}
-        $("#nav-runner-env-vars .env_vars").each(function() {
-           if ($(this).children()[0].innerText !== "" && $(this).children()[1].value !== "") {
-                env_vars[$(this).children()[0].innerText] = $(this).children()[1].value;
-           }
-        });
-        var cc_env_vars = {}
-        $("#nav-cc-env-vars .cc_env_vars").each(function() {
-           if ($(this).children()[0].innerText !== "" && $(this).children()[1].value !== "") {
-                cc_env_vars[$(this).children()[0].innerText] = $(this).children()[1].value;
-           }
-        });
-        var data = {
-            'params': JSON.stringify(params),
-            'env_vars': JSON.stringify(env_vars),
-            'cc_env_vars': JSON.stringify(cc_env_vars),
-            'parallel': $('.parallel').val(),
-            'region': $('.region').val()
-        }
-        console.log(data)
         $.ajax({
             url: `/api/v1/tests/${project_id}/${type}/${test_id}`,
-            data: JSON.stringify(data),
-            contentType: 'application/json',
             type: 'POST',
             success: function (result) {
                 if (type === "frontend"){

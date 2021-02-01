@@ -34,6 +34,12 @@
                         <p><small>UUID of the tests, may be used to refer it</small></p>
                         <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                       </div>
+                      <div class="form-group">
+                          <label class="form-control-label" for="region">Worker region</label>
+                          <p><small>Region (Interceptor queue) in which to run the test</small></p>
+                          <input type="text" id="region" class="form-control form-control-alternative"
+                                 placeholder="default - to run the test from Carrier instance">
+                      </div>
                     </div>
                     <!-- Right column -->
                     <div class="col-lg-6">
@@ -161,6 +167,7 @@
         $('#testname').prop("disabled", true);
         $("#testid").css("display", "block");
         $("#testuuid").val(data.test_uid);
+        $('#region').val(data.region);
         //
         $("#dast_target_url").val(data.dast_settings.dast_target_url);
         data.dast_settings.scanners_checked.forEach(item => {
@@ -202,6 +209,7 @@
     //
     var data = new FormData();
     data.append('name', $('#testname').val());
+    data.append('region', $('#region').val());
     data.append('dast_settings', JSON.stringify({
       'dast_target_url': $('#dast_target_url').val(),
       'scanners_checked': scanners_checked,
@@ -242,7 +250,8 @@
         'scanners_checked': scanners_checked,
         'reporters_checked': reporters_checked,
         'email_recipients': $('#email_recipients').val()
-      })
+      }),
+      'region': $('#region').val()
     }
     //
     $.ajax({

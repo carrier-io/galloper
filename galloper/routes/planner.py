@@ -29,6 +29,8 @@ def tasks(project: Project):
         return render_template("planner/tests_sast.html", tasks=tasks_, project_id=project.id)
     if request.args.get("type") and request.args.get("type") == "dast":
         return render_template("planner/tests_dast.html", tasks=tasks_, project_id=project.id)
+    if request.args.get("type") and request.args.get("type") == "frontend":
+        return render_template("planner/frontend_tests.html", tasks=tasks_, project_id=project.id)
     return render_template("planner/tests.html", tasks=tasks_, project_id=project.id)
 
 

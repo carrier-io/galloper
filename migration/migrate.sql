@@ -24,3 +24,7 @@ ALTER TABLE ui_performance_tests ADD COLUMN emails TEXT;
 ALTER TABLE ui_report ADD COLUMN status VARCHAR(128);
 
 ALTER TABLE task DROP CONSTRAINT task_zippath_key;
+ALTER TABLE performance_tests ADD COLUMN region VARCHAR(128);
+ALTER TABLE ui_performance_tests ADD COLUMN region VARCHAR(128);
+ALTER TABLE security_tests_dast ADD COLUMN region VARCHAR(128);
+ALTER TABLE security_tests_sast ADD COLUMN region VARCHAR(128);

@@ -114,6 +114,12 @@
                             </div>
                         </div>
                     </div>
+                        <div class="form-group">
+                            <label class="form-control-label" for="region">Worker region</label>
+                            <p><small>Region (Interceptor queue) in which to run the test</small></p>
+                            <input type="text" id="region" class="form-control form-control-alternative"
+                                   placeholder="default - to run the test from Carrier instance">
+                        </div>
                   </div>
                 </div>
                 </div>
@@ -199,6 +205,7 @@
         $('#testname').prop("disabled", true);
         $("#testid").css("display", "block");
         $("#testuuid").val(data.test_uid);
+        $("#region").val(data.region);
         //
         $(`#${data.sast_settings.sast_target_type}`).tab('show');
         //
@@ -252,6 +259,7 @@
     //
     var data = new FormData();
     data.append('name', $('#testname').val());
+    data.append('region', $('#region').val());
     data.append('sast_settings', JSON.stringify({
       'sast_target_type': $("nav .active").attr("id"),
       'sast_target_repo': $('#sast_target_repo').val(),
@@ -308,7 +316,8 @@
         'options_checked': options_checked,
         'reporters_checked': reporters_checked,
         'email_recipients': $('#email_recipients').val()
-      })
+      }),
+      'region': $('#region').val()
     }
     //
     $.ajax({
