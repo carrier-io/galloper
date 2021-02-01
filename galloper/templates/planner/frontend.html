@@ -160,6 +160,12 @@
                                     <input type="text" id="emails" class="form-control form-control-alternative"
                                            placeholder="Email recipients">
                                 </div>
+                                <div class="form-group">
+                                    <label class="form-control-label" for="region">Worker region</label>
+                                    <p><small>Region (Interceptor queue) in which to run the test</small></p>
+                                    <input type="text" id="region" class="form-control form-control-alternative"
+                                           placeholder="default - to run the test from Carrier instance">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -298,6 +304,7 @@
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
                     $('#loops').val(data.loops);
+                    $('#region').val(data.region);
                     $('#emails').val(data.emails);
 
                     if (data.git != null && data.git.hasOwnProperty("repo")) {
@@ -428,6 +435,7 @@
             'customization': JSON.stringify(params[2]),
             'reporter': checked,
             'loops': $('#loops').val(),
+            'region': $('#region').val(),
             'aggregation': $('#aggregation').children("option:selected").val(),
             'browser': $('#browsers .filter-option-inner-inner').text(),
             'entrypoint': $('#entrypoint').val(),
@@ -473,6 +481,7 @@
 
           data.append('name', $('#testname').val());
           data.append('loops', $('#loops').val());
+          data.append('region', $('#region').val());
           data.append('entrypoint', $('#entrypoint').val());
           data.append('browser', $('#browsers .filter-option-inner-inner').text());
           data.append('reporter', checked);

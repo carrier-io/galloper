@@ -74,6 +74,7 @@ class TestsApiSecurityDAST(Resource):
 
     _post_rules = (
         dict(name="name", type=str, location='form'),
+        dict(name="region", type=str, location='form'),
         dict(name="dast_settings", type=str, location='form'),
     )
 
@@ -107,6 +108,7 @@ class TestsApiSecurityDAST(Resource):
             project_id=project.id,
             test_uid=str(uuid4()),
             name=args["name"],
+            region=args["region"],
             dast_settings={
                 "project_name": project.name,
                 **loads(args["dast_settings"]),
@@ -144,6 +146,7 @@ class TestApiSecurityDAST(Resource):
 
     _put_rules = (
         dict(name="dast_settings", type=str, required=False, location='json'),
+        dict(name="region", type=str, required=False, location='json')
     )
 
     _post_rules = _put_rules + (
@@ -205,6 +208,8 @@ class TestApiSecurityDAST(Resource):
                 "project_name": project.name,
                 **loads(args["dast_settings"]),
             }
+        if args.get("region"):
+            task.region = args.get("region")
         #
         task.commit()
         return task.to_json()
@@ -260,6 +265,7 @@ class TestsApiSecuritySAST(Resource):
 
     _post_rules = (
         dict(name="name", type=str, location='form'),
+        dict(name="region", type=str, location='form'),
         dict(name="sast_settings", type=str, location='form'),
     )
 
@@ -293,6 +299,7 @@ class TestsApiSecuritySAST(Resource):
             project_id=project.id,
             test_uid=str(uuid4()),
             name=args["name"],
+            region=args["region"],
             sast_settings={
                 "project_name": project.name,
                 **loads(args["sast_settings"]),
@@ -330,6 +337,7 @@ class TestApiSecuritySAST(Resource):
 
     _put_rules = (
         dict(name="sast_settings", type=str, required=False, location='json'),
+        dict(name="region", type=str, required=False, location='json')
     )
 
     _post_rules = _put_rules + (
@@ -391,6 +399,8 @@ class TestApiSecuritySAST(Resource):
                 "project_name": project.name,
                 **loads(args["sast_settings"]),
             }
+        if args.get("region"):
+            task.region = args.get("region")
         #
         task.commit()
         return task.to_json()

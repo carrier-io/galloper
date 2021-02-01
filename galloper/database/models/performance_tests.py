@@ -31,6 +31,7 @@ class PerformanceTests(AbstractBaseMixin, Base):
     test_uid = Column(String(128), unique=True, nullable=False)
     name = Column(String(128), nullable=False)
     parallel = Column(Integer, nullable=False)
+    region = Column(String(128), nullable=False)
     bucket = Column(String(128), nullable=False)
     file = Column(String(128), nullable=False)
     entrypoint = Column(String(128), nullable=False)
@@ -87,12 +88,14 @@ class PerformanceTests(AbstractBaseMixin, Base):
         test_type = "test.type" if self.job_type == "perfmeter" else "test_type"
         if test_type not in self.params.keys():
             self.params[test_type] = 'default'
+        if self.region == "":
+            self.region = "default"
         self.runner = JOB_CONTAINER_MAPPING[self.runner]['container']  # here because influx_db
 
         super().insert()
 
     def configure_execution_json(self, output='cc', test_type=None, params=None, env_vars=None, reporting=None,
-                                 customization=None, cc_env_vars=None, parallel=None, execution=False, emails=None):
+                                 customization=None, cc_env_vars=None, parallel=None, region=None, execution=False, emails=None):
         pairs = {
             "customization": [customization, self.customization],
             "params": [params, self.params],
@@ -128,7 +131,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
             "job_name": self.name,
             "artifact": self.file,
             "job_type": self.job_type,
-            "concurrency": self.parallel if not parallel else parallel
+            "concurrency": self.parallel if not parallel else parallel,
+            "channel": region if region else self.region
         }
         if self.reporting:
             if "junit" in self.reporting:
@@ -154,8 +158,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
         else:
             execution_json["email_recipients"] = self.emails
 
-        if self.env_vars:
-            for key, value in self.env_vars.items():
+        if pairs["env_vars"][0]:
+            for key, value in pairs["env_vars"][0].items():
                 execution_json["execution_params"][key] = value
         if "influxdb_host" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["influxdb_host"] = "{{secret.influx_ip}}"
@@ -173,8 +177,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
             execution_json["execution_params"]["loki_host"] = "{{secret.loki_host}}"
         if "loki_port" not in execution_json["execution_params"].keys():
             execution_json["execution_params"]["loki_port"] = "3100"
-        if self.cc_env_vars:
-            for key, value in self.cc_env_vars.items():
+        if pairs["cc_env_vars"][0]:
+            for key, value in pairs["cc_env_vars"][0].items():
                 execution_json["cc_env_vars"][key] = value
         if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
@@ -184,8 +188,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
             execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
         if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
-        if self.customization:
-            for key, value in self.customization.items():
+        if pairs["customization"][0]:
+            for key, value in pairs["customization"][0].items():
                 if "additional_files" not in execution_json["execution_params"]:
                     execution_json["execution_params"]["additional_files"] = dict()
                 execution_json["execution_params"]["additional_files"][key] = value
@@ -227,6 +231,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     file = Column(String(128), nullable=False)
     entrypoint = Column(String(128), nullable=False)
     runner = Column(String(128), nullable=False)
+    region = Column(String(128), nullable=False)
     browser = Column(String(128), nullable=False)
     reporting = Column(ARRAY(String), nullable=False)
     parallel = Column(Integer, nullable=False)
@@ -265,7 +270,8 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
             "artifact": self.file,
             "job_type": self.job_type,
             "test_id": self.test_uid,
-            "concurrency": 1
+            "concurrency": 1,
+            "channel": self.region
         }
 
         if "jira" in self.reporting:

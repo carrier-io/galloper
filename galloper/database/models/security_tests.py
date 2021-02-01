@@ -32,11 +32,14 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     test_uid = Column(String(128), unique=True, nullable=False)
     name = Column(String(128), nullable=False)
+    region = Column(String(128), nullable=False)
     dast_settings = Column(JSON)
 
     def insert(self):
         if not self.test_uid:
             self.test_uid = str(uuid4())
+        if self.region == "":
+            self.region = "default"
         #
         super().insert()
         #
@@ -233,6 +236,7 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
                 "container": container,
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
+                "channel": self.region
             }
             if "quality" in self.dast_settings.get("reporters_checked", list()):
                 execution_json["quality_gate"] = "True"
@@ -255,11 +259,14 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
     project_id = Column(Integer, unique=False, nullable=False)
     test_uid = Column(String(128), unique=True, nullable=False)
     name = Column(String(128), nullable=False)
+    region = Column(String(128), nullable=False)
     sast_settings = Column(JSON)
 
     def insert(self):
         if not self.test_uid:
             self.test_uid = str(uuid4())
+        if self.region == "":
+            self.region = "default"
         #
         super().insert()
         #
@@ -472,6 +479,7 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
                 "container": container,
                 "execution_params": dumps(parameters),
                 "cc_env_vars": cc_env_vars,
+                "channel": self.region
             }
             if "quality" in self.sast_settings.get("reporters_checked", list()):
                 execution_json["quality_gate"] = "True"
