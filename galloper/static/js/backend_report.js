@@ -68,6 +68,7 @@ function loadRequestData(url, y_label) {
             window.presetLine.destroy();
         }
         drawCanvas(y_label);
+        document.getElementById('chartjs-custom-legend').innerHTML = presetLine.generateLegend();
       }
      );
 }
@@ -197,7 +198,7 @@ function drawCanvas(y_label) {
             hoverMode: 'index',
             stacked: false,
             legend: {
-                display: true,
+                display: false,
                 position: 'right',
                 labels: {
                     fontSize: 10,
@@ -382,4 +383,12 @@ $(document).ready(function() {
     fillErrorTable();
     $('#RT').trigger( "click" )
     $("#analytics").hide();
+    $(document).on("click", "#chartjs-custom-legend > ul > li", function (e) {
+            var index = $(this).index();
+            $(this).toggleClass("strike")
+            var ci = e.view.presetLine;
+            var curr = ci.data.datasets[index]._meta[2];
+            curr.hidden = !curr.hidden
+            ci.update();
+    });
 });

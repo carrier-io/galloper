@@ -142,3 +142,30 @@ button.dropdown-toggle {
 #nav-git-ui {
     padding-bottom: 20px;
 }
+
+.custom-chart-legend li span{
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+}
+
+.custom-chart-legend{
+  height:450px;
+  overflow:auto;
+}
+
+.custom-chart-legend li{
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.strike{
+     text-decoration: line-through !important;
+}
+
+.float-left{
+  float:left;
+}
