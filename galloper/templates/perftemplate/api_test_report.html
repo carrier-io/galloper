@@ -254,7 +254,8 @@
     </div>
     <div class="card-body" id="preset">
       <!-- Chart -->
-      <div class="chart">
+        <div class="float-left" style="width:100%;">
+            <div class="chart float-left" style="width:75%;">
           <div class="chartjs-size-monitor">
               <div class="chartjs-size-monitor-expand">
                   <div class="">
@@ -266,6 +267,11 @@
           </div>
         <canvas id="chart-requests" class="chart-canvas chartjs-render-monitor" style="display: block; height: 450px; width: 100%;"></canvas>
       </div>
+        <div class="float-left" style="width:25%;">
+            <div id="chartjs-custom-legend" class="custom-chart-legend"></div>
+        </div>
+        </div>
+
     </div>
     <div class="card-body" id="analytics">
       <!-- Chart -->
