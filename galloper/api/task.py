@@ -197,6 +197,7 @@ class TaskUpgradeApi(Resource):
             self.create_cc_task(project)
             project_secrets["galloper_url"] = APP_HOST
             project_secrets["project_id"] = project.id
+            secrets["post_processor"] = f"{APP_HOST}/{secrets['post_processor_id']}"
             secrets["redis_host"] = APP_IP
             secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
             secrets["influx_ip"] = APP_IP

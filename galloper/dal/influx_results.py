@@ -60,7 +60,6 @@ def get_test_details(project_id, build_id, test_name, lg_type):
         "thresholds_missed": 0,
         "throughput": 0,
         "vusers": 0,
-        "pct95": 0,
         "duration": 0,
         "1xx": 0,
         "2xx": 0,
@@ -82,8 +81,6 @@ def get_test_details(project_id, build_id, test_name, lg_type):
     q_total_users = f"show tag values on comparison_{project_id} with key=\"users\" where build_id='{build_id}'"
     q_env = f"show tag values on comparison_{project_id} with key=\"env\" where build_id='{build_id}'"
     q_type = f"show tag values on comparison_{project_id} with key=\"test_type\" where build_id='{build_id}'"
-    q_pct95 = f"select percentile(response_time, 95) from {lg_type}_{project_id}..{test_name} " \
-              f"where build_id='{build_id}' and status='OK'"
     q_requests_name = f"show tag values on comparison_{project_id} with key=\"request_name\" " \
                       f"where build_id='{build_id}'"
     client = get_client(project_id)
@@ -93,8 +90,6 @@ def get_test_details(project_id, build_id, test_name, lg_type):
     test["vusers"] = list(client.query(q_total_users)["api_comparison"])[0]["value"]
     test["environment"] = list(client.query(q_env)["api_comparison"])[0]["value"]
     test["type"] = list(client.query(q_type)["api_comparison"])[0]["value"]
-    pct95 = list(client.query(q_pct95)[test_name])
-    test["pct95"] = pct95[0]["percentile"] if pct95 else 0
     test["requests"] = [name["value"] for name in client.query(q_requests_name)["api_comparison"]]
     response_data = list(client.query(q_response_codes)['api_comparison'])[0]
     test['total'] = response_data['Total']

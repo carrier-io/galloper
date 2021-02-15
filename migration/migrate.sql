@@ -28,3 +28,11 @@ ALTER TABLE performance_tests ADD COLUMN region VARCHAR(128);
 ALTER TABLE ui_performance_tests ADD COLUMN region VARCHAR(128);
 ALTER TABLE security_tests_dast ADD COLUMN region VARCHAR(128);
 ALTER TABLE security_tests_sast ADD COLUMN region VARCHAR(128);
+
+ALTER TABLE api_report ADD COLUMN pct50 FLOAT;
+ALTER TABLE api_report ADD COLUMN pct75 FLOAT;
+ALTER TABLE api_report ADD COLUMN pct90 FLOAT;
+ALTER TABLE api_report ADD COLUMN pct99 FLOAT;
+ALTER TABLE api_report ADD COLUMN _max FLOAT;
+ALTER TABLE api_report ADD COLUMN _min FLOAT;
+ALTER TABLE api_report ADD COLUMN mean FLOAT;
