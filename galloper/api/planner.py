@@ -257,8 +257,8 @@ class TestApiBackend(Resource):
                                                    execution=execution, emails=args.get("emails", None)))
         if args['type'] and args["type"] == "config":
             return event[0]
-        # for each in event:
-        #     each["test_id"] = task.test_uid
+        for each in event:
+            each["test_id"] = task.test_uid
         response = run_task(project.id, event)
         response["redirect"] = f'/task/{response["task_id"]}/results'
         return response

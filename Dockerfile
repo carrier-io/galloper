@@ -74,9 +74,10 @@ RUN apk add --update \
 RUN rm -rf /var/cache/apk/* /tmp/*
 
 RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
+RUN pip install --upgrade setuptools setuptools-rust
 RUN pip install --upgrade uwsgi
 
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 ADD setup.py /tmp/setup.py
 ADD MANIFEST.in /tmp/MANIFEST.in
 ADD requirements.txt /tmp/requirements.txt

@@ -14,7 +14,7 @@
 
 
 from datetime import datetime, timezone
-
+from json import loads
 from flask_restful import Resource
 from sqlalchemy import and_
 from statistics import mean, harmonic_mean
@@ -58,6 +58,7 @@ class ReportAPI(Resource):
         dict(name="lg_type", type=str, location="json"),
         dict(name="missed", type=int, location="json"),
         dict(name="status", type=str, location="json"),
+        dict(name="response_times", type=str, location="json"),
         dict(name="duration", type=float, location="json"),
         dict(name="vusers", type=int, location="json")
     )
@@ -113,7 +114,14 @@ class ReportAPI(Resource):
                            thresholds_missed=0,
                            throughput=0,
                            vusers=args["vusers"],
+                           pct50=0,
+                           pct75=0,
+                           pct90=0,
                            pct95=0,
+                           pct99=0,
+                           _max=0,
+                           _min=0,
+                           mean=0,
                            duration=args["duration"],
                            build_id=args["build_id"],
                            lg_type=args["lg_type"],
@@ -136,6 +144,7 @@ class ReportAPI(Resource):
         project = Project.get_or_404(project_id)
         test_data = get_test_details(project_id=project_id, build_id=args["build_id"], test_name=args["test_name"],
                                      lg_type=args["lg_type"])
+        response_times = loads(args["response_times"])
         report = APIReport.query.filter(
             and_(APIReport.project_id == project.id, APIReport.build_id == args["build_id"])
         ).first()
@@ -145,7 +154,14 @@ class ReportAPI(Resource):
         report.total = test_data["total"]
         report.thresholds_missed = args.get("missed", 0)
         report.throughput = test_data["throughput"]
-        report.pct95 = test_data["pct95"]
+        report.pct50 = response_times["pct50"]
+        report.pct75 = response_times["pct75"]
+        report.pct90 = response_times["pct90"]
+        report.pct95 = response_times["pct95"]
+        report.pct99 = response_times["pct99"]
+        report._max = response_times["max"]
+        report._min = response_times["min"]
+        report.mean = response_times["mean"]
         report.onexx = test_data["1xx"]
         report.twoxx = test_data["2xx"]
         report.threexx = test_data["3xx"]
