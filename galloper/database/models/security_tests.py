@@ -286,8 +286,15 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
             #
             actions_config = dict()
             if self.sast_settings.get("sast_target_type") == "target_git":
+                git_url = self.sast_settings.get("sast_target_repo")
+                branch = "master"
+                if "@" in git_url[5:]:
+                    branch = git_url[5:].split("@")[1]
+                    git_url = git_url.replace(f"@{branch}", "")
+
                 actions_config["git_clone"] = {
-                    "source": self.sast_settings.get("sast_target_repo"),
+                    "source": git_url,
+                    "branch": branch,
                     "target": "/tmp/code"
                 }
                 if self.sast_settings.get("sast_target_repo_user") != "":
