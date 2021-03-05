@@ -14,8 +14,8 @@ def _timeframe(args, time_as_ts=False):
     if not end_time:
         end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         high_value = 100
-    return calculate_proper_timeframe(args.get('low_value', 0), high_value,
-                                      args['start_time'], end_time, args.get('aggregator', 'auto'),
+    return calculate_proper_timeframe(args['build_id'], args['test_name'], args['lg_type'], args.get('low_value', 0),
+                                      high_value, args['start_time'], end_time, args.get('aggregator', 'auto'),
                                       time_as_ts=time_as_ts)
 
 
@@ -76,10 +76,10 @@ def calculate_analytics_dataset(build_id, test_name, lg_type, start_time, end_ti
         timestamps, data, _ = get_tps(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
                                       scope=scope, status=status)
         data = data['responses']
-    elif metric == "Hits":
-        timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
-                                       scope=scope, status=status)
-        data = data['hits']
+    # elif metric == "Hits":
+    #     timestamps, data, _ = get_hits(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
+    #                                    scope=scope, status=status)
+    #     data = data['hits']
     elif metric == "Errors":
         timestamps, data, _ = get_errors(build_id, test_name, lg_type, start_time, end_time, aggregation, sampler,
                                          scope=scope)
@@ -101,7 +101,6 @@ def get_data_from_influx(args):
     start_time, end_time, aggregation = _timeframe(args)
     metric = args.get('metric', '')
     scope = args.get('scope', '')
-    project_id = APIReport.query.filter_by(build_id=args["build_id"]).first().to_json()["project_id"]
     timestamps, users = get_backend_users(args['build_id'], args['lg_type'],
                                           start_time, end_time, aggregation)
     axe = 'count'
@@ -128,13 +127,16 @@ def prepare_comparison_responses(args):
             longest_time = data['duration']
             longest_test = i
         tests_meta.append(data)
-    start_time, end_time, aggregation = calculate_proper_timeframe(args.get('low_value', 0),
+    start_time, end_time, aggregation = calculate_proper_timeframe(tests_meta[longest_test]['build_id'],
+                                                                   tests_meta[longest_test]['name'],
+                                                                   tests_meta[longest_test]['lg_type'],
+                                                                   args.get('low_value', 0),
                                                                    args.get('high_value', 100),
                                                                    tests_meta[longest_test]['start_time'],
                                                                    tests_meta[longest_test]['end_time'],
                                                                    args.get('aggregator', 'auto'))
-    if args.get('aggregator', 'auto') != "auto":
-        aggregation = args.get('aggregator')
+    # if args.get('aggregator', 'auto') != "auto":
+    #     aggregation = args.get('aggregator')
     metric = args.get('metric', '')
     scope = args.get('scope', '')
     status = args.get("status", 'all')
@@ -192,7 +194,7 @@ def create_benchmark_dataset(args):
                 if calculation == 'errors':
                     y_axis = 'Errors'
                 data[_.environment][str(_.vusers)] = get_response_time_per_test(
-                    _.build_id, _.name, _.lg_type, "", req, calculation, status)
+                    _.build_id, _.name, _.lg_type, "", req, calculation, status, aggregator)
             else:
                 data[_.environment][str(_.vusers)] = None
         except IndexError:
