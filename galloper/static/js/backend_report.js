@@ -387,7 +387,9 @@ $(document).ready(function() {
             var index = $(this).index();
             $(this).toggleClass("strike")
             var ci = e.view.presetLine;
-            var curr = ci.data.datasets[index]._meta[2];
+            var curr = ci.data.datasets[index]._meta;
+            curr = Object.values(curr)[0]
+            console.log(curr)
             curr.hidden = !curr.hidden
             ci.update();
     });

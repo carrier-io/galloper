@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp, MAX_DOTS_ON_CHART
+from galloper.dal.influx_results import calculate_auto_aggregation
 
 
 def colors(n):
@@ -116,7 +117,7 @@ def chart_data(timeline, users, other, yAxis="response_time"):
 def render_analytics_control(requests):
     item = {
         "Users": "getData('Users', '{}')",
-        "Hits": "getData('Hits', '{}')",
+        # "Hits": "getData('Hits', '{}')",
         "Throughput": "getData('Throughput', '{}')",
         "Errors": "getData('Errors', '{}')",
         "Min": "getData('Min', '{}')",
@@ -139,7 +140,8 @@ def render_analytics_control(requests):
     return control
 
 
-def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggregation, time_as_ts=False):
+def calculate_proper_timeframe(build_id, test_name, lg_type, low_value, high_value, start_time, end_time,
+                               aggregation, time_as_ts=False):
     start_time = str_to_timestamp(start_time)
     end_time = str_to_timestamp(end_time)
     interval = end_time - start_time
@@ -147,18 +149,11 @@ def calculate_proper_timeframe(low_value, high_value, start_time, end_time, aggr
     end_shift = interval * (float(high_value) / 100.0)
     end_time = start_time + end_shift
     start_time += start_shift
-    real_interval = end_time - start_time
-    seconds = real_interval / MAX_DOTS_ON_CHART
-    if seconds > 1:
-        seconds = int(seconds)
-    else:
-        seconds = 1
-    if aggregation == 'auto':
-        aggregation = f'{seconds}s'
     if time_as_ts:
         return int(start_time), int(end_time), aggregation
-    return (
-        datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-        datetime.fromtimestamp(end_time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-        aggregation
-    )
+    t_format = "%Y-%m-%dT%H:%M:%S.000Z"
+    start_time = datetime.fromtimestamp(start_time, tz=timezone.utc).strftime(t_format)
+    end_time = datetime.fromtimestamp(end_time, tz=timezone.utc).strftime(t_format)
+    if aggregation == 'auto':
+        aggregation = calculate_auto_aggregation(build_id, test_name, lg_type, start_time, end_time)
+    return start_time, end_time, aggregation
