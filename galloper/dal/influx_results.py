@@ -74,10 +74,9 @@ def get_test_details(project_id, build_id, test_name, lg_type):
                    f"where build_id='{build_id}' order by time asc limit 1"
     q_end_time = f"select time, active from {lg_type}_{project_id}..\"users\" " \
                  f"where build_id='{build_id}' order by time desc limit 1"
-    q_response_codes = f"select sum(\"1xx\") as \"1xx\", sum(\"2xx\") as \"2xx\", sum(\"3xx\") as \"3xx\", " \
-                       f"sum(\"4xx\") as \"4xx\", sum(\"5xx\") as \"5xx\", sum(\"ko\") as KO, " \
-                       f"sum(\"total\") as Total, sum(throughput) as \"throughput\" " \
-                       f"from comparison_{project_id}..api_comparison where build_id='{build_id}'"
+    q_response_codes = f"select \"1xx\", \"2xx\", \"3xx\", \"4xx\", \"5xx\", \"ko\" as KO, " \
+                       f"\"total\" as Total, \"throughput\" from comparison_{project_id}..api_comparison " \
+                       f"where build_id='{build_id}' and request_name='All'"
     q_total_users = f"show tag values on comparison_{project_id} with key=\"users\" where build_id='{build_id}'"
     q_env = f"show tag values on comparison_{project_id} with key=\"env\" where build_id='{build_id}'"
     q_type = f"show tag values on comparison_{project_id} with key=\"test_type\" where build_id='{build_id}'"
@@ -116,7 +115,7 @@ def calculate_auto_aggregation(build_id, test_name, lg_type, start_time, end_tim
         if result:
             if int(result[0]["sum"]) > MAX_DOTS_ON_CHART and aggregation != "10m":
                 aggregation = aggr_list[i + 1]
-            if int(result[0]["sum"]) == 0 and aggregation == aggr:
+            if int(result[0]["sum"]) == 0 and aggregation != "1s":
                 aggregation = aggr_list[i - 1]
                 break
     return aggregation
@@ -399,18 +398,18 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, 
     project_id = get_project_id(build_id)
     if status != 'all':
         status_addon = f" and status='{status.upper()}'"
-    requests_in_range = f"select time, request_name, max(pct95) from {lg_type}_{project_id}..{test_name}_30s " \
+    requests_in_range = f"select time, request_name, max(pct95) from {lg_type}_{project_id}..{test_name}_5s " \
                         f"where time>='{start_time}' " \
                         f"and time<='{end_time}' and sampler_type='{sampler}'{status_addon} and " \
                         f"build_id='{build_id}' group by request_name"
-    res = get_client(project_id).query(requests_in_range)[f"{test_name}_30s"]
+    res = get_client(project_id).query(requests_in_range)[f"{test_name}_5s"]
     requests_names = [f"'{each['request_name']}'" for each in res]
     if len(requests_names) > 1:
         requests = f'[{"|".join(requests_names)}]'
     elif requests_names:
         requests = requests_names[0].replace("'", "")
     else:
-        return ["privet"]
+        return []
     query = f"select * from comparison_{project_id}..api_comparison where build_id='{build_id}' and request_name=~/^{requests}/"
     return list(get_client(project_id).query(query)['api_comparison'])
 
