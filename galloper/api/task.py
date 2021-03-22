@@ -17,7 +17,8 @@ from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser, str2bool
 from galloper.api.base import upload_file
 from galloper.dal.vault import unsecret
-from galloper.dal.vault import get_project_hidden_secrets, set_project_hidden_secrets, set_project_secrets
+from galloper.dal.vault import get_project_hidden_secrets, get_project_secrets, set_project_hidden_secrets,\
+    set_project_secrets
 
 
 class TasksApi(Resource):
@@ -187,7 +188,7 @@ class TaskUpgradeApi(Resource):
         if args['name'] not in ['post_processor', 'control_tower', 'all']:
             return {"message": "go away", "code": 400}, 400
         secrets = get_project_hidden_secrets(project.id)
-        project_secrets = {}
+        project_secrets = get_project_secrets(project.id)
         if args['name'] == 'post_processor':
             self.create_pp_task(project)
         elif args['name'] == 'control_tower':
@@ -197,7 +198,7 @@ class TaskUpgradeApi(Resource):
             self.create_cc_task(project)
             project_secrets["galloper_url"] = APP_HOST
             project_secrets["project_id"] = project.id
-            secrets["post_processor"] = f"{APP_HOST}/{secrets['post_processor_id']}"
+            secrets["post_processor"] = f"{APP_HOST}/task/{secrets['post_processor_id']}"
             secrets["redis_host"] = APP_IP
             secrets["loki_host"] = EXTERNAL_LOKI_HOST.replace("https://", "http://")
             secrets["influx_ip"] = APP_IP
