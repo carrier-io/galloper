@@ -1,0 +1,49 @@
+<!-- Modal -->
+<div class="modal fade" id="awsModal" tabindex="-1" role="dialog" aria-labelledby="awsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="awsModalLabel">AWS integration</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+            <div class="form-group">
+                <label for="aws_access_key" class="form-control-label">Access Key</label>
+                <input class="form-control" type="text" placeholder="Access key for your IAM user" value="" id="aws_access_key">
+            </div>
+            <div class="form-group">
+                <label for="aws_secret_access_key" class="form-control-label">Secret Access Key</label>
+                <input class="form-control" type="password" placeholder="Secret access key for your IAM user" value="" id="aws_secret_access_key">
+            </div>
+            <div class="form-group">
+                <label for="iam_fleet_role" class="form-control-label">IamFleetRole</label>
+                <input class="form-control" type="text" placeholder="IamFleetRole for your user" value="" id="iam_fleet_role">
+            </div>
+            <div class="form-group">
+                <label for="region_name" class="form-control-label">AWS Region</label>
+                <input class="form-control" type="text" placeholder="AWS region, for example: eu-central-1" value="" id="region_name">
+            </div>
+            <div class="form-group">
+                <label for="subnet_id" class="form-control-label">Subnet ID</label>
+                <input class="form-control" type="text" placeholder="AWS subnet id for your region" value="" id="subnet_id">
+            </div>
+            <div class="form-group">
+                <label for="image_id" class="form-control-label">Image ID</label>
+                <input class="form-control" type="text" placeholder="AWS AMI ID for ec2 fleet" value="" id="image_id">
+            </div>
+            <div class="form-group">
+                <span id="aws_status">Not Configured</span>
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" id="aws_test_button" class="btn btn-secondary" onclick="testIntegration('aws')">Test</button>
+        <button type="button" id="aws_save_button" class="btn btn-primary" onclick="saveIntegration('aws')">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

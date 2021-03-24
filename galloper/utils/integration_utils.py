@@ -14,6 +14,9 @@
 
 from json import loads, dumps
 from requests import post, get
+from datetime import datetime
+import boto3
+from botocore.exceptions import ClientError
 from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets,\
     set_project_hidden_secrets
 import smtplib
@@ -142,3 +145,49 @@ def ado_integration(args, project):
         hidden_secrets["ado"] = dumps(args["config"])
         set_project_hidden_secrets(project.id, hidden_secrets)
         return "ADO settings saved"
+
+
+def aws_integration(args, project):
+    if args["test"]:
+        ec2 = boto3.client('ec2', aws_access_key_id=args["config"]["aws_access_key"],
+                           aws_secret_access_key=args["config"]["aws_secret_access_key"],
+                           region_name=args["config"]["region_name"])
+        config = {
+            "Type": "request",
+            'AllocationStrategy': "lowestPrice",
+            "IamFleetRole": args["config"]["iam_fleet_role"],
+            "TargetCapacity": 1,
+            "SpotPrice": "0.1",
+            "TerminateInstancesWithExpiration": True,
+            'ValidFrom': datetime(2021, 1, 1),
+            'ValidUntil': datetime(2022, 1, 1),
+            'LaunchSpecifications': [
+                {
+                    "ImageId": args["config"]["image_id"],
+                    "InstanceType": "t3.medium",
+                    "KeyName": "carrier-test",
+                    "BlockDeviceMappings": [],
+                    "SpotPrice": "0.1",
+                    "NetworkInterfaces": [
+                        {
+                            "DeviceIndex": 0,
+                            "SubnetId": args["config"]["subnet_id"],
+                            "DeleteOnTermination": True,
+                            "Groups": [],
+                            "AssociatePublicIpAddress": True
+                        }
+                    ]
+                }
+            ]
+        }
+        try:
+            ec2.request_spot_fleet(DryRun=True, SpotFleetRequestConfig=config)
+        except Exception as e:
+            if 'DryRunOperation' not in str(e):
+                return f"Failed: {e}"
+        return "Connected"
+    else:
+        hidden_secrets = get_project_hidden_secrets(project.id)
+        hidden_secrets["aws"] = dumps(args["config"])
+        set_project_hidden_secrets(project.id, hidden_secrets)
+        return "AWS settings saved"

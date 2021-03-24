@@ -17,6 +17,7 @@
             </div>
             {% include 'projects/create_edit_project_piece.html' %}
             {% include 'projects/integrations/integrations.html' %}
+            {% include 'projects/integrations/cloud.html' %}
             {% if is_superadmin %}
                 {% include 'projects/quotas/quotas.html' %}
             {% endif %}
@@ -30,6 +31,7 @@
 {% include 'projects/integrations/rpmodal.html' %}
 {% include 'projects/integrations/adomodal.html' %}
 {% include 'projects/integrations/smtpmodal.html' %}
+{% include 'projects/integrations/awsmodal.html' %}
 {% include 'common/foot.html' %}
 <script>
     function repaintProjects(data) {
@@ -112,9 +114,23 @@
                 }
             }
             status_message = "#ado_status"
+        } else if (integration == "aws") {
+            settings = {
+                "integration": integration,
+                "test": "True",
+                "config": {
+                    aws_access_key: $("#aws_access_key").val(),
+                    aws_secret_access_key: $("#aws_secret_access_key").val(),
+                    iam_fleet_role: $("#iam_fleet_role").val(),
+                    region_name: $("#region_name").val(),
+                    subnet_id: $("#subnet_id").val(),
+                    image_id: $("#image_id").val()
+                }
+            }
+            status_message = "#aws_status"
         }
         $.ajax({
-                url: `/api/v1/reporters/${project_id}`,
+                url: `/api/v1/integrations/${project_id}`,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(settings),
@@ -195,9 +211,24 @@
             }
             modal = "#adoModal"
             status_message = "#ado_status"
-          }
+        } else if (integration == "aws") {
+            settings = {
+                "integration": integration,
+                "test": "False",
+                "config": {
+                    aws_access_key: $("#aws_access_key").val(),
+                    aws_secret_access_key: $("#aws_secret_access_key").val(),
+                    iam_fleet_role: $("#iam_fleet_role").val(),
+                    region_name: $("#region_name").val(),
+                    subnet_id: $("#subnet_id").val(),
+                    image_id: $("#image_id").val()
+                }
+            }
+            modal = "#awsModal"
+            status_message = "#aws_status"
+        }
         $.ajax({
-                url: `/api/v1/reporters/${project_id}`,
+                url: `/api/v1/integrations/${project_id}`,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(settings),
@@ -620,13 +651,31 @@
                     }
                 }
             });
+        } else if (modalID == "awsModal") {
+            $.ajax({
+                url: `/api/v1/secrets/${project_id}/aws`,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function (result) {
+                    if (result["secret"] != null) {
+                        $("#aws_status").text("");
+                        let data = JSON.parse(result["secret"])
+                        $("#aws_access_key").val(data["aws_access_key"])
+                        $("#aws_secret_access_key").val(data["aws_secret_access_key"])
+                        $("#iam_fleet_role").val(data["iam_fleet_role"])
+                        $("#region_name").val(data["region_name"])
+                        $("#subnet_id").val(data["subnet_id"])
+                        $("#image_id").val(data["image_id"])
+                    }
+                }
+            });
         }
         $(`#${modalID}`).modal('show');
     }
 
     function setConfiguredIntegrations() {
         let project_id = getSelectedProjectId();
-        ["jira", "rp", "ado", "smtp"].forEach( item => {
+        ["jira", "rp", "ado", "smtp", "aws", "azure_cloud", "gcp", "kubernetes"].forEach( item => {
             $.ajax({
                 url: `/api/v1/secrets/${project_id}/${item}`,
                 type: 'GET',
