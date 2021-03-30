@@ -17,6 +17,7 @@ from galloper.database.models.project_quota import ProjectQuota
 from galloper.utils.api_utils import build_req_parser, str2bool
 from galloper.api.base import upload_file
 from galloper.dal.vault import unsecret
+from galloper.dal.rabbitmq import create_project_user_and_vhost
 from galloper.dal.vault import get_project_hidden_secrets, get_project_secrets, set_project_hidden_secrets,\
     set_project_secrets
 
@@ -214,4 +215,6 @@ class TaskUpgradeApi(Resource):
         else:
             return {"message": "go away", "code": 400}, 400
         set_project_hidden_secrets(project.id, secrets)
+        if "rabbit_project_user" not in secrets:
+            create_project_user_and_vhost(project_id)
         return {"message": "Done", "code": 200}

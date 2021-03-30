@@ -17,6 +17,7 @@ from flask import Blueprint, render_template, request
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
 from galloper.utils.auth import project_required
+from galloper.dal.rabbitmq import get_project_queues
 
 bp = Blueprint("planner", __name__)
 
@@ -37,9 +38,12 @@ def tasks(project: Project):
 @bp.route("/tests/backend", methods=["GET", "POST"])
 @project_required
 def backend(project: Project):
+    queues = get_project_queues(project.id)
     if request.args.get("test"):
-        return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"))
-    return render_template("planner/backend.html", title="Add performance tests", test_id="null")
+        return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"),
+                               project_queues=queues["project"], cloud_queues=queues["clouds"])
+    return render_template("planner/backend.html", title="Add performance tests", test_id="null",
+                           project_queues=queues["project"], cloud_queues=queues["clouds"])
 
 
 @bp.route("/tests/frontend", methods=["GET", "POST"])

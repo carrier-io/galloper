@@ -27,6 +27,7 @@ from galloper.utils.grafana import set_grafana_datasources
 from galloper.dal.vault import initialize_project_space, remove_project_space, set_project_secrets,\
     set_project_hidden_secrets
 from galloper.dal.influx_results import create_project_databases, drop_project_databases
+from galloper.dal.rabbitmq import create_project_user_and_vhost
 from galloper.api.base import create_task
 from galloper.data_utils.file_utils import File
 from galloper.constants import (POST_PROCESSOR_PATH, CONTROL_TOWER_PATH, APP_IP, APP_HOST,
@@ -203,6 +204,7 @@ class ProjectAPI(Resource):
         project.commit()
         set_project_secrets(project.id, project_secrets)
         set_project_hidden_secrets(project.id, project_hidden_secrets)
+        create_project_user_and_vhost(project.id)
         create_project_databases(project.id)
         set_grafana_datasources(project.id)
         return {"message": f"Project was successfully created"}, 200

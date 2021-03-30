@@ -121,8 +121,8 @@ def run_task(project_id, event, task_id=None):
     return {"message": "Accepted", "code": 200, "task_id": task_id}
 
 
-def get_arbiter():
-    arbiter = Arbiter(host=RABBIT_HOST, port=RABBIT_PORT, user=RABBIT_USER, password=RABBIT_PASSWORD)
+def get_arbiter(host=RABBIT_HOST, port=RABBIT_PORT, user=RABBIT_USER, password=RABBIT_PASSWORD, vhost="carrier"):
+    arbiter = Arbiter(host=host, port=port, user=user, password=password, vhost=vhost)
     return arbiter
 
 

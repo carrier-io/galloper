@@ -182,10 +182,14 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["cc_env_vars"][key] = value
         if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
-        if "RABBIT_USER" not in execution_json["cc_env_vars"].keys():
+        if execution_json["channel"] == "default":
             execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
-        if "RABBIT_PASSWORD" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
+            execution_json["cc_env_vars"]["RABBIT_VHOST"] = "carrier"
+        else:
+            execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_project_user}}"
+            execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_project_password}}"
+            execution_json["cc_env_vars"]["RABBIT_VHOST"] = "{{secret.rabbit_project_vhost}}"
         if "GALLOPER_WEB_HOOK" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["GALLOPER_WEB_HOOK"] = "{{secret.post_processor}}"
         if pairs["customization"][0]:
@@ -297,10 +301,14 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 execution_json["cc_env_vars"][key] = value
         if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
-        if "RABBIT_USER" not in execution_json["cc_env_vars"].keys():
+        if execution_json["channel"] == "default":
             execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
-        if "RABBIT_PASSWORD" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
+            execution_json["cc_env_vars"]["RABBIT_VHOST"] = "carrier"
+        else:
+            execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_project_user}}"
+            execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_project_password}}"
+            execution_json["cc_env_vars"]["RABBIT_VHOST"] = "{{secret.rabbit_project_vhost}}"
 
         if self.customization:
             for key, value in self.customization.items():
