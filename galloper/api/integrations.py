@@ -15,10 +15,11 @@
 from flask_restful import Resource
 from galloper.database.models.project import Project
 from galloper.utils.api_utils import build_req_parser, str2bool
-from galloper.utils.integration_utils import jira_integration, smtp_integration, rp_integration, ado_integration
+from galloper.utils.integration_utils import jira_integration, smtp_integration, rp_integration, ado_integration, \
+    aws_integration
 
 
-class ReportersAPI(Resource):
+class IntegrationsAPI(Resource):
     post_rules = (
         dict(name="test", type=str2bool, default=False, location="json"),
         dict(name="integration", type=str, location="json"),
@@ -31,7 +32,8 @@ class ReportersAPI(Resource):
             "jira": jira_integration,
             "smtp": smtp_integration,
             "rp": rp_integration,
-            "ado": ado_integration
+            "ado": ado_integration,
+            "aws": aws_integration
         }
 
     def __init_req_parsers(self):

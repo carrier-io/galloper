@@ -214,11 +214,20 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
             "GALLOPER_PROJECT_ID": f"{self.project_id}",
             "GALLOPER_AUTH_TOKEN": unsecret("{{secret.auth_token}}", project_id=self.project_id),
         }
-        cc_env_vars = {
-            "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
-            "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
-            "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id)
-        }
+        if self.region == "default":
+            cc_env_vars = {
+                "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+                "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
+                "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id),
+                "RABBIT_VHOST": "carrier"
+            }
+        else:
+            cc_env_vars = {
+                "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+                "RABBIT_USER": unsecret("{{secret.rabbit_project_user}}", project_id=self.project_id),
+                "RABBIT_PASSWORD": unsecret("{{secret.rabbit_project_password}}", project_id=self.project_id),
+                "RABBIT_VHOST": unsecret("{{secret.rabbit_project_vhost}}", project_id=self.project_id)
+            }
         concurrency = 1
         #
         if output == "docker":
@@ -461,11 +470,20 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
         }
         if self.sast_settings.get("sast_target_type") == "target_code_path":
             parameters["code_path"] = self.sast_settings.get("sast_target_code")
-        cc_env_vars = {
-            "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
-            "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
-            "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id)
-        }
+        if self.region == "default":
+            cc_env_vars = {
+                "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+                "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
+                "RABBIT_PASSWORD": unsecret("{{secret.rabbit_password}}", project_id=self.project_id),
+                "RABBIT_VHOST": "carrier"
+            }
+        else:
+            cc_env_vars = {
+                "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
+                "RABBIT_USER": unsecret("{{secret.rabbit_project_user}}", project_id=self.project_id),
+                "RABBIT_PASSWORD": unsecret("{{secret.rabbit_project_password}}", project_id=self.project_id),
+                "RABBIT_VHOST": unsecret("{{secret.rabbit_project_vhost}}", project_id=self.project_id)
+            }
         concurrency = 1
         #
         if output == "docker":

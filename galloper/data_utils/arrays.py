@@ -18,12 +18,16 @@ def non_decreasing(data, deviation=None, val=False):
     else:
         index = 0
         for x, y in zip(data, data[1:]):
+            if y == 0:
+                continue
             index += 1
             if x > (y + y * deviation):
                 return y, index
         else:
-            return data[-1], index
-
+            if int(data[-1]) != 0:
+                return data[-1], index
+            else:
+                return max(data), data.index(max(data))
 
 
 def monotonic(data):

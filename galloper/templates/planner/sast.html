@@ -117,8 +117,22 @@
                         <div class="form-group">
                             <label class="form-control-label" for="region">Worker region</label>
                             <p><small>Region (Interceptor queue) in which to run the test</small></p>
-                            <input type="text" id="region" class="form-control form-control-alternative"
-                                   placeholder="default - to run the test from Carrier instance">
+                            <select class="selectpicker show-tick form-control form-control-sm mt-1"
+                                    id="region">
+                                <optgroup label="Public pool">
+                                    <option>default</option>
+                                </optgroup>
+                                <optgroup label="Project pool">
+                                    {% for q in project_queues %}
+                                    <option>{{ q }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Clouds">
+                                    {% for q in cloud_queues %}
+                                    <option>{{ q }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
                         </div>
                   </div>
                 </div>
@@ -205,7 +219,7 @@
         $('#testname').prop("disabled", true);
         $("#testid").css("display", "block");
         $("#testuuid").val(data.test_uid);
-        $("#region").val(data.region);
+        $("#region option:contains(" + data.region + ")").attr('selected', 'selected');
         //
         $(`#${data.sast_settings.sast_target_type}`).tab('show');
         //

@@ -17,6 +17,7 @@ from flask import Blueprint, render_template, request
 from galloper.database.models.project import Project
 from galloper.database.models.task import Task
 from galloper.utils.auth import project_required
+from galloper.dal.rabbitmq import get_project_queues
 
 bp = Blueprint("planner", __name__)
 
@@ -37,30 +38,42 @@ def tasks(project: Project):
 @bp.route("/tests/backend", methods=["GET", "POST"])
 @project_required
 def backend(project: Project):
+    queues = get_project_queues(project.id)
     if request.args.get("test"):
-        return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"))
-    return render_template("planner/backend.html", title="Add performance tests", test_id="null")
+        return render_template("planner/backend.html", title="Edit performance tests", test_id=request.args.get("test"),
+                               project_queues=queues["project"], cloud_queues=queues["clouds"])
+    return render_template("planner/backend.html", title="Add performance tests", test_id="null",
+                           project_queues=queues["project"], cloud_queues=queues["clouds"])
 
 
 @bp.route("/tests/frontend", methods=["GET", "POST"])
 @project_required
 def frontend(project: Project):
+    queues = get_project_queues(project.id)
     if request.args.get("test"):
-        return render_template("planner/frontend.html", title="Edit performance tests", test_id=request.args.get("test"))
-    return render_template("planner/frontend.html", title="Add performance tests", test_id="null")
+        return render_template("planner/frontend.html", title="Edit performance tests", test_id=request.args.get("test"),
+                               project_queues=queues["project"], cloud_queues=queues["clouds"])
+    return render_template("planner/frontend.html", title="Add performance tests", test_id="null",
+                           project_queues=queues["project"], cloud_queues=queues["clouds"])
 
 
 @bp.route("/tests/dast", methods=["GET", "POST"])
 @project_required
 def dast(project: Project):
+    queues = get_project_queues(project.id)
     if request.args.get("test"):
-        return render_template("planner/dast.html", title="Edit security tests", test_id=request.args.get("test"))
-    return render_template("planner/dast.html", title="Add security tests", test_id="null")
+        return render_template("planner/dast.html", title="Edit security tests", test_id=request.args.get("test"),
+                               project_queues=queues["project"], cloud_queues=queues["clouds"])
+    return render_template("planner/dast.html", title="Add security tests", test_id="null",
+                           project_queues=queues["project"], cloud_queues=queues["clouds"])
 
 
 @bp.route("/tests/sast", methods=["GET", "POST"])
 @project_required
 def sast(project: Project):
+    queues = get_project_queues(project.id)
     if request.args.get("test"):
-        return render_template("planner/sast.html", title="Edit security tests", test_id=request.args.get("test"))
-    return render_template("planner/sast.html", title="Add security tests", test_id="null")
+        return render_template("planner/sast.html", title="Edit security tests", test_id=request.args.get("test"),
+                               project_queues=queues["project"], cloud_queues=queues["clouds"])
+    return render_template("planner/sast.html", title="Add security tests", test_id="null",
+                           project_queues=queues["project"], cloud_queues=queues["clouds"])
