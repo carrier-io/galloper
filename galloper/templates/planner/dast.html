@@ -35,11 +35,25 @@
                         <input type="text" id="testuuid" class="form-control form-control-alternative" disabled placeholder="">
                       </div>
                       <div class="form-group">
-                          <label class="form-control-label" for="region">Worker region</label>
-                          <p><small>Region (Interceptor queue) in which to run the test</small></p>
-                          <input type="text" id="region" class="form-control form-control-alternative"
-                                 placeholder="default - to run the test from Carrier instance">
-                      </div>
+                            <label class="form-control-label" for="region">Worker region</label>
+                            <p><small>Region (Interceptor queue) in which to run the test</small></p>
+                            <select class="selectpicker show-tick form-control form-control-sm mt-1"
+                                    id="region">
+                                <optgroup label="Public pool">
+                                    <option>default</option>
+                                </optgroup>
+                                <optgroup label="Project pool">
+                                    {% for q in project_queues %}
+                                    <option>{{ q }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Clouds">
+                                    {% for q in cloud_queues %}
+                                    <option>{{ q }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                     <!-- Right column -->
                     <div class="col-lg-6">
@@ -167,7 +181,7 @@
         $('#testname').prop("disabled", true);
         $("#testid").css("display", "block");
         $("#testuuid").val(data.test_uid);
-        $('#region').val(data.region);
+        $("#region option:contains(" + data.region + ")").attr('selected', 'selected');
         //
         $("#dast_target_url").val(data.dast_settings.dast_target_url);
         data.dast_settings.scanners_checked.forEach(item => {

@@ -13,18 +13,19 @@
 #   limitations under the License.
 
 from rabbitmq_admin import AdminAPI
-from galloper.dal.vault import get_project_hidden_secrets, set_project_hidden_secrets
+from galloper.dal.vault import get_project_secrets, set_project_secrets, get_project_hidden_secrets
 from galloper.api.base import get_arbiter
 import random
 import string
 
 
 def create_project_user_and_vhost(project_id):
-    secrets = get_project_hidden_secrets(project_id)
+    secrets = get_project_secrets(project_id)
+    hidden_secrets = get_project_hidden_secrets(project_id)
 
     # connect to RabbitMQ management api
     rabbit_api = AdminAPI(url=f'http://carrier-rabbit:15672',
-                          auth=(secrets["rabbit_user"], secrets["rabbit_password"]))
+                          auth=(hidden_secrets["rabbit_user"], hidden_secrets["rabbit_password"]))
 
     # prepare user credentials
     user = f"rabbit_user_{project_id}"
@@ -40,7 +41,7 @@ def create_project_user_and_vhost(project_id):
     secrets["rabbit_project_user"] = user
     secrets["rabbit_project_password"] = password
     secrets["rabbit_project_vhost"] = vhost
-    set_project_hidden_secrets(project_id, secrets)
+    set_project_secrets(project_id, secrets)
 
 
 def password_generator(length=16):
@@ -60,20 +61,26 @@ def password_generator(length=16):
 
 
 def get_project_queues(project_id):
-    secrets = get_project_hidden_secrets(project_id)
-    queues = {"project": [], "clouds": []}
+    secrets = get_project_secrets(project_id)
+    hidden_secrets = get_project_hidden_secrets(project_id)
+    user = secrets["rabbit_project_user"] if "rabbit_project_user" in secrets else hidden_secrets["rabbit_project_user"]
+    password = secrets["rabbit_project_password"] if "rabbit_project_password" in secrets \
+        else hidden_secrets["rabbit_project_password"]
+    vhost = secrets["rabbit_project_vhost"] if "rabbit_project_vhost" in secrets \
+        else hidden_secrets["rabbit_project_vhost"]
 
     # Check project on demand queues
-    arbiter = get_arbiter(user=secrets["rabbit_project_user"], password=secrets["rabbit_project_password"],
-                          vhost=secrets["rabbit_project_vhost"])
+    arbiter = get_arbiter(user=user, password=password, vhost=vhost)
+    queues = {"project": [], "clouds": []}
     try:
         queues["project"] = list(arbiter.workers().keys())
     except:
         queues["project"] = []
+    arbiter.close()
 
     # Check project Cloud integrations
     for each in ["aws", "azure_cloud", "gcp", "kubernetes"]:
-        if each in secrets:
+        if each in hidden_secrets:
             queues["clouds"].append(each)
 
     return queues

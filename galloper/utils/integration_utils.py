@@ -168,15 +168,7 @@ def aws_integration(args, project):
                     "KeyName": "carrier-test",
                     "BlockDeviceMappings": [],
                     "SpotPrice": "0.1",
-                    "NetworkInterfaces": [
-                        {
-                            "DeviceIndex": 0,
-                            "SubnetId": args["config"]["subnet_id"],
-                            "DeleteOnTermination": True,
-                            "Groups": [],
-                            "AssociatePublicIpAddress": True
-                        }
-                    ]
+                    "NetworkInterfaces": []
                 }
             ]
         }

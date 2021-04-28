@@ -215,6 +215,6 @@ class TaskUpgradeApi(Resource):
         else:
             return {"message": "go away", "code": 400}, 400
         set_project_hidden_secrets(project.id, secrets)
-        if "rabbit_project_user" not in secrets:
+        if "rabbit_project_user" not in project_secrets:
             create_project_user_and_vhost(project_id)
         return {"message": "Done", "code": 200}

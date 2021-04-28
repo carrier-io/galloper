@@ -163,8 +163,36 @@
                                 <div class="form-group">
                                     <label class="form-control-label" for="region">Worker region</label>
                                     <p><small>Region (Interceptor queue) in which to run the test</small></p>
-                                    <input type="text" id="region" class="form-control form-control-alternative"
-                                           placeholder="default - to run the test from Carrier instance">
+                                    <select class="selectpicker show-tick form-control form-control-sm mt-1" id="region">
+                                        <optgroup label="Public pool">
+                                            <option>default</option>
+                                        </optgroup>
+                                        <optgroup label="Project pool">
+                                        {% for q in project_queues %}
+                                            <option>{{ q }}</option>
+                                        {% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Clouds">
+                                        {% for q in cloud_queues %}
+                                            <option>{{ q }}</option>
+                                        {% endfor %}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <div id="lg_resources">
+                                        <label class="form-control-label" for="lg_resources">EC2 instance resources</label>
+                                        <div class="col-lg-6">
+                                            <p><small>CPU cores</small></p>
+                                            <input type="text" id="cpu" class="form-control form-control-alternative"
+                                           value="1">
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <p><small>Memory, Gb</small></p>
+                                            <input type="text" id="memory" class="form-control form-control-alternative"
+                                           value="1">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -288,9 +316,7 @@
             console.log("Error in getting browsers");
         }
         });
-
-
-
+        $("#lg_resources").hide();
         if (test_id !== null) {
             $.get(
                 `/api/v1/tests/${project_id}/frontend/${test_id}`, { raw: 1 }, function( data ) {
@@ -304,7 +330,10 @@
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
                     $('#loops').val(data.loops);
-                    $('#region').val(data.region);
+                    $("#region option:contains(" + data.region + ")").attr('selected', 'selected');
+                    if (["aws", "azure_cloud", "gcp"].includes(data.region)) {
+                        $("#lg_resources").show();
+                    }
                     $('#emails').val(data.emails);
 
                     if (data.git != null && data.git.hasOwnProperty("repo")) {
@@ -339,9 +368,15 @@
                         $("#script_params").children().last().children()[1].value = value;
                     }
                     for (let [key, value] of Object.entries(data.env_vars)) {
-                        add('env_vars');
-                        $("#env_vars").children().last().children()[0].value = key;
-                        $("#env_vars").children().last().children()[1].value = value;
+                        if (key == "cpu_cores_limit") {
+                            $("#cpu").val(value);
+                        } else if (key == "memory_limit") {
+                            $("#memory").val(value);
+                        } else {
+                            add('env_vars');
+                            $("#env_vars").children().last().children()[0].value = key;
+                            $("#env_vars").children().last().children()[1].value = value;
+                        }
                     }
                     for (let [key, value] of Object.entries(data.customization)) {
                         addB('customs');
@@ -368,6 +403,14 @@
         } else {
           $("#email_input").hide();
         }
+    });
+
+    $('#region').on("changed.bs.select", function() {
+    if (["aws", "azure_cloud", "gcp"].includes($("#region").val())) {
+        $("#lg_resources").show();
+    } else {
+        $("#lg_resources").hide();
+    }
     });
 
     function addB(container) {
@@ -397,6 +440,8 @@
                 env_vars[$(this).children()[0].value] = $(this).children()[1].value;
            }
       });
+      env_vars["cpu_cores_limit"] = $('#cpu').val();
+      env_vars["memory_limit"] = $('#memory').val();
       $("#customs .input-group").each(function() {
            if ($(this).children()[0].value !== "" && $(this).children()[1].value !== "") {
                 extensions[$(this).children()[0].value] = $(this).children()[1].value;

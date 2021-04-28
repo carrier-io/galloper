@@ -13,6 +13,8 @@ buffer-size = 16384
 
 vacuum = true
 die-on-term = true
+
+lazy-apps = true
 """
 
 
