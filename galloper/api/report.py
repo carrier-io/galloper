@@ -399,7 +399,7 @@ class TestSaturation(Resource):
     def part(data, part):
         data = sorted(data)
         n = len(data)
-        if n <= part:
+        if n <= part or part == 1:
             return data[-1]
         parts = n // part
         return data[parts * (part-1)]

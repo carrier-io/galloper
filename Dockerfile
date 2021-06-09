@@ -83,7 +83,7 @@ ADD MANIFEST.in /tmp/MANIFEST.in
 ADD requirements.txt /tmp/requirements.txt
 COPY galloper /tmp/galloper
 
-RUN pip install git+https://github.com/carrier-io/arbiter.git
+RUN pip install git+https://github.com/carrier-io/arbiter.git@v.2.5
 RUN cd /tmp && python setup.py install && rm -rf /tmp/*
 RUN mkdir /tmp/tasks
 RUN mkdir /tmp/db

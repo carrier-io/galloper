@@ -116,7 +116,7 @@ def calculate_auto_aggregation(build_id, test_name, lg_type, start_time, end_tim
             if int(result[0]["sum"]) > MAX_DOTS_ON_CHART and aggregation != "10m":
                 aggregation = aggr_list[i + 1]
             if int(result[0]["sum"]) == 0 and aggregation != "1s":
-                aggregation = aggr_list[i - 1]
+                aggregation = "30s"
                 break
     return aggregation
 

@@ -149,7 +149,8 @@ class ProjectAPI(Resource):
             "env_vars": dumps({
                 "jmeter_db": "{{secret.jmeter_db}}",
                 "gatling_db": "{{secret.gatling_db}}",
-                "comparison_db": "{{secret.comparison_db}}"
+                "comparison_db": "{{secret.comparison_db}}",
+                "AWS_LAMBDA_FUNCTION_TIMEOUT": 900
             })
         }
         pp = create_task(project, File(POST_PROCESSOR_PATH), pp_args)
@@ -162,7 +163,8 @@ class ProjectAPI(Resource):
                 "galloper_url": "{{secret.galloper_url}}",
                 "GALLOPER_WEB_HOOK": '{{secret.post_processor}}',
                 "project_id": '{{secret.project_id}}',
-                "loki_host": '{{secret.loki_host}}'
+                "loki_host": '{{secret.loki_host}}',
+                "AWS_LAMBDA_FUNCTION_TIMEOUT": 900
             })
         }
         cc = create_task(project, File(CONTROL_TOWER_PATH), cc_args)
