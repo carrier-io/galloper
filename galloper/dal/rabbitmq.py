@@ -63,15 +63,26 @@ def password_generator(length=16):
 def get_project_queues(project_id):
     secrets = get_project_secrets(project_id)
     hidden_secrets = get_project_hidden_secrets(project_id)
+    root_user = secrets["rabbit_user"] if "rabbit_user" in secrets else hidden_secrets["rabbit_user"]
+    root_password = secrets["rabbit_password"] if "rabbit_password" in secrets else hidden_secrets["rabbit_password"]
     user = secrets["rabbit_project_user"] if "rabbit_project_user" in secrets else hidden_secrets["rabbit_project_user"]
     password = secrets["rabbit_project_password"] if "rabbit_project_password" in secrets \
         else hidden_secrets["rabbit_project_password"]
     vhost = secrets["rabbit_project_vhost"] if "rabbit_project_vhost" in secrets \
         else hidden_secrets["rabbit_project_vhost"]
 
+    queues = {"public": [], "project": [], "clouds": []}
+
+    # Check public on demand queues
+    arbiter = get_arbiter(user=root_user, password=root_password, vhost="carrier")
+    try:
+        queues["public"] = list(arbiter.workers().keys())
+    except:
+        queues["public"] = []
+    arbiter.close()
+
     # Check project on demand queues
     arbiter = get_arbiter(user=user, password=password, vhost=vhost)
-    queues = {"project": [], "clouds": []}
     try:
         queues["project"] = list(arbiter.workers().keys())
     except:

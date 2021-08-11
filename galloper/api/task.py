@@ -174,13 +174,13 @@ class TaskUpgradeApi(Resource):
     def create_cc_task(self, project):
         upload_file(bucket="tasks", f=File(CONTROL_TOWER_PATH), project=project)
         task = Task.query.filter(and_(Task.task_name == "control_tower", Task.project_id == project.id)).first()
-        setattr(task, "zippath", "tasks/control-tower.zip")
+        setattr(task, "zippath", "tasks/control-tower_v_2_5.zip")
         task.commit()
 
     def create_pp_task(self, project):
         upload_file(bucket="tasks", f=File(POST_PROCESSOR_PATH), project=project)
         task = Task.query.filter(and_(Task.task_name == "post_processor", Task.project_id == project.id)).first()
-        setattr(task, "zippath", "tasks/post_processing.zip")
+        setattr(task, "zippath", "tasks/post_processing_v_2_5.zip")
         task.commit()
 
     def get(self, project_id):

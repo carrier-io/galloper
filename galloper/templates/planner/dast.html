@@ -40,7 +40,9 @@
                             <select class="selectpicker show-tick form-control form-control-sm mt-1"
                                     id="region">
                                 <optgroup label="Public pool">
-                                    <option>default</option>
+                                    {% for q in public_queues %}
+                                    <option>{{ q }}</option>
+                                    {% endfor %}
                                 </optgroup>
                                 <optgroup label="Project pool">
                                     {% for q in project_queues %}
