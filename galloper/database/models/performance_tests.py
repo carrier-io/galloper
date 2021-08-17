@@ -21,6 +21,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret
+from galloper.dal.rabbitmq import get_project_queues
 from galloper.constants import JOB_CONTAINER_MAPPING, CURRENT_RELEASE
 
 
@@ -182,7 +183,8 @@ class PerformanceTests(AbstractBaseMixin, Base):
                 execution_json["cc_env_vars"][key] = value
         if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
-        if execution_json["channel"] == "default":
+        project_queues = get_project_queues(project_id=self.project_id)
+        if execution_json["channel"] in project_queues["public"]:
             execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
             execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
             execution_json["cc_env_vars"]["RABBIT_VHOST"] = "carrier"
@@ -301,7 +303,8 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
                 execution_json["cc_env_vars"][key] = value
         if "RABBIT_HOST" not in execution_json["cc_env_vars"].keys():
             execution_json["cc_env_vars"]["RABBIT_HOST"] = "{{secret.rabbit_host}}"
-        if execution_json["channel"] == "default":
+        project_queues = get_project_queues(project_id=self.project_id)
+        if execution_json["channel"] in project_queues["public"]:
             execution_json["cc_env_vars"]["RABBIT_USER"] = "{{secret.rabbit_user}}"
             execution_json["cc_env_vars"]["RABBIT_PASSWORD"] = "{{secret.rabbit_password}}"
             execution_json["cc_env_vars"]["RABBIT_VHOST"] = "carrier"

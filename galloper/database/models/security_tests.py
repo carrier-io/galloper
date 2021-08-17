@@ -19,6 +19,7 @@ from sqlalchemy import Column, Integer, String, Text, JSON, ARRAY
 from galloper.database.db_manager import Base
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.dal.vault import unsecret, get_project_hidden_secrets
+from galloper.dal.rabbitmq import get_project_queues
 from galloper.processors.minio import MinioClient
 from galloper.constants import CURRENT_RELEASE
 
@@ -214,7 +215,8 @@ class SecurityTestsDAST(AbstractBaseMixin, Base):
             "GALLOPER_PROJECT_ID": f"{self.project_id}",
             "GALLOPER_AUTH_TOKEN": unsecret("{{secret.auth_token}}", project_id=self.project_id),
         }
-        if self.region == "default":
+        project_queues = get_project_queues(project_id=self.project_id)
+        if self.region in project_queues["public"]:
             cc_env_vars = {
                 "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
                 "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
@@ -470,7 +472,8 @@ class SecurityTestsSAST(AbstractBaseMixin, Base):
         }
         if self.sast_settings.get("sast_target_type") == "target_code_path":
             parameters["code_path"] = self.sast_settings.get("sast_target_code")
-        if self.region == "default":
+        project_queues = get_project_queues(project_id=self.project_id)
+        if self.region in project_queues["public"]:
             cc_env_vars = {
                 "RABBIT_HOST": unsecret("{{secret.rabbit_host}}", project_id=self.project_id),
                 "RABBIT_USER": unsecret("{{secret.rabbit_user}}", project_id=self.project_id),
