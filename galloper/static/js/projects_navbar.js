@@ -85,7 +85,7 @@
                 request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
                 request.send(req.responseText);
                 if (request.status === 200) {
-                    projectData = JSON.parse(request.responseText);
+                    projectData = JSON.parse(request.responseText)["rows"];
                     initProjectDropdown(projectData);
                     window.location.reload();
                     return false;
@@ -106,7 +106,7 @@
             request.open("GET", `/api/v1/project`, false);  // `false` makes the request synchronous
             request.send();
             if (request.status === 200) {
-                let projectsData = JSON.parse(request.responseText);
+                let projectsData = JSON.parse(request.responseText)["rows"];
                 for (let projectData of projectsData) {
                     let aElement = document.createElement("a");
                     aElement.setAttribute("class", "dropdown-item");

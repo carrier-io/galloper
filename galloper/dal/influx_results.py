@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from galloper.constants import str_to_timestamp, MAX_DOTS_ON_CHART
 from galloper.dal.vault import get_project_hidden_secrets, get_project_secrets
 from galloper.database.models.api_reports import APIReport
+from flask import current_app
 
 
 def get_client(project_id, db_name=None):
@@ -404,10 +405,15 @@ def get_build_data(build_id, test_name, lg_type, start_time, end_time, sampler, 
                         f"build_id='{build_id}' group by request_name"
     res = get_client(project_id).query(requests_in_range)[f"{test_name}_5s"]
     requests_names = [f"'{each['request_name']}'" for each in res]
-    if len(requests_names) > 1:
-        requests = f'[{"|".join(requests_names)}]'
-    elif requests_names:
-        requests = requests_names[0].replace("'", "")
+    escaped_requests_names = []
+    for each in requests_names:
+        for _ in ["[", "]", "-", "/"]:
+            each = each.replace(_, f"\\{_}")
+        escaped_requests_names.append(each)
+    if len(escaped_requests_names) > 1:
+        requests = f'[{"|".join(escaped_requests_names)}]'
+    elif escaped_requests_names:
+        requests = escaped_requests_names[0].replace("'", "")
     else:
         return []
     query = f"select * from comparison_{project_id}..api_comparison where build_id='{build_id}' and request_name=~/^{requests}/"
