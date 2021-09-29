@@ -90,8 +90,9 @@ class ProjectAPI(Resource):
                 projects = Project.query.filter(_filter).limit(limit_).offset(offset_).all()
             else:
                 projects = Project.query.limit(limit_).offset(offset_).all()
-
-        return [project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects], 200
+        total = Project.query.order_by(Project.id.desc()).count()
+        project_list = [project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects]
+        return {"total": total, "rows": project_list}, 200
 
     @superadmin_required
     def post(self, project_id: Optional[int] = None) -> Tuple[dict, int]:
