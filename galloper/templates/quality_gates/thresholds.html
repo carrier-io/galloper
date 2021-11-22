@@ -15,7 +15,7 @@
                               <span>Test:</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
-                              <select class="selectpicker show-tick form-control form-control-sm mt-1" id="testName" onchange="renderTable()">
+                              <select class="selectpicker show-tick form-control form-control-sm mt-1" id="testName" onchange="renderTable('refreshEnvPicker')">
                                   {% for test in tests %}
                                     <option>{{ test }}</option>
                                   {% endfor %}
@@ -25,7 +25,7 @@
                               <span>Env:</span>
                           </li>
                           <li class="nav-item mr-2 mr-md-0">
-                              <select class="selectpicker show-tick form-control form-control-sm mt-1" id="envName" onchange="renderTable()">
+                              <select class="selectpicker show-tick form-control form-control-sm mt-1" id="envName" onchange="renderTable('')">
                               </select>
                           </li>
                           <li class="nav-item mr-2 mr-md-0 ">
@@ -168,15 +168,18 @@
         $.get(`/api/v1/environment/${selectedProjectId}`,
           { name: $("#testName").val() },
           function(data) {
+            $("#envName").empty();
             data.forEach(item => {
                 $("#envName").append(`<option value="${item}">${item}</option>`);
             });
             $("#scope").selectpicker('val', data[0]);
             $("#envName").selectpicker('refresh').trigger('change');
-            renderTable();
           });
     }
-    function renderTable() {
+    function renderTable(action) {
+        if (action == "refreshEnvPicker") {
+            renderEnvPicker();
+        }
         let selectedProjectId = getSelectedProjectId();
         $("#thresholds").bootstrapTable('refresh', {url: "/api/v1/thresholds/"+selectedProjectId+"/backend?name="+$("#testName").val()+"&environment="+$("#envName").val()});
     }
@@ -290,5 +293,6 @@
 
     $(document).ready(function() {
         renderEnvPicker();
+        renderTable('');
     });
 </script>

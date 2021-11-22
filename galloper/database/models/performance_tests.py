@@ -117,8 +117,9 @@ class PerformanceTests(AbstractBaseMixin, Base):
         if self.job_type == 'perfmeter':
             entrypoint = self.entrypoint if path.exists(self.entrypoint) else path.join('/mnt/jmeter', self.entrypoint)
             cmd = f"-n -t {entrypoint}"
-            if "custom_jmeter_cmd" in list(env_vars.keys()):
-                cmd += f" {env_vars['custom_jmeter_cmd']}"
+            if env_vars:
+                if "custom_jmeter_cmd" in list(env_vars.keys()):
+                    cmd += f" {env_vars['custom_jmeter_cmd']}"
             for key, value in params.items():
                 if test_type and key == "test.type":
                     cmd += f" -Jtest.type={test_type}"
@@ -254,7 +255,7 @@ class UIPerformanceTests(AbstractBaseMixin, Base):
     loops = Column(Integer)
     aggregation = Column(String(20))
 
-    
+
     def configure_execution_json(self, output='cc', browser=None, test_type=None, params=None, env_vars=None, reporting=None,
                                  customization=None, cc_env_vars=None, parallel=None, execution=False):
 
