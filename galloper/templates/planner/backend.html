@@ -31,6 +31,7 @@
                                     <p><small>Choose the runner for the test.</small></p>
                                     <select class="selectpicker show-tick form-control form-control-sm mt-1" id="runner">
                                         <optgroup label="jMeter">
+                                            <option>v5.4.1</option>
                                             <option>v5.3</option>
                                             <option>v5.2.1</option>
                                             <option>v5.2</option>
@@ -359,7 +360,7 @@
     });
 
     $('#runner').on("changed.bs.select", function() {
-        if (["v5.3", "v5.2.1","v5.2", "v5.1.1", "v5.1", "v5.0", "v4.0"].includes($("#runner").val())) {
+        if (["5.4.1", "v5.3", "v5.2.1","v5.2", "v5.1.1", "v5.1", "v5.0", "v4.0"].includes($("#runner").val())) {
             $("#compile").attr("disabled", true);
         } else {
             $("#compile").attr("disabled", false);

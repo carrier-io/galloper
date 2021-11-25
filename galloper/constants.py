@@ -37,7 +37,8 @@ INFLUX_USER = environ.get('INFLUX_USER', '')
 INFLUX_PORT = 8086
 LOKI_PORT = 3100
 _url = urlparse(APP_HOST)
-EXTERNAL_LOKI_HOST = f"http://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST.replace("https://", "http://")
+EXTERNAL_LOKI_HOST = f"http://{_url.netloc.split('@')[1]}" if "@" in APP_HOST else APP_HOST.replace("https://",
+                                                                                                    "http://")
 INTERNAL_LOKI_HOST = "http://carrier-loki"
 APP_IP = urlparse(EXTERNAL_LOKI_HOST).netloc
 POST_PROCESSOR_PATH = "https://github.com/carrier-io/performance_post_processor/releases/download/v.2.5/post_processing_v_2_5.zip"
@@ -71,6 +72,11 @@ NAME_CONTAINER_MAPPING = {
 }
 
 JOB_CONTAINER_MAPPING = {
+    "v5.4.1": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.4.1",
+        "job_type": "perfmeter",
+        "influx_db": "{{secret.jmeter_db}}"
+    },
     "v5.3": {
         "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.3",
         "job_type": "perfmeter",
@@ -118,6 +124,7 @@ JOB_CONTAINER_MAPPING = {
     }
 }
 
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -137,7 +144,6 @@ ADD {localfile} /tmp/{docker_path}
 ENTRYPOINT ["unzip", "/tmp/{docker_path}", "-d", "/tmp/unzipped"]
 """
 
-
 UNZIP_DOCKER_COMPOSE = """version: '3'
 services:
   unzip:
@@ -151,7 +157,6 @@ volumes:
   {volume}:
     external: true
 """
-
 
 check_ui_performance = '''return (function() {
 var metas=Array.prototype.slice.call(document.querySelectorAll('meta[name][content]'));
