@@ -122,7 +122,8 @@ def only_users_projects():
             group = int(group)
         except:
             group = group.replace("superadmin", "all")
-        project.append(group)
+        if group == "all" or isinstance(group, int):
+            project.append(group)
     return project
 
 

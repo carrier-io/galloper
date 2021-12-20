@@ -68,6 +68,11 @@ class ProjectAPI(Resource):
         self._parser_get = build_req_parser(rules=self.get_rules)
         self._parser_post = build_req_parser(rules=self.post_rules)
 
+    def __get_project_count(self, _filter):
+        if _filter is not None:
+            return Project.query.order_by(Project.id.desc()).count()
+        return Project.query.filter(_filter).order_by(Project.id.desc()).count()
+
     def get(self, project_id: Optional[int] = None) -> Union[Tuple[dict, int], Tuple[list, int]]:
         args = self._parser_get.parse_args()
         offset_ = args["offset"]
@@ -90,7 +95,7 @@ class ProjectAPI(Resource):
                 projects = Project.query.filter(_filter).limit(limit_).offset(offset_).all()
             else:
                 projects = Project.query.limit(limit_).offset(offset_).all()
-        total = Project.query.order_by(Project.id.desc()).count()
+        total = self.__get_project_count(_filter)
         project_list = [project.to_json(exclude_fields=Project.API_EXCLUDE_FIELDS) for project in projects]
         return {"total": total, "rows": project_list}, 200
 
