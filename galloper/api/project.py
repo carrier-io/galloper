@@ -70,8 +70,8 @@ class ProjectAPI(Resource):
 
     def __get_project_count(self, _filter):
         if _filter is not None:
-            return Project.query.order_by(Project.id.desc()).count()
-        return Project.query.filter(_filter).order_by(Project.id.desc()).count()
+            return Project.query.filter(_filter).order_by(Project.id.desc()).count()
+        return Project.query.order_by(Project.id.desc()).count()
 
     def get(self, project_id: Optional[int] = None) -> Union[Tuple[dict, int], Tuple[list, int]]:
         args = self._parser_get.parse_args()
