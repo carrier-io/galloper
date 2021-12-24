@@ -146,7 +146,8 @@ class TestApiBackend(Resource):
     _get_rules = (
         dict(name="raw", type=int, default=0, location="args"),
         dict(name="type", type=str, default='cc', location="args"),
-        dict(name="exec", type=str2bool, default=False, location="args")
+        dict(name="exec", type=str2bool, default=False, location="args"),
+        dict(name="source", type=str, default='legacy', location="args")
     )
 
     _put_rules = (
@@ -183,6 +184,8 @@ class TestApiBackend(Resource):
         else:
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         test = PerformanceTests.query.filter(_filter).first()
+        if type(test.git) is dict and test.git['repo_pass'] is not None and len(test.git['repo_pass']) and args["source"] == "galloper":
+            test.git['repo_pass'] = "********"
         if args.raw:
             return test.to_json(["influx.port", "influx.host", "galloper_url",
                                  "influx.db", "comparison_db", "telegraf_db",

@@ -136,7 +136,7 @@
                                                 </div>
                                                 <div class="col">
                                                   <label class="form-control-label" for="repo_pass">Git Password</label>
-                                                  <input type="text" id="repo_pass" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
+                                                  <input type="password" id="repo_pass" class="form-control form-control-alternative" placeholder="(optional, for HTTPS URLs)">
                                                 </div>
                                             </div>
                                             <div class="row">
@@ -290,7 +290,7 @@
         if (test_id !== null) {
             var project_id = $("#selected-project-id").text();
             $.get(
-                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1 }, function( data ) {
+                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1, source: "galloper" }, function( data ) {
                     $('#submit').attr("onclick", "updateTest()");
                     $('#submit').text("Edit");
                     $('#testname').val(data.name);
