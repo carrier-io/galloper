@@ -170,7 +170,7 @@
 
         var type = page_params.get("type")
         $.ajax({
-            url: `/api/v1/tests/${project_id}/${type}/${test_id}?raw=1`,
+            url: `/api/v1/tests/${project_id}/${type}/${test_id}?raw=1&source=galloper`,
             type: 'GET',
             success: function (result) {
                 console.log(result)

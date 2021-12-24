@@ -290,7 +290,7 @@
         if (test_id !== null) {
             var project_id = $("#selected-project-id").text();
             $.get(
-                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1 }, function( data ) {
+                `/api/v1/tests/${project_id}/backend/${test_id}`, { raw: 1, source: "galloper" }, function( data ) {
                     $('#submit').attr("onclick", "updateTest()");
                     $('#submit').text("Edit");
                     $('#testname').val(data.name);
