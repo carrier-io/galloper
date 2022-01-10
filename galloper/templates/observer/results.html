@@ -127,6 +127,11 @@
                         <span class="h4 font-weight-bold mb-0 text-lowercase">{{ test_data['url'] }}</span>
                     </div>
                 </div>
+                <div class="row">
+                <div class="col mt-3">
+                    <input type="button" value="Recalculate" onclick="recalculateUITest()" class="btn btn-primary btn-sm">
+                 </div>
+                </div>
             </div>
         </div>
     </div>
@@ -178,7 +183,12 @@
                         <th scope="col" data-sortable="true" data-field="first_paint">FP, ms</th>
                         <th scope="col" data-sortable="true" data-field="content_load">Content, ms</th>
                         <th scope="col" data-sortable="true" data-field="dom_processing">DOM, ms</th>
-                        <th scope="col" data-sortable="true" data-field="missed_thresholds">Missed thresholds</th>
+                        <th scope="col" data-sortable="true" data-field="fcp">FCP, ms</th>
+                        <th scope="col" data-sortable="true" data-field="lcp">LCP, ms</th>
+                        <th scope="col" data-sortable="true" data-field="cls">CLS, ms</th>
+                        <th scope="col" data-sortable="true" data-field="tbt">TBT, ms</th>
+                        <th scope="col" data-sortable="true" data-field="fvc">FVC, ms</th>
+                        <th scope="col" data-sortable="true" data-field="lvc">LVC, ms</th>
                         <th scope="col" data-formatter=reportLink>Report</th>
                         <th scope="col" data-formatter=renameButton>Rename page</th>
                     </tr>
@@ -304,6 +314,20 @@
 
             $('#exampleModal').modal('show');
     };
+
+
+    function recalculateUITest() {
+        let selectedProjectId = getSelectedProjectId();
+        let report_id = page_params.get("report_id");
+        $.ajax({
+            headers: { "Content-Type": "application/json"},
+            type: "GET",
+            url: `/api/v1/visual/${selectedProjectId}/${report_id}/recalculate`,
+            success: () => {
+                location.reload();
+            }
+        });
+    }
 
 
 </script>

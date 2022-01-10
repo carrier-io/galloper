@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, JSON
+from sqlalchemy import Column, Integer, String, JSON, Float
 
 from galloper.database.abstract_base import AbstractBaseMixin
 from galloper.database.db_manager import Base
@@ -29,3 +29,11 @@ class UIResult(AbstractBaseMixin, Base):
     locators = Column(JSON, unique=False, default=[{}])
     resolution = Column(String(128), unique=False)
     browser_version = Column(String(128), unique=False, nullable=True)
+    browser_time = Column(JSON, unique=False, nullable=True)
+    fcp = Column(Integer, unique=False, nullable=True)
+    lcp = Column(Integer, unique=False, nullable=True)
+    cls = Column(Float, unique=False, nullable=True)
+    tbt = Column(Integer, unique=False, nullable=True)
+    fvc = Column(Integer, unique=False, nullable=True)
+    lvc = Column(Integer, unique=False, nullable=True)
+
