@@ -39,6 +39,7 @@ class UITestsApiPerformance(Resource):
         dict(name="env_vars", type=str, location='form'),
         dict(name="loops", type=int, location='form', default=1),
         dict(name="region", type=str, location='form', default="default"),
+        dict(name="runner", type=str, location='form', default="Observer"),
         dict(name="aggregation", type=str, location='form', default="max"),
         dict(name="customization", type=str, location='form'),
         dict(name="cc_env_vars", type=str, location='form'),
@@ -70,7 +71,8 @@ class UITestsApiPerformance(Resource):
         project = Project.get_or_404(project_id)
 
         browser = args["browser"]
-        runner = f"getcarrier/observer:{CURRENT_RELEASE}"
+        runner = f"getcarrier/observer:{CURRENT_RELEASE}" if args["runner"] == "Observer" else \
+                 f"getcarrier/observer-lighthouse:{CURRENT_RELEASE}"
         job_type = "observer"
 
         if args.get("git"):

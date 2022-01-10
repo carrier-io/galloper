@@ -27,6 +27,14 @@
                                            placeholder="Test Name">
                                 </div>
                                 <div class="form-group">
+                                    <label class="form-control-label" for="runner">Test runner</label>
+                                    <p><small>Observer - used for .side scripts or Lighthouse.</small></p>
+                                    <select class="form-control selectpicker" id="runner">
+                                        <option value="max">Observer</option>
+                                        <option value="min">Lighthouse</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
                                     <label class="form-control-label" for="loops">Number of loops</label>
                                     <p><small>How many times to repeat scenario execution.</small></p>
                                     <input type="text" id="loops" class="form-control form-control-alternative"
@@ -529,6 +537,7 @@
           data.append('name', $('#testname').val());
           data.append('loops', $('#loops').val());
           data.append('region', $('#region').val());
+          data.append('runner', $('#runner').val());
           data.append('entrypoint', $('#entrypoint').val());
           data.append('browser', $('#browsers .filter-option-inner-inner').text());
           data.append('reporter', checked);
