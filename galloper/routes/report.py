@@ -96,9 +96,10 @@ def visual_report(project: Project):
     results = UIResult.query.filter_by(report_uid=ui_report.uid).all()
 
     totals = list(map(lambda x: x.total, results))
-
-    avg_page_load = sum(totals) / len(totals)
-
+    try:
+        avg_page_load = sum(totals) / len(totals)
+    except ZeroDivisionError:
+        avg_page_load = 0
     try:
         thresholds_missed = round(ui_report.thresholds_failed / ui_report.thresholds_total * 100, 2)
     except ZeroDivisionError:
@@ -112,11 +113,15 @@ def visual_report(project: Project):
         browser_version = results[0].browser_version.split(" ")[1]
     except:
         browser_version = "undefined"
+    try:
+        resolution = results[0].resolution
+    except:
+        resolution = 0
     test_data = dict(id=report_id, project_id=project.id, name=ui_report.name,
                      environment=ui_report.environment,
                      browser=ui_report.browser,
                      browser_version=browser_version,
-                     resolution=results[0].resolution,
+                     resolution=resolution,
                      url=ui_report.base_url,
                      end_time=ui_report.stop_time, start_time=ui_report.start_time,
                      duration=ui_report.duration,

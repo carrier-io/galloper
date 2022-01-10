@@ -74,7 +74,13 @@ class UIResultsAPI(Resource):
             dom_processing=metrics["dom_processing"],
             locators=args["locators"],
             resolution=args["resolution"],
-            browser_version=args["browser_version"]
+            browser_version=args["browser_version"],
+            fcp=metrics["first_contentful_paint"],
+            lcp=metrics["largest_contentful_paint"],
+            cls=metrics["cumulative_layout_shift"],
+            tbt=metrics["total_blocking_time"],
+            fvc=metrics["first_visual_change"],
+            lvc=metrics["last_visual_change"]
         )
 
         result.insert()

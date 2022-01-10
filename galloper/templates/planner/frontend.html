@@ -30,17 +30,17 @@
                                     <label class="form-control-label" for="runner">Test runner</label>
                                     <p><small>Observer - used for .side scripts or Lighthouse.</small></p>
                                     <select class="form-control selectpicker" id="runner">
-                                        <option value="max">Observer</option>
-                                        <option value="min">Lighthouse</option>
+                                        <option value="Observer">Observer</option>
+                                        <option value="Lighthouse">Lighthouse</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" id="_loops">
                                     <label class="form-control-label" for="loops">Number of loops</label>
                                     <p><small>How many times to repeat scenario execution.</small></p>
                                     <input type="text" id="loops" class="form-control form-control-alternative"
                                            placeholder="# of loops" value="1">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" id="_aggregation">
                                     <label class="form-control-label" for="aggregation">Chart data aggregation</label>
                                     <p><small>Aggregation rule for chard data.</small></p>
                                     <select class="form-control selectpicker" id="aggregation">
@@ -420,6 +420,18 @@
         $("#lg_resources").show();
     } else {
         $("#lg_resources").hide();
+    }
+    });
+
+    $('#runner').on("changed.bs.select", function() {
+    if ("Lighthouse" == $("#runner").val()) {
+        $("#_aggregation").hide();
+        $("#_loops").hide();
+        $("#browsers").hide();
+    } else {
+        $("#_aggregation").show();
+        $("#_loops").show();
+        $("#browsers").show();
     }
     });
 

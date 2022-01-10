@@ -70,7 +70,7 @@ class UITestsApiPerformance(Resource):
         args = self.post_parser.parse_args(strict=False)
         project = Project.get_or_404(project_id)
 
-        browser = args["browser"]
+        browser = args["browser"] if args["browser"] != "Nothing selected" else "Chrome_undefined"
         runner = f"getcarrier/observer:{CURRENT_RELEASE}" if args["runner"] == "Observer" else \
                  f"getcarrier/observer-lighthouse:{CURRENT_RELEASE}"
         job_type = "observer"
