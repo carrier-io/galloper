@@ -1,9 +1,14 @@
+import io
 import itertools
+import zipfile
 from typing import Optional
 from uuid import uuid4
+from json import loads
 
 from flask_restful import Resource
 from sqlalchemy import and_
+from flask import current_app
+from traceback import format_exc
 
 from galloper.api.base import get
 from galloper.data_utils.arrays import get_aggregated_data, closest
@@ -11,6 +16,7 @@ from galloper.database.models.project import Project
 from galloper.database.models.ui_report import UIReport
 from galloper.database.models.ui_result import UIResult
 from galloper.utils.api_utils import build_req_parser
+from galloper.processors.minio import MinioClient
 
 
 class VisualReportAPI(Resource):
@@ -67,7 +73,6 @@ class VisualReportAPI(Resource):
                         thresholds_missed=thresholds_missed,
                         avg_page_load=round(avg_page_load / 1000, 2),
                         avg_step_duration=0.5, build_id=str(uuid4()), release_id=1, status=report.status)
-
             res.append(data)
 
         for each in res:
@@ -93,7 +98,6 @@ class VisualReportAPI(Resource):
 
 
 class VisualResultAPI(Resource):
-
     def get(self, project_id: int, report_id: int, action: Optional[str] = "table"):
         _action_mapping = {
             "table": [],
@@ -110,13 +114,39 @@ class VisualResultAPI(Resource):
         results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.session_id,
                                                                                                   UIResult.id).all()
 
+        if action == 'recalculate':
+            project = Project.get_or_404(project_id)
+            return self.recalculate(project, results)
+
         nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops)
 
         _action_mapping["chart"]["nodes"] = nodes
         _action_mapping["chart"]["edges"] = edges
-
         _action_mapping["table"] = self.build_table(results, report.base_url)
         return _action_mapping[action]
+
+    def recalculate(self, project, results):
+        minio = MinioClient(project=project)
+        for result in results:
+            browsertime = result.file_name.replace('.html', '').split('_')[-1]
+            try:
+                fobj = minio.download_file('reports', f'{browsertime}.zip')
+                report = zipfile.ZipFile(io.BytesIO(fobj))
+                data = loads(report.read(f'{browsertime}.json'))[0]
+                result.fcp = data["browserScripts"][0]["timings"]["paintTiming"]["first-contentful-paint"]
+                result.lcp = data["browserScripts"][0]["timings"]["largestContentfulPaint"]["renderTime"]
+                result.cls = round(data["browserScripts"][0]['pageinfo']['layoutShift'], 3)
+                result.tbt = data["cpu"][0]["longTasks"]["totalBlockingTime"]
+                result.fvc = data["visualMetrics"][0]["FirstVisualChange"]
+                result.lvc = data["visualMetrics"][0]["LastVisualChange"]
+                result.browser_time = data
+                result.commit()
+            except:
+                current_app.logger.error(format_exc())
+                current_app.logger.error(f"Bucket: reports File: {browsertime}.zip")
+                continue
+        return {"message": "Done"}
+
 
     def assert_threshold(self, results, aggregation):
         graph_aggregation = {}
@@ -152,7 +182,13 @@ class VisualResultAPI(Resource):
                 "dom_processing": result.dom_processing,
                 "missed_thresholds": result.thresholds_failed,
                 "report": f"/api/v1/artifacts/{result.project_id}/reports/{result.file_name}",
-                "actions": []
+                "actions": [],
+                "fcp": result.fcp,
+                "lcp": result.lcp,
+                "cls": result.cls,
+                "tbt": result.tbt,
+                "fvc": result.fvc,
+                "lvc": result.lvc
             }
 
             actions = []
