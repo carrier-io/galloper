@@ -204,7 +204,8 @@ class TestApiFrontend(Resource):
         if args.get("region"):
             task.region = args.get("region")
         task.aggregation = args['aggregation']
-        task.browser = args['browser']
+        browser = args["browser"] if args["browser"] != "Nothing selected" else "Chrome_undefined"
+        task.browser = browser
         task.entrypoint = args['entrypoint']
         task.emails = args['emails']
         task.git = json.loads(args['git'])

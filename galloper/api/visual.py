@@ -98,7 +98,7 @@ class VisualReportAPI(Resource):
 
 
 class VisualResultAPI(Resource):
-    def get(self, project_id: int, report_id: int, action: Optional[str] = "table"):
+    def get(self, project_id: int, report_id, action: Optional[str] = "table"):
         _action_mapping = {
             "table": [],
             "chart": {
@@ -109,10 +109,16 @@ class VisualResultAPI(Resource):
                 ]
             }
         }
-
-        report = UIReport.query.get_or_404(report_id)
-        results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(UIResult.session_id,
-                                                                                                  UIResult.id).all()
+        if isinstance(report_id, int):
+            report = UIReport.query.get_or_404(report_id)
+            results = UIResult.query.filter_by(project_id=project_id, report_uid=report.uid).order_by(
+                UIResult.session_id,
+                UIResult.id).all()
+        else:
+            report = UIReport.query.filter_by(project_id=project_id, uid=report_id).first_or_404()
+            results = UIResult.query.filter_by(project_id=project_id, report_uid=report_id).order_by(
+                UIResult.session_id,
+                UIResult.id).all()
 
         if action == 'recalculate':
             project = Project.get_or_404(project_id)
@@ -146,7 +152,6 @@ class VisualResultAPI(Resource):
                 current_app.logger.error(f"Bucket: reports File: {browsertime}.zip")
                 continue
         return {"message": "Done"}
-
 
     def assert_threshold(self, results, aggregation):
         graph_aggregation = {}

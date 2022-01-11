@@ -85,6 +85,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, VisualReportAPI, "/visual/<int:project_id>")
     add_resource_to_api(api, VisualResultAPI, "/visual/<int:project_id>/<int:report_id>",
+                        "/visual/<int:project_id>/<string:report_id>",
                         "/visual/<int:project_id>/<int:report_id>/<string:action>")
 
     add_resource_to_api(api, TestsApiPerformance, "/tests/<int:project_id>/backend")

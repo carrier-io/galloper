@@ -99,5 +99,9 @@ class UIReportsAPI(Resource):
     def get(self, project_id):
         args = self._parser_get.parse_args()
 
-        report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+        if isinstance(args['report_id'], int):
+            report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+        else:
+            report = UIReport.query.filter_by(project_id=project_id, uid=args['report_id']).first_or_404()
+
         return report.to_json()
