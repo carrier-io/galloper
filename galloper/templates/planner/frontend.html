@@ -26,12 +26,13 @@
                                     <input type="text" id="testname" class="form-control form-control-alternative"
                                            placeholder="Test Name">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" id="_runner">
                                     <label class="form-control-label" for="runner">Test runner</label>
                                     <p><small>Observer - used for .side scripts or Lighthouse.</small></p>
                                     <select class="form-control selectpicker" id="runner">
                                         <option value="Observer">Observer</option>
                                         <option value="Lighthouse">Lighthouse</option>
+                                        <option value="Sitespeed">Sitespeed (browsertime)</option>
                                     </select>
                                 </div>
                                 <div class="form-group" id="_loops">
@@ -335,7 +336,8 @@
                     $('#testname').val(data.name);
                     $('#testname').prop("disabled", true);
                     $("#fileUpload").remove();
-                    $("#testrunners").remove();
+                    $("#_runner").hide();
+                    $("#browsers").hide();
                     $("#testid").css("display", "block");
                     $("#testuuid").val(data.test_uid);
                     $('#entrypoint').val(data.entrypoint);
@@ -428,6 +430,10 @@
         $("#_aggregation").hide();
         $("#_loops").hide();
         $("#browsers").hide();
+    } else if ("Sitespeed" == $("#runner").val()) {
+        $("#_aggregation").show();
+        $("#_loops").show();
+        $("#browsers").hide();
     } else {
         $("#_aggregation").show();
         $("#_loops").show();
@@ -501,7 +507,6 @@
             'cc_env_vars': JSON.stringify(params[3]),
             'customization': JSON.stringify(params[2]),
             'reporter': checked,
-            'runner': $('#runner').val(),
             'loops': $('#loops').val(),
             'region': $('#region').val(),
             'aggregation': $('#aggregation').children("option:selected").val(),

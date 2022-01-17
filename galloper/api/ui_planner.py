@@ -71,8 +71,12 @@ class UITestsApiPerformance(Resource):
         project = Project.get_or_404(project_id)
 
         browser = args["browser"] if args["browser"] != "Nothing selected" else "Chrome_undefined"
-        runner = f"getcarrier/observer:{CURRENT_RELEASE}" if args["runner"] == "Observer" else \
-                 f"getcarrier/observer-lighthouse:{CURRENT_RELEASE}"
+        if args["runner"] == "Observer":
+            runner = f"getcarrier/observer:{CURRENT_RELEASE}"
+        elif args["runner"] == "Lighthouse":
+            runner = f"getcarrier/observer-lighthouse:{CURRENT_RELEASE}"
+        else:
+            runner = f"getcarrier/observer-browsertime:{CURRENT_RELEASE}"
         job_type = "observer"
 
         if args.get("git"):

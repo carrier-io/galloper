@@ -184,7 +184,7 @@ class TestApiBackend(Resource):
         else:
             _filter = and_(PerformanceTests.project_id == project.id, PerformanceTests.test_uid == test_id)
         test = PerformanceTests.query.filter(_filter).first()
-        if type(test.git) is dict and test.git['repo_pass'] is not None and len(test.git['repo_pass']) and args["source"] == "galloper":
+        if test.git and type(test.git) is dict and test.git['repo_pass'] is not None and len(test.git['repo_pass']) and args["source"] == "galloper":
             if not test.git['repo_pass'].startswith("{{") and not test.git['repo_pass'].endswith("}}"):
                 test.git['repo_pass'] = "********"
         if args.raw:
