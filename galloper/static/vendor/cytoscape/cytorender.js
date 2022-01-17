@@ -1,6 +1,7 @@
 var page_params = new URLSearchParams(window.location.search);
 
 function renderCy() {
+    var metric = $("#metric").val();
     var cy = window.cy = cytoscape({
         container: document.getElementById('cy'),
         layout: {
@@ -14,7 +15,7 @@ function renderCy() {
         },
         ready: function(){ console.log("done") },
         style: fetch('/static/vendor/cytoscape/cytostyle.json').then(function(res) { return res.json() }),
-        elements: fetch(`/api/v1/visual/${getSelectedProjectId()}/${page_params.get("report_id")}/chart`).then(function(res) { return res.json() }),
+        elements: fetch(`/api/v1/visual/${getSelectedProjectId()}/${page_params.get("report_id")}/chart?metric=${metric}`).then(function(res) { return res.json() }),
         userPanningEnabled: false,
         userZoomingEnabled: false,
         maxZoom: 2.5,

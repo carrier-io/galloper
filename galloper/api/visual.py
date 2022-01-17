@@ -98,7 +98,18 @@ class VisualReportAPI(Resource):
 
 
 class VisualResultAPI(Resource):
+    get_rules = (
+        dict(name="metric", type=str, default="total", location="args"),
+    )
+
+    def __init__(self):
+        self.__init_req_parsers()
+
+    def __init_req_parsers(self):
+        self._parser_get = build_req_parser(rules=self.get_rules)
+
     def get(self, project_id: int, report_id, action: Optional[str] = "table"):
+        args = self._parser_get.parse_args(strict=False)
         _action_mapping = {
             "table": [],
             "chart": {
@@ -124,7 +135,7 @@ class VisualResultAPI(Resource):
             project = Project.get_or_404(project_id)
             return self.recalculate(project, results)
 
-        nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops)
+        nodes, edges = self.build_graph(project_id, results, report.aggregation, report.loops, args["metric"])
 
         _action_mapping["chart"]["nodes"] = nodes
         _action_mapping["chart"]["edges"] = edges
@@ -153,7 +164,7 @@ class VisualResultAPI(Resource):
                 continue
         return {"message": "Done"}
 
-    def assert_threshold(self, results, aggregation):
+    def assert_threshold(self, results, aggregation, metric="total"):
         graph_aggregation = {}
         for result in results:
             if result.identifier in graph_aggregation.keys():
@@ -163,7 +174,7 @@ class VisualResultAPI(Resource):
 
         threshold_results = {}
         for name, values in graph_aggregation.items():
-            aggregated_total = get_aggregated_data(aggregation, values)
+            aggregated_total = get_aggregated_data(aggregation, values, metric)
             result = closest(values, aggregated_total)
             thresholds_failed = sum([d.thresholds_failed for d in values])
             status = "passed"
@@ -212,11 +223,11 @@ class VisualResultAPI(Resource):
             table.append(data)
         return table
 
-    def build_graph(self, project_id, results, aggregation, loops):
+    def build_graph(self, project_id, results, aggregation, loops, metric="total"):
         edges = []
         nodes = self.get_nodes(results)
         flow = self.get_flow(results)
-        threshold_results = self.assert_threshold(results, aggregation)
+        threshold_results = self.assert_threshold(results, aggregation, metric)
 
         for session, steps in flow.items():
             for curr, upcoming in self.pairwise(steps):

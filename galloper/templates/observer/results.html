@@ -128,9 +128,10 @@
                     </div>
                 </div>
                 <div class="row">
-                <div class="col mt-3">
-                    <input type="button" value="Recalculate" onclick="recalculateUITest()" class="btn btn-primary btn-sm">
-                 </div>
+                    <div class="col mt-3">
+                        <input type="button" value="Recalculate" onclick="recalculateUITest()"
+                               class="btn btn-primary btn-sm">
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,10 +142,30 @@
         <div class="card bg-gradient-white shadow">
             <div class="card-header bg-transparent">
                 <div class="row align-items-center">
-                    <div class="col-xl-4">
+                    <div>
                         <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
-                        <h2 class="text-gray mb-0" style="text-transform: none;">Results summary aggregated by {{
-                            test_data['aggregation']}} values</h2>
+                        <div class="col">
+                            <ul id="chart-control" class="nav nav-pills justify-content-end">
+                                <li class="nav-item mr-2 mr-md-0 mt-2">
+                                    <span>Results summary aggregated by {{test_data['aggregation']}} values in seconds. Metric:</span>
+                                </li>
+                                <li class="nav-item mr-2 mr-md-0">
+                                    <select class="form-control selectpicker" id="metric">
+                                        <option value="total">Load time</option>
+                                        <option value="speed_index">Speed Index</option>
+                                        <option value="time_to_first_byte">Time To First Byte</option>
+                                        <option value="time_to_first_paint">Time To First Paint</option>
+                                        <option value="dom_content_loading">DOM Content Loading</option>
+                                        <option value="fcp">First Contentful Paint</option>
+                                        <option value="lcp">Largest Contentful Paint</option>
+                                        <option value="cls">Cumulative Layout Shift</option>
+                                        <option value="tbt">Total Blocking Time</option>
+                                        <option value="fvc">First Visual Change</option>
+                                        <option value="lvc">Last Visual Change</option>
+                                    </select>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -276,6 +297,9 @@
         refreshTable();
         renderCy();
 
+        $('#metric').on("changed.bs.select", function() {
+           renderCy();
+        });
         $("#submitRenamePage").click(function(){
             var data = { name: $('#nodeNameInput').val(), identifier: $("#resultIdentifier").val()  }
             let selectedProjectId = getSelectedProjectId();
@@ -328,6 +352,10 @@
             }
         });
     }
+
+
+
+
 
 
 </script>

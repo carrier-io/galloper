@@ -38,8 +38,8 @@ def within_bounds(data, bound):
     return all(x <= bound for x in data)
 
 
-def get_aggregated_data(aggregation, values):
-    totals = [d.total for d in values]
+def get_aggregated_data(aggregation, values, metric="total"):
+    totals = [d.to_json()[metric] for d in values]
     if aggregation == "max":
         return max(totals)
     elif aggregation == "min":
