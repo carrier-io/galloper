@@ -36,4 +36,5 @@ class UIResult(AbstractBaseMixin, Base):
     tbt = Column(Integer, unique=False, nullable=True)
     fvc = Column(Integer, unique=False, nullable=True)
     lvc = Column(Integer, unique=False, nullable=True)
+    tti = Column(Integer, unique=False, nullable=True)
 

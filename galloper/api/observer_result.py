@@ -80,7 +80,8 @@ class UIResultsAPI(Resource):
             cls=metrics["cumulative_layout_shift"],
             tbt=metrics["total_blocking_time"],
             fvc=metrics["first_visual_change"],
-            lvc=metrics["last_visual_change"]
+            lvc=metrics["last_visual_change"],
+            tti=metrics["time_to_interactive"]
         )
 
         result.insert()

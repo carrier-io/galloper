@@ -204,7 +204,8 @@ class VisualResultAPI(Resource):
                 "cls": result.cls,
                 "tbt": result.tbt,
                 "fvc": result.fvc,
-                "lvc": result.lvc
+                "lvc": result.lvc,
+                "tti": result.tti
             }
 
             actions = []
