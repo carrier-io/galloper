@@ -235,7 +235,8 @@ class TestApiBackend(Resource):
         if args.get("git"):
             args_git = loads(args.get("git"))
             # ignore password change from UI
-            args_git["repo_pass"] = task.git["repo_pass"]
+            if "repo_pass" in task.git:
+                args_git["repo_pass"] = task.git["repo_pass"]
             task.git = args_git
         task.commit()
         return task.to_json(["influx.port", "influx.host", "galloper_url",

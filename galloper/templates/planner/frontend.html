@@ -32,6 +32,7 @@
                                     <select class="form-control selectpicker" id="runner">
                                         <option value="Observer">Observer</option>
                                         <option value="Lighthouse">Lighthouse</option>
+                                        <option value="Lighthouse-Nodejs">Lighthouse-Nodejs</option>
                                         <option value="Sitespeed">Sitespeed (browsertime)</option>
                                     </select>
                                 </div>
@@ -426,7 +427,7 @@
     });
 
     $('#runner').on("changed.bs.select", function() {
-    if ("Lighthouse" == $("#runner").val()) {
+    if ("Lighthouse" == $("#runner").val() || "Lighthouse-Nodejs" == $("#runner").val()) {
         $("#_aggregation").hide();
         $("#_loops").hide();
         $("#browsers").hide();
