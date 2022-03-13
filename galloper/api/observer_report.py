@@ -10,6 +10,8 @@ from galloper.utils.api_utils import build_req_parser
 class UIReportsAPI(Resource):
     get_rules = (
         dict(name="report_id", type=str, location="args"),
+        dict(name="name", type=str, location="args"),
+        dict(name="count", type=int, location="args")
     )
 
     post_rules = (
@@ -98,10 +100,16 @@ class UIReportsAPI(Resource):
 
     def get(self, project_id):
         args = self._parser_get.parse_args()
-
-        if isinstance(args['report_id'], int):
-            report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+        if args['report_id']:
+            if isinstance(args['report_id'], int):
+                report = UIReport.query.filter_by(project_id=project_id, id=args['report_id']).first_or_404()
+            else:
+                report = UIReport.query.filter_by(project_id=project_id, uid=args['report_id']).first_or_404()
         else:
-            report = UIReport.query.filter_by(project_id=project_id, uid=args['report_id']).first_or_404()
+            reports = UIReport.query.filter_by(project_id=project_id, name=args['name']).order_by(UIReport.id.desc()).limit(args['count'])
+            _reports = []
+            for each in reports:
+                _reports.append(each.to_json())
+            return _reports
 
         return report.to_json()

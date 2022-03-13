@@ -199,6 +199,7 @@ class VisualResultAPI(Resource):
                 "missed_thresholds": result.thresholds_failed,
                 "report": f"/api/v1/artifacts/{result.project_id}/reports/{result.file_name}",
                 "actions": [],
+                "type": result.type,
                 "fcp": result.fcp,
                 "lcp": result.lcp,
                 "cls": result.cls,
