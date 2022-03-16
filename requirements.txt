@@ -1,7 +1,8 @@
 urllib3==1.25.11
 docker==3.7.0
 docker-compose==1.25.5
-Flask==1.0.2
+Flask==1.1.4
+markupsafe==2.0.1
 Flask-SQLAlchemy==2.3.2
 flask_restful==0.3.8
 croniter==0.3.29
