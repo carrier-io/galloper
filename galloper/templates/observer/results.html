@@ -1,7 +1,9 @@
 {% include 'common/head.html' %}
 <meta property="build_id" content="{{ test_data['build_id'] }}"/>
+<meta property="report_id" content="{{ test_data['report_id'] }}"/>
 <meta property="browser" content="{{ test_data['browser'] }}"/>
 <meta property="test_name" content="{{ test_data['name'] }}"/>
+<meta property="environment" content="{{ test_data['environment'] }}"/>
 <link href="{{ url_for('static', filename='vendor/cytoscape/cyrostyle.css') }}" rel="stylesheet">
 {% include 'common/nav.html' %}
 {% include 'common/page_nav.html' %}
@@ -131,6 +133,7 @@
                     <div class="col mt-3">
                         <input type="button" value="Recalculate" onclick="recalculateUITest()"
                                class="btn btn-primary btn-sm">
+                        <input id="BL" type="button" value="Set as Baseline" onclick="setUIBaseline()" class="btn btn-primary btn-sm">
                     </div>
                 </div>
             </div>
@@ -352,6 +355,24 @@
             success: () => {
                 location.reload();
             }
+        });
+    }
+
+    function setUIBaseline() {
+        let selectedProjectId = getSelectedProjectId();
+        let test_name = document.querySelector("[property~=test_name][content]").content;
+        let environment = document.querySelector("[property~=environment][content]").content;
+        let report_id = document.querySelector("[property~=report_id][content]").content;
+        var data = {
+            test_name: test_name,
+            env: environment,
+            report_id: report_id
+        };
+        $.ajax({
+            url: `/api/v1/ui_baseline/${selectedProjectId}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data)
         });
     }
 

@@ -118,6 +118,7 @@ def visual_report(project: Project):
     except:
         resolution = 0
     test_data = dict(id=report_id, project_id=project.id, name=ui_report.name,
+                     report_id=ui_report.uid,
                      environment=ui_report.environment,
                      browser=ui_report.browser,
                      browser_version=browser_version,

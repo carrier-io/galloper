@@ -36,6 +36,7 @@ from .thresholds import BackendThresholdsAPI, UIThresholdsAPI, RequestsAPI, Envi
 from .statistic import StatisticAPI
 from .observer_report import UIReportsAPI
 from .integrations import IntegrationsAPI
+from .ui_baseline import UIBaselineAPI
 
 
 def initialize_api_routes(api: Api):
@@ -80,6 +81,7 @@ def initialize_api_routes(api: Api):
 
     add_resource_to_api(api, UIReportsAPI, "/observer/<int:project_id>")
     add_resource_to_api(api, UIResultsAPI, "/observer/<int:project_id>/<string:report_id>")
+    add_resource_to_api(api, UIBaselineAPI, "/ui_baseline/<int:project_id>")
 
     add_resource_to_api(api, UIResultsStepAPI, "/observer/<int:project_id>/step")
 
