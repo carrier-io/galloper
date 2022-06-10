@@ -31,4 +31,4 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: getcarrier/galloper:latest
+          tags: getcarrier/galloper:2.5

@@ -107,7 +107,7 @@ def rp_integration(args, project):
             'content-type': 'application/json',
             'Authorization': f'bearer {args["config"]["rp_token"]}'
         }
-        res = get(url, headers=headers)
+        res = get(url, headers=headers, verify=False)
         if res.status_code == 200:
             message = "Successfully connected to RP"
         else:
