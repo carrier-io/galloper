@@ -72,6 +72,11 @@ NAME_CONTAINER_MAPPING = {
 }
 
 JOB_CONTAINER_MAPPING = {
+    "v5.5": {
+        "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.5",
+        "job_type": "perfmeter",
+        "influx_db": "{{secret.jmeter_db}}"
+    },
     "v5.4.1": {
         "container": f"getcarrier/perfmeter:{CURRENT_RELEASE}.5.4.1",
         "job_type": "perfmeter",
