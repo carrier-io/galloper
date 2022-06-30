@@ -216,6 +216,7 @@
                         <th scope="col" data-sortable="true" data-field="fvc">FVC, ms</th>
                         <th scope="col" data-sortable="true" data-field="lvc">LVC, ms</th>
                         <th scope="col" data-formatter=reportLink>Report</th>
+                        <th scope="col" data-formatter=jsonLink>JSON</th>
                         <th scope="col" data-formatter=renameButton>Rename page</th>
                     </tr>
                     </thead>
@@ -284,6 +285,10 @@
 
     function reportLink(value, row, index) {
         return `<a target="_blank" href="${row.report}"><i class="fas fa-link"></i></a>`
+    }
+
+    function jsonLink(value, row, index) {
+        return `<a target="_blank" href="${row.report.replace(".html", ".json")}"><i class="fas fa-link"></i></a>`
     }
 
     function renameButton(value, row, index) {
