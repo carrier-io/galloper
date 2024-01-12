@@ -77,6 +77,8 @@ class UITestsApiPerformance(Resource):
             runner = f"getcarrier/observer-lighthouse:{CURRENT_RELEASE}"
         elif args["runner"] == "Lighthouse-Nodejs":
             runner = f"getcarrier/observer-lighthouse-nodejs:{CURRENT_RELEASE}"
+        elif args["runner"] == "Lighthouse-npx":
+            runner = f"getcarrier/observer-lighthouse-npx:{CURRENT_RELEASE}"
         else:
             runner = f"getcarrier/observer-browsertime:{CURRENT_RELEASE}"
         job_type = "observer"
